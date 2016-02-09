@@ -119,6 +119,7 @@ const parseNote = (data, noteNode, state) => {
   const voiceNode = noteNode.getElementsByTagName('voice')[0];
   //const graceNode = noteNode.querySelector('grace');
   const pitchNode = noteNode.getElementsByTagName('pitch')[0];
+  const restNode = noteNode.getElementsByTagName('rest')[0];
   const typeNode = noteNode.getElementsByTagName('type')[0];
   const stemNode = noteNode.getElementsByTagName('stem')[0];
   const durationNode = noteNode.getElementsByTagName('duration')[0];
@@ -130,7 +131,7 @@ const parseNote = (data, noteNode, state) => {
   //const { onGrace, onChord } = noteState;
   const isNewVoice = data.voices.indexOf(voice) === -1;
   const isNewStaff = data.staffs.indexOf(staff) === -1;
-  const isRest = noteNode.getElementsByTagName('rest')[0] ? true : false;
+  const isRest = restNode ? true : false;
   const isChord = noteNode.getElementsByTagName('chord')[0] ? true : false;
   const isGrace = noteNode.getElementsByTagName('grace')[0] ? true : false;
 
@@ -164,9 +165,9 @@ const parseNote = (data, noteNode, state) => {
   const note = {
     tag: 'note',
     rest: isRest,
+    full: isRest && restNode.getAttribute('measure') === 'yes',
     grace: isGrace,
     pitches: [],
-    beams: [],
     staff: staff,
     voice: voice,
     dot: numDots,
@@ -181,9 +182,8 @@ const parseNote = (data, noteNode, state) => {
     };
 
     const alterNode = pitchNode.getElementsByTagName('alter')[0];
-    if (alterNode)
-      pitch.alter = Number(alterNode.textContent);
-
+    if (alterNode) pitch.alter = Number(alterNode.textContent);
+    if (accidentalNode) pitch.accidental = accidentalNode.textContent;
     if (isChord) {
       notes[notes.length - 1].pitches.push(pitch);
       return;
@@ -200,17 +200,14 @@ const parseNote = (data, noteNode, state) => {
 
   if (typeNode) note.type = typeNode.textContent;
   if (stemNode) note.stem = stemNode.textContent;
-  if (accidentalNode) note.accidental = accidentalNode.textContent;
 
   if (beamNodes.length > 0 && beamNodes[0].hasAttribute('number')) {
     beamNodes.sort((prev, next) => {
       return Number(prev.getAttribute('number')) - Number(next.getAttribute('number'));
     });
-  }
 
-  beamNodes.forEach(node => {
-    note.beams.push(node.textContent);
-  });
+    note.beam = beamNodes[0].textContent;
+  }
 
   notes.push(note);
 };
@@ -225,6 +222,7 @@ const parseNotes = (data, noteNodes) => {
     noteBegin: false,
   };
 
+  const getDuration = node => Number(node.getElementsByTagName('duration')[0].textContent);
   noteNodes.forEach(node => {
     switch (node.tagName) {
       case 'print':
@@ -237,14 +235,19 @@ const parseNotes = (data, noteNodes) => {
         parseAttributes(data, node, state);
         break;
       case 'note':
+        if (node.getAttribute('print-object') === 'no') { // it is forward
+          state.duration += getDuration(node);
+          break;
+        }
+
         state.noteBegin = true;
         parseNote(data, node, state);
         break;
       case 'forward':
-        state.duration += Number(node.getElementsByTagName('duration')[0].textContent);
+        state.duration += getDuration(node);
         break;
       case 'backup':
-        state.duration -= Number(node.getElementsByTagName('duration')[0].textContent);
+        state.duration -= getDuration(node);
         break;
       case 'direction':
         // TODO

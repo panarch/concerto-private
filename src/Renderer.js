@@ -42,6 +42,38 @@ export default class Renderer {
     });
   }
 
+  renderVoices() {
+    this.score.getParts().forEach((part, pi) => {
+      let index = 0;
+      let context = this.contexts[index];
+
+      part.getMeasures().forEach((measure, mi) =>{
+        if (measure.hasNewPage()) {
+          index++;
+          context = this.contexts[index];
+        }
+
+        measure.getVFVoices().forEach(voice => voice.draw(context));
+      });
+    });
+  }
+
+  renderBeams() {
+    this.score.getParts().forEach((part, pi) => {
+      let index = 0;
+      let context = this.contexts[index];
+
+      part.getMeasures().forEach((measure, mi) => {
+        if (measure.hasNewPage()) {
+          index++;
+          context = this.contexts[index];
+        }
+
+        measure.getVFBeams().forEach(beam => beam.setContext(context).draw());
+      });
+    });
+  }
+
   renderPartList() {
     this.score.getPartList().getConnectors().forEach(connector => {
       const context = this.contexts[connector.page - 1];
@@ -65,6 +97,8 @@ export default class Renderer {
   render() {
     this.setupRenderers();
     this.renderStaves();
+    this.renderVoices();
+    this.renderBeams();
     this.renderPartList();
     this.renderCredits();
   }

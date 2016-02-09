@@ -21,6 +21,14 @@ export const getVFClef = clef => {
   return vfClef;
 };
 
+export const getVFDuration = note => {
+  let duration = note.type ? Table.VF_NOTE_TYPE[note.type] : 'w';
+  duration += 'd'.repeat(note.dot);
+  if (note.rest) duration += 'r';
+
+  return duration;
+};
+
 export const getVFKeySignature = keySig => {
   if (keySig === undefined) return;
 

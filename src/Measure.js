@@ -3,7 +3,7 @@
 
 export default class Measure {
   constructor({ number, width, voices, staffs, notesMap, key, time, clefMap, print, divisions,
-      leftBarline, rightBarline, staffDetailsMap }) {
+      leftBarline, rightBarline, staffDetailsMap } = {}) {
     this.number = number;
     this.width = width;
     this.voices = voices;
@@ -24,6 +24,8 @@ export default class Measure {
     this.staveMap = new Map();
     this.staffYMap = new Map();
     this.staffDisplayedMap = new Map();
+    this.vfVoiceMap = new Map(); // voice -> vfVoice
+    this.vfBeamsMap = new Map(); // voice -> vfBeams
   }
 
   getPrint() { return this.print; }
@@ -163,14 +165,24 @@ export default class Measure {
   setStave(staff, stave) { this.staveMap.set(staff, stave); }
 
   getKey() { return this.key; }
+  setKey(key) { this.key = key; }
   getTime() { return this.time; }
+  setTime(time) { this.time = time; }
   getClefMap() { return this.clefMap; }
-  getClef(staff = 1) {
-    const clef = this.clefMap.get(staff);
-    return clef ? clef : this.clefMap.get(1);
-  }
+  setClefMap(clefMap) { this.clefMap = clefMap; }
+  getClef(staff = 1) { return this.clefMap.get(staff); }
+  setClef(staff, clef) { this.clefMap.set(staff, clef); }
+  getDivisions() { return this.divisions; }
+  setDivisions(divisions) { this.divisions = divisions; }
 
   getNotesMap() { return this.notesMap; }
+  getVoices() { return this.voices; }
+  getVFVoices() { return [...this.vfVoiceMap.values()]; }
+  getVFVoiceMap() { return this.vfVoiceMap; }
+  setVFVoiceMap(vfVoiceMap) { this.vfVoiceMap = vfVoiceMap; }
+  getVFBeams() { return [...this.vfBeamsMap.values()].reduce((a, b) => a.concat(b), []); }
+  getVFBeamsMap() { return this.vfBeamsMap; }
+  setVFBeamsMap(vfBeamsMap) { this.vfBeamsMap = vfBeamsMap; }
 }
 
 Measure.STAFF_HEIGHT = 40;

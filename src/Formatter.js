@@ -2,9 +2,12 @@
 // @author Taehoon Moon
 
 import Vex from 'vexflow';
+//import VFStaveFormatter from './VFStaveFormatter';
 import Measure from './Measure';
+import Table from './Table';
 import {
   getVFClef,
+  getVFDuration,
   getVFKeySignature,
   getVFConnectorType,
 } from './Util';
@@ -17,6 +20,8 @@ export default class Formatter {
     this.parts = this.score.getParts();
     this.partList = this.score.getPartList();
     this.context = this.createContext();
+
+    this.measureCacheMap = new Map();
   }
 
   createContext() {
@@ -57,6 +62,14 @@ export default class Formatter {
         this.state.staffDisplayedMap.set(key, true);
       }
     }
+  }
+
+  getMeasureCache(pi, mi) {
+    const key = `${pi}/${mi}`;
+    if (!this.measureCacheMap.has(key))
+      this.measureCacheMap.set(key, new Measure());
+
+    return this.measureCacheMap.get(key);
   }
 
   formatX() {
@@ -279,6 +292,9 @@ export default class Formatter {
           if (stave) stave.addEndClef(vfClef, 'small');
         });
 
+        // update cache
+        this.getMeasureCache(pi, mi).setClefMap(new Map(clefMap));
+
         measure.getNotesMap().forEach(notes => {
           let staff = 1;
           notes.forEach(note => {
@@ -320,6 +336,8 @@ export default class Formatter {
           });
         }
 
+        // update cache
+        this.getMeasureCache(pi, mi).setKey(key);
         prevMeasure = measure;
       });
     });
@@ -351,7 +369,22 @@ export default class Formatter {
           });
         }
 
+        // update cache
+        this.getMeasureCache(pi, mi).setTime(time);
         prevMeasure = measure;
+      });
+    });
+  }
+
+  formatDivisions() {
+    this.parts.forEach((part, pi) => {
+      let divisions;
+      part.getMeasures().forEach((measure, mi) => {
+        if (measure.getDivisions() !== undefined)
+          divisions = measure.getDivisions();
+
+        // update cache
+        this.getMeasureCache(pi, mi).setDivisions(divisions);
       });
     });
   }
@@ -583,6 +616,134 @@ export default class Formatter {
     this.partList.setConnectors(connectors);
   }
 
+  /*
+  formatStaves() {
+    this.parts[0].getMeasures().forEach((_, mi) => {
+      const vfStaveFormatter = new VFStaveFormatter();
+      let vfStaves = [];
+      this.parts.forEach((part, pi) => {
+        const measure = part.getMeasures()[mi];
+        vfStaves = vfStaves.concat(measure.getStaves());
+      });
+
+      vfStaveFormatter.format(vfStaves);
+    });
+  }
+  */
+
+  _formatNote(note, clef) {
+    const data = {
+      keys: [],
+      duration: getVFDuration(note),
+      clef: note.rest ? 'treble' : getVFClef(clef),
+    };
+
+    const accidentals = [];
+    note.pitches.forEach(({step, octave, accidental}) => {
+      data.keys.push(`${step}/${octave}`);
+      accidentals.push(accidental ? accidental : null);
+    });
+
+    if (data.keys.length === 0) data.keys = Table.VF_DEFAULT_REST_KEYS;
+    if (note.full) data.align_center = true;
+    if (note.stem) data.stem_direction = note.stem === 'up' ?
+      Vex.Flow.StaveNote.STEM_UP : Vex.Flow.StaveNote.STEM_DOWN;
+
+    const staveNote = new Vex.Flow.StaveNote(data);
+    accidentals.forEach((accidental, index) => {
+      if (!accidental) return;
+
+      const vfAccidental = new Vex.Flow.Accidental(Table.VF_ACCIDENTAL[accidental]);
+      staveNote.addAccidental(index, vfAccidental);
+    });
+    return staveNote;
+  }
+
+  _formatMeasures(measures, pi) {
+    measures.forEach((measure, mi) => {
+      const notesMap = measure.getNotesMap();
+      const measureCache = this.getMeasureCache(pi, mi);
+      const vfVoiceMap = new Map();
+      const vfBeamsMap = new Map();
+
+      measure.getVoices().forEach(voice => {
+        if (measure.getStaves().length === 0) return;
+
+        const vfNotes = [];
+        const vfBeams = [];
+        let staff = 1;
+        let vfBeamNotes = [];
+        notesMap.get(voice).forEach(note => {
+          switch (note.tag) {
+            case 'note':
+              if (note.grace) break; // TODO
+
+              const clef = measureCache.getClef(note.staff);
+              const staveNote = this._formatNote(note, clef);
+              staveNote.setStave(measure.getStave(note.staff));
+              vfNotes.push(staveNote);
+
+              staff = note.staff;
+
+              switch (note.beam) {
+                case 'begin':
+                  vfBeamNotes = [staveNote];
+                  break;
+                case 'continue':
+                  vfBeamNotes.push(staveNote);
+                  break;
+                case 'end':
+                  vfBeamNotes.push(staveNote);
+                  vfBeams.push(new Vex.Flow.Beam(vfBeamNotes));
+                  break;
+              }
+
+              break;
+            case 'clef':
+              const clefNote = new Vex.Flow.ClefNote(getVFClef(note.sign));
+              clefNote.setStave(measure.getStave(staff));
+              vfNotes.push(clefNote);
+              break;
+          }
+        });
+
+        const { beats: num_beats, beatType: beat_value } = measureCache.getTime();
+        const vfVoice = new Vex.Flow.Voice({ num_beats, beat_value });
+        vfVoice.setMode(Vex.Flow.Voice.Mode.SOFT);
+        vfVoice.addTickables(vfNotes);
+        vfVoiceMap.set(voice, vfVoice);
+        vfBeamsMap.set(voice, vfBeams);
+      });
+
+      measure.setVFVoiceMap(vfVoiceMap);
+      measure.setVFBeamsMap(vfBeamsMap);
+    });
+  }
+
+  formatNotes() {
+    this.parts.forEach((part, pi) => this._formatMeasures(part.getMeasures(), pi));
+    this.parts[0].getMeasures().forEach((_, mi) => {
+      let vfStaves = [];
+      let vfVoices = [];
+      this.parts.forEach((part, pi) => {
+        const measure = part.getMeasures()[mi];
+        vfVoices = vfVoices.concat(measure.getVFVoices());
+        vfStaves = vfStaves.concat(measure.getStaves());
+      });
+
+      const width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX();
+
+      /* TODO: fix Vex.Flow.Formatter required
+      const vfFormatter = new Vex.Flow.Formatter();
+      vfFormatter.joinVoices(vfVoices).format(vfVoices, width);
+      */
+      vfVoices.forEach(vfVoice => {
+        const vfFormatter = new Vex.Flow.Formatter();
+        vfFormatter.joinVoices([vfVoice]).format([vfVoice], width);
+      })
+    });
+  }
+
   format() {
     this.resetState();
     this.formatX();
@@ -592,7 +753,10 @@ export default class Formatter {
     this.formatClef();
     this.formatKeySignature();
     this.formatTimeSignature();
+    this.formatDivisions();
     this.formatCredits();
     this.formatPartList();
+    //this.formatStaves();
+    this.formatNotes();
   }
 }
