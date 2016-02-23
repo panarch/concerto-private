@@ -167,7 +167,7 @@ const parseNote = (data, noteNode, state) => {
     rest: isRest,
     full: isRest && restNode.getAttribute('measure') === 'yes',
     grace: isGrace,
-    pitches: [],
+    heads: [],
     staff: staff,
     voice: voice,
     dot: numDots,
@@ -185,11 +185,11 @@ const parseNote = (data, noteNode, state) => {
     if (alterNode) pitch.alter = Number(alterNode.textContent);
     if (accidentalNode) pitch.accidental = accidentalNode.textContent;
     if (isChord) {
-      notes[notes.length - 1].pitches.push(pitch);
+      notes[notes.length - 1].heads.push(pitch);
       return;
     }
 
-    note.pitches.push(pitch);
+    note.heads.push(pitch);
   }
 
   if (durationNode) {

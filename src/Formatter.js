@@ -639,7 +639,7 @@ export default class Formatter {
     };
 
     const accidentals = [];
-    note.pitches.forEach(({step, octave, accidental}) => {
+    note.heads.forEach(({step, octave, accidental}) => {
       data.keys.push(`${step}/${octave}`);
       accidentals.push(accidental ? accidental : null);
     });
