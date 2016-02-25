@@ -74,6 +74,22 @@ export default class Renderer {
     });
   }
 
+  renderTies() {
+    this.score.getParts().forEach((part, pi) => {
+      let index = 0;
+      let context = this.contexts[index];
+
+      part.getMeasures().forEach((measure, mi) => {
+        if (measure.hasNewPage()) {
+          index++;
+          context = this.contexts[index];
+        }
+
+        part.getVFTies(mi).forEach(tie => tie.setContext(context).draw());
+      });
+    });
+  }
+
   renderPartList() {
     this.score.getPartList().getConnectors().forEach(connector => {
       const context = this.contexts[connector.page - 1];
@@ -99,6 +115,7 @@ export default class Renderer {
     this.renderStaves();
     this.renderVoices();
     this.renderBeams();
+    this.renderTies();
     this.renderPartList();
     this.renderCredits();
   }

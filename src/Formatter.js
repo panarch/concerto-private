@@ -659,15 +659,31 @@ export default class Formatter {
     return staveNote;
   }
 
-  _formatMeasures(measures, pi) {
-    measures.forEach((measure, mi) => {
+  _formatMeasures(part, pi) {
+    const vfTiesMap = new Map();
+    let vfTieNotes = [];
+    let vfTieStartIndices = [];
+    let vfTieStopIndices = [];
+
+    part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
       const measureCache = this.getMeasureCache(pi, mi);
       const vfVoiceMap = new Map();
       const vfBeamsMap = new Map();
+      const vfTies = [];
 
       measure.getVoices().forEach(voice => {
         if (measure.getStaves().length === 0) return;
+
+        if (measure.isNewLineStarting() && vfTieNotes.length > 0) {
+          vfTiesMap.get(mi - 1).push(new Vex.Flow.StaveTie({
+            first_note: vfTieNotes[0],
+            first_indices: vfTieStartIndices,
+            last_indices: vfTieStartIndices,
+          }));
+
+          vfTieNotes[0] = undefined;
+        }
 
         const vfNotes = [];
         const vfBeams = [];
@@ -698,6 +714,38 @@ export default class Formatter {
                   break;
               }
 
+              // 1. stop tie
+              if (note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
+                vfTieNotes.push(staveNote); // stop tie exists
+
+                note.heads.forEach((head, index) => {
+                  if (!/^stop/.test(head.tied)) return;
+
+                  vfTieStopIndices.push(index);
+                });
+
+                vfTies.push(new Vex.Flow.StaveTie({
+                  first_note: vfTieNotes[0],
+                  last_note: vfTieNotes[1],
+                  first_indices: vfTieStartIndices,
+                  last_indices: vfTieStopIndices,
+                }));
+
+                vfTieNotes = [];
+                vfTieStartIndices = [];
+                vfTieStopIndices = [];
+              }
+
+              // 2. start tie
+              if (note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
+                vfTieNotes = [staveNote];
+                note.heads.forEach((head, index) => {
+                  if (!/start$/.test(head.tied)) return;
+
+                  vfTieStartIndices.push(index);
+                });
+              }
+
               break;
             case 'clef':
               const clefNote = new Vex.Flow.ClefNote(getVFClef(note.sign));
@@ -715,13 +763,16 @@ export default class Formatter {
         vfBeamsMap.set(voice, vfBeams);
       });
 
+      vfTiesMap.set(mi, vfTies); // although vfTies.length is 0 in this state, it can be added
       measure.setVFVoiceMap(vfVoiceMap);
       measure.setVFBeamsMap(vfBeamsMap);
     });
+
+    part.setVFTiesMap(vfTiesMap);
   }
 
   formatNotes() {
-    this.parts.forEach((part, pi) => this._formatMeasures(part.getMeasures(), pi));
+    this.parts.forEach((part, pi) => this._formatMeasures(part, pi));
     this.parts[0].getMeasures().forEach((_, mi) => {
       let vfStaves = [];
       let vfVoices = [];

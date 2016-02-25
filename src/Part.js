@@ -6,6 +6,8 @@ export default class Part {
     this.id = id;
     this.measures = measures;
     this.numStaffs = null;
+
+    this.vfTiesMap = new Map(); // begin measure index -> vfTies
   }
 
   getMeasures() { return this.measures; }
@@ -20,4 +22,11 @@ export default class Part {
 
     return this.numStaffs;
   }
+
+  getVFTies(mi) {
+    if (mi === undefined) return [...this.vfTiesMap.values()].reduce((a, b) => a.concat(b), []);
+
+    return this.vfTiesMap.has(mi) ? this.vfTiesMap.get(mi) : [];
+  }
+  setVFTiesMap(vfTiesMap) { this.vfTiesMap = vfTiesMap; }
 }

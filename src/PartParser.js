@@ -114,6 +114,15 @@ const sumNotesDuration = notes => {
   }, 0);
 };
 
+const parseNoteNotations = (head, notationsNode) => {
+  if (!notationsNode) return;
+
+  const tiedNodes = notationsNode.getElementsByTagName('tied');
+  if (tiedNodes.length > 0) {
+    head.tied = tiedNodes.length > 1 ? 'stop-and-start' : tiedNodes[0].getAttribute('type');
+  }
+};
+
 const parseNote = (data, noteNode, state) => {
   const staffNode = noteNode.getElementsByTagName('staff')[0];
   const voiceNode = noteNode.getElementsByTagName('voice')[0];
@@ -124,7 +133,9 @@ const parseNote = (data, noteNode, state) => {
   const stemNode = noteNode.getElementsByTagName('stem')[0];
   const durationNode = noteNode.getElementsByTagName('duration')[0];
   const accidentalNode = noteNode.getElementsByTagName('accidental')[0];
+  const notationsNode = noteNode.getElementsByTagName('notations')[0];
   const beamNodes = [...noteNode.getElementsByTagName('beam')];
+  const tieNodes = [...noteNode.getElementsByTagName('tie')];
   const numDots = noteNode.getElementsByTagName('dot').length;
   const staff = staffNode ? Number(staffNode.textContent) : 1;
   const voice = voiceNode ? Number(voiceNode.textContent) : 1;
@@ -184,6 +195,11 @@ const parseNote = (data, noteNode, state) => {
     const alterNode = pitchNode.getElementsByTagName('alter')[0];
     if (alterNode) pitch.alter = Number(alterNode.textContent);
     if (accidentalNode) pitch.accidental = accidentalNode.textContent;
+    if (notationsNode) parseNoteNotations(pitch, notationsNode);
+    if (tieNodes.length > 0) {
+      pitch.tie = tieNodes.length > 1 ? 'stop-and-start' : tieNodes[0].getAttribute('type');
+    }
+
     if (isChord) {
       notes[notes.length - 1].heads.push(pitch);
       return;
