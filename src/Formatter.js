@@ -632,6 +632,8 @@ export default class Formatter {
   */
 
   _formatNote(note, clef) {
+    if (note.hidden) return new Vex.Flow.GhostNote({ duration: getVFDuration(note) });
+
     const data = {
       keys: [],
       duration: getVFDuration(note),
