@@ -757,8 +757,8 @@ export default class Formatter {
           }
         });
 
-        const { beats: num_beats, beatType: beat_value } = measureCache.getTime();
-        const vfVoice = new Vex.Flow.Voice({ num_beats, beat_value });
+        const { beats = 4, beatType = 4 } = measureCache.hasTime() ? measureCache.getTime() : {};
+        const vfVoice = new Vex.Flow.Voice({ num_beats: beats, beat_value: beatType });
         vfVoice.setMode(Vex.Flow.Voice.Mode.SOFT);
         vfVoice.addTickables(vfNotes);
         vfVoiceMap.set(voice, vfVoice);

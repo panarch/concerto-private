@@ -166,6 +166,7 @@ export default class Measure {
 
   getKey() { return this.key; }
   setKey(key) { this.key = key; }
+  hasTime() { return this.time !== undefined; }
   getTime() { return this.time; }
   setTime(time) { this.time = time; }
   getClefMap() { return this.clefMap; }
