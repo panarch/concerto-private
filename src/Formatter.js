@@ -661,12 +661,6 @@ export default class Formatter {
   }
 
   _formatMeasures(part, pi) {
-    const vfTiesMap = new Map();
-    // key: voice
-    const tieNotesMap = new Map();
-    const tieStartIndicesMap = new Map();
-    const tieStopIndicesMap = new Map();
-
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
       const measureCache = this.getMeasureCache(pi, mi);
@@ -676,19 +670,6 @@ export default class Formatter {
       measure.getVoices().forEach(voice => {
         if (measure.getStaves().length === 0) return;
 
-        if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
-
-        if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
-          vfTiesMap.get(`${mi - 1}/${voice}`).push(new Vex.Flow.StaveTie({
-            first_note: tieNotesMap.get(voice)[0],
-            first_indices: tieStartIndicesMap.get(voice),
-            last_indices: tieStartIndicesMap.get(voice),
-          }));
-
-          tieNotesMap.get(voice)[0] = undefined;
-        }
-
-        const vfTies = [];
         const vfNotes = [];
         const vfBeams = [];
         let staff = 1;
@@ -719,43 +700,6 @@ export default class Formatter {
                   break;
               }
 
-              // 1. stop tie
-              if (note.heads &&
-                  note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
-                let tieNotes = tieNotesMap.get(voice);
-                tieNotes.push(staveNote);
-
-                note.heads.forEach((head, index) => {
-                  if (!/^stop/.test(head.tied)) return;
-
-                  if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
-                  tieStopIndicesMap.get(voice).push(index);
-                });
-
-                vfTies.push(new Vex.Flow.StaveTie({
-                  first_note: tieNotes[0],
-                  last_note: tieNotes[1],
-                  first_indices: tieStartIndicesMap.get(voice),
-                  last_indices: tieStopIndicesMap.get(voice),
-                }));
-
-                tieNotesMap.set(voice, []);
-                tieStartIndicesMap.set(voice, []);
-                tieStopIndicesMap.set(voice, []);
-              }
-
-              // 2. start tie
-              if (note.heads &&
-                  note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
-                tieNotesMap.set(voice, [staveNote]);
-                note.heads.forEach((head, index) => {
-                  if (!/start$/.test(head.tied)) return;
-
-                  if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
-                  tieStartIndicesMap.get(voice).push(index);
-                });
-              }
-
               break;
             case 'clef':
               const clefNote = new Vex.Flow.ClefNote(getVFClef(note), 'small');
@@ -772,14 +716,11 @@ export default class Formatter {
         vfVoice.addTickables(vfNotes);
         vfVoiceMap.set(voice, vfVoice);
         vfBeamsMap.set(voice, vfBeams);
-        vfTiesMap.set(`${mi}/${voice}`, vfTies);
       });
 
       measure.setVFVoiceMap(vfVoiceMap);
       measure.setVFBeamsMap(vfBeamsMap);
     });
-
-    part.setVFTiesMap(vfTiesMap);
   }
 
   formatNotes() {
@@ -806,6 +747,87 @@ export default class Formatter {
     });
   }
 
+  _formatTie(part) {
+    const vfTiesMap = new Map();
+    // key: voice
+    const tieNotesMap = new Map();
+    const tieStartIndicesMap = new Map();
+    const tieStopIndicesMap = new Map();
+
+    part.getMeasures().forEach((measure, mi) => {
+      const notesMap = measure.getNotesMap();
+
+      measure.getVoices().forEach(voice => {
+        if (measure.getStaves().length === 0) return;
+
+        if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
+
+        if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
+          vfTiesMap.get(`${mi - 1}/${voice}`).push(new Vex.Flow.StaveTie({
+            first_note: tieNotesMap.get(voice)[0],
+            first_indices: tieStartIndicesMap.get(voice),
+            last_indices: tieStartIndicesMap.get(voice),
+          }));
+
+          tieNotesMap.get(voice)[0] = undefined;
+        }
+
+        const vfTies = [];
+        notesMap.get(voice).forEach(note => {
+          if (note.getTag() !== 'note') return;
+          if (note.getGrace()) return; // TODO
+
+          const staveNote = note.getVFNote();
+
+          // 1. stop tie
+          if (note.heads &&
+              note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
+            let tieNotes = tieNotesMap.get(voice);
+            tieNotes.push(staveNote);
+
+            note.heads.forEach((head, index) => {
+              if (!/^stop/.test(head.tied)) return;
+
+              if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
+              tieStopIndicesMap.get(voice).push(index);
+            });
+
+            vfTies.push(new Vex.Flow.StaveTie({
+              first_note: tieNotes[0],
+              last_note: tieNotes[1],
+              first_indices: tieStartIndicesMap.get(voice),
+              last_indices: tieStopIndicesMap.get(voice),
+            }));
+
+            tieNotesMap.set(voice, []);
+            tieStartIndicesMap.set(voice, []);
+            tieStopIndicesMap.set(voice, []);
+          }
+
+          // 2. start tie
+          if (note.heads &&
+              note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
+            tieNotesMap.set(voice, [staveNote]);
+            note.heads.forEach((head, index) => {
+              if (!/start$/.test(head.tied)) return;
+
+              if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
+              tieStartIndicesMap.get(voice).push(index);
+            });
+          }
+        });
+
+        vfTiesMap.set(`${mi}/${voice}`, vfTies);
+      });
+
+      part.setVFTiesMap(vfTiesMap);
+    });
+  }
+
+  formatTie() {
+    this.parts.forEach(part => this._formatTie(part));
+  }
+
   format() {
     this.resetState();
     this.formatX();
@@ -820,5 +842,6 @@ export default class Formatter {
     this.formatPartList();
     //this.formatStaves();
     this.formatNotes();
+    this.formatTie();
   }
 }
