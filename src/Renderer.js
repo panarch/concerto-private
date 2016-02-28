@@ -85,7 +85,9 @@ export default class Renderer {
           context = this.contexts[index];
         }
 
-        part.getVFTies(mi).forEach(tie => tie.setContext(context).draw());
+        measure.getVoices().forEach(voice => {
+          part.getVFTies(`${mi}/${voice}`).forEach(tie => tie.setContext(context).draw());
+        });
       });
     });
   }

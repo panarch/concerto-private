@@ -330,9 +330,8 @@ export default class Formatter {
 
         if (measure.isNewLineStarting() && keyUpdated) {
           prevMeasure.getStaves().forEach(stave => {
-            // TODO: Apply after current PR for vexflow merged.
-            //const vfKey = getVFKeySignature(key);
-            //if (key) stave.addEndKeySignature(vfKey);
+            const vfKey = getVFKeySignature(key);
+            if (key) stave.addKeySignature(vfKey, undefined, Vex.Flow.StaveModifier.Position.END);
           });
         }
 
@@ -663,30 +662,33 @@ export default class Formatter {
 
   _formatMeasures(part, pi) {
     const vfTiesMap = new Map();
-    let vfTieNotes = [];
-    let vfTieStartIndices = [];
-    let vfTieStopIndices = [];
+    // key: voice
+    const tieNotesMap = new Map();
+    const tieStartIndicesMap = new Map();
+    const tieStopIndicesMap = new Map();
 
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
       const measureCache = this.getMeasureCache(pi, mi);
       const vfVoiceMap = new Map();
       const vfBeamsMap = new Map();
-      const vfTies = [];
 
       measure.getVoices().forEach(voice => {
         if (measure.getStaves().length === 0) return;
 
-        if (measure.isNewLineStarting() && vfTieNotes.length > 0) {
-          vfTiesMap.get(mi - 1).push(new Vex.Flow.StaveTie({
-            first_note: vfTieNotes[0],
-            first_indices: vfTieStartIndices,
-            last_indices: vfTieStartIndices,
+        if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
+
+        if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
+          vfTiesMap.get(`${mi - 1}/${voice}`).push(new Vex.Flow.StaveTie({
+            first_note: tieNotesMap.get(voice)[0],
+            first_indices: tieStartIndicesMap.get(voice),
+            last_indices: tieStartIndicesMap.get(voice),
           }));
 
-          vfTieNotes[0] = undefined;
+          tieNotesMap.get(voice)[0] = undefined;
         }
 
+        const vfTies = [];
         const vfNotes = [];
         const vfBeams = [];
         let staff = 1;
@@ -717,42 +719,48 @@ export default class Formatter {
               }
 
               // 1. stop tie
-              if (note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
-                vfTieNotes.push(staveNote); // stop tie exists
+              if (note.heads &&
+                  note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
+                let tieNotes = tieNotesMap.get(voice);
+                tieNotes.push(staveNote);
 
                 note.heads.forEach((head, index) => {
                   if (!/^stop/.test(head.tied)) return;
 
-                  vfTieStopIndices.push(index);
+                  if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
+                  tieStopIndicesMap.get(voice).push(index);
                 });
 
                 vfTies.push(new Vex.Flow.StaveTie({
-                  first_note: vfTieNotes[0],
-                  last_note: vfTieNotes[1],
-                  first_indices: vfTieStartIndices,
-                  last_indices: vfTieStopIndices,
+                  first_note: tieNotes[0],
+                  last_note: tieNotes[1],
+                  first_indices: tieStartIndicesMap.get(voice),
+                  last_indices: tieStopIndicesMap.get(voice),
                 }));
 
-                vfTieNotes = [];
-                vfTieStartIndices = [];
-                vfTieStopIndices = [];
+                tieNotesMap.set(voice, []);
+                tieStartIndicesMap.set(voice, []);
+                tieStopIndicesMap.set(voice, []);
               }
 
               // 2. start tie
-              if (note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
-                vfTieNotes = [staveNote];
+              if (note.heads &&
+                  note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
+                tieNotesMap.set(voice, [staveNote]);
                 note.heads.forEach((head, index) => {
                   if (!/start$/.test(head.tied)) return;
 
-                  vfTieStartIndices.push(index);
+                  if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
+                  tieStartIndicesMap.get(voice).push(index);
                 });
               }
 
               break;
             case 'clef':
-              const clefNote = new Vex.Flow.ClefNote(getVFClef(note.sign));
+              const clefNote = new Vex.Flow.ClefNote(getVFClef(note), 'small');
               clefNote.setStave(measure.getStave(staff));
               vfNotes.push(clefNote);
+              measureCache.setClef(staff, note);
               break;
           }
         });
@@ -763,9 +771,9 @@ export default class Formatter {
         vfVoice.addTickables(vfNotes);
         vfVoiceMap.set(voice, vfVoice);
         vfBeamsMap.set(voice, vfBeams);
+        vfTiesMap.set(`${mi}/${voice}`, vfTies);
       });
 
-      vfTiesMap.set(mi, vfTies); // although vfTies.length is 0 in this state, it can be added
       measure.setVFVoiceMap(vfVoiceMap);
       measure.setVFBeamsMap(vfBeamsMap);
     });

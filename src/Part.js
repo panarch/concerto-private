@@ -7,7 +7,7 @@ export default class Part {
     this.measures = measures;
     this.numStaffs = null;
 
-    this.vfTiesMap = new Map(); // begin measure index -> vfTies
+    this.vfTiesMap = new Map(); // {begin measure index}/{voice} -> vfTies
   }
 
   getMeasures() { return this.measures; }
@@ -23,10 +23,10 @@ export default class Part {
     return this.numStaffs;
   }
 
-  getVFTies(mi) {
-    if (mi === undefined) return [...this.vfTiesMap.values()].reduce((a, b) => a.concat(b), []);
+  getVFTies(key) {
+    if (key === undefined) return [...this.vfTiesMap.values()].reduce((a, b) => a.concat(b), []);
 
-    return this.vfTiesMap.has(mi) ? this.vfTiesMap.get(mi) : [];
+    return this.vfTiesMap.has(key) ? this.vfTiesMap.get(key) : [];
   }
   setVFTiesMap(vfTiesMap) { this.vfTiesMap = vfTiesMap; }
 }
