@@ -631,23 +631,23 @@ export default class Formatter {
   */
 
   _formatNote(note, clef) {
-    if (note.hidden) return new Vex.Flow.GhostNote({ duration: getVFDuration(note) });
+    if (note.getHidden()) return new Vex.Flow.GhostNote({ duration: getVFDuration(note) });
 
     const data = {
       keys: [],
       duration: getVFDuration(note),
-      clef: note.rest ? 'treble' : getVFClef(clef),
+      clef: note.getRest() ? 'treble' : getVFClef(clef),
     };
 
     const accidentals = [];
-    note.heads.forEach(({step, octave, accidental}) => {
+    note.getHeads().forEach(({step, octave, accidental}) => {
       data.keys.push(`${step}/${octave}`);
       accidentals.push(accidental ? accidental : null);
     });
 
     if (data.keys.length === 0) data.keys = Table.VF_DEFAULT_REST_KEYS;
-    if (note.full) data.align_center = true;
-    if (note.stem) data.stem_direction = note.stem === 'up' ?
+    if (note.getFull()) data.align_center = true;
+    if (note.getStem()) data.stem_direction = note.getStem() === 'up' ?
       Vex.Flow.StaveNote.STEM_UP : Vex.Flow.StaveNote.STEM_DOWN;
 
     const staveNote = new Vex.Flow.StaveNote(data);
@@ -694,13 +694,14 @@ export default class Formatter {
         let staff = 1;
         let vfBeamNotes = [];
         notesMap.get(voice).forEach(note => {
-          switch (note.tag) {
+          switch (note.getTag()) {
             case 'note':
-              if (note.grace) break; // TODO
+              if (note.getGrace()) break; // TODO
 
-              const clef = measureCache.getClef(note.staff);
+              const clef = measureCache.getClef(note.getStaff());
               const staveNote = this._formatNote(note, clef);
-              staveNote.setStave(measure.getStave(note.staff));
+              staveNote.setStave(measure.getStave(note.getStaff()));
+              note.setVFNote(staveNote);
               vfNotes.push(staveNote);
 
               staff = note.staff;

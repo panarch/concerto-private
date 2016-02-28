@@ -22,9 +22,10 @@ export const getVFClef = clef => {
 };
 
 export const getVFDuration = note => {
-  let duration = note.type ? Table.VF_NOTE_TYPE[note.type] : 'w';
-  duration += 'd'.repeat(note.dot);
-  if (note.rest) duration += 'r';
+  const type = note.getType();
+  let duration = type ? Table.VF_NOTE_TYPE[type] : 'w';
+  duration += 'd'.repeat(note.getDot());
+  if (note.getRest()) duration += 'r';
 
   return duration;
 };

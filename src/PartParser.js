@@ -4,6 +4,8 @@
 import { parseSystemLayout, parseStaffLayout } from './LayoutParser';
 import Part from './Part';
 import Measure from './Measure';
+import Note from './Note';
+import ClefNote from './ClefNote';
 
 const parsePrint = (data, printNode) => {
   const print = {};
@@ -79,7 +81,7 @@ const parseAttributes = (data, attrNode, state) => {
           data.clefMap.set(staff, clef);
         } else {
           clef.tag = 'clef';
-          data.notesMap.get(state.voice).push(clef);
+          data.notesMap.get(state.voice).push(new ClefNote(clef));
         }
 
         break;
@@ -164,11 +166,11 @@ const parseNote = (data, noteNode, state) => {
   const notesDuration = sumNotesDuration(notes);
 
   if (state.duration > notesDuration) {
-    notes.push({
+    notes.push(new Note({
       tag: 'note',
       duration: state.duration - notesDuration,
       hidden: true,
-    });
+    }));
   } else if (state.duration < notesDuration) {
     console.error('notesState.duration > notesDuration');
   }
@@ -225,7 +227,7 @@ const parseNote = (data, noteNode, state) => {
     note.beam = beamNodes[0].textContent;
   }
 
-  notes.push(note);
+  notes.push(new Note(note));
 };
 
 const parseNotes = (data, noteNodes) => {
