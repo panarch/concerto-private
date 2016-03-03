@@ -34,7 +34,3 @@ For performing full builds and tests, you need the following:
 ##### Test with:
     $ grunt serve
 And you can connect to http://localhost:8000/demo/
-
-## License
-
-### MIT License
