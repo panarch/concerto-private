@@ -116,12 +116,24 @@ const sumNotesDuration = notes => {
   }, 0);
 };
 
-const parseNoteNotations = (head, notationsNode) => {
+const parseNoteNotations = (note, head, notationsNode) => {
   if (!notationsNode) return;
 
   const tiedNodes = notationsNode.getElementsByTagName('tied');
+  const slurNodes = [...notationsNode.getElementsByTagName('slur')].filter(node => {
+    return node.getAttribute('type') !== 'continue';
+  });
+
   if (tiedNodes.length > 0) {
     head.tied = tiedNodes.length > 1 ? 'stop-and-start' : tiedNodes[0].getAttribute('type');
+  }
+
+  if (slurNodes.length > 0) {
+    const slurNode = slurNodes[0]; // support only single slur
+    note.slur = { type: slurNode.getAttribute('type') };
+    if (slurNode.hasAttribute('placement')) {
+      note.slur.placement = slurNode.getAttribute('placement');
+    }
   }
 };
 
@@ -197,7 +209,7 @@ const parseNote = (data, noteNode, state) => {
     const alterNode = pitchNode.getElementsByTagName('alter')[0];
     if (alterNode) pitch.alter = Number(alterNode.textContent);
     if (accidentalNode) pitch.accidental = accidentalNode.textContent;
-    if (notationsNode) parseNoteNotations(pitch, notationsNode);
+    if (notationsNode) parseNoteNotations(note, pitch, notationsNode);
     if (tieNodes.length > 0) {
       pitch.tie = tieNodes.length > 1 ? 'stop-and-start' : tieNodes[0].getAttribute('type');
     }
