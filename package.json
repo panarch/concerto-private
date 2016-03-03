@@ -4,6 +4,7 @@
   "scripts": {
     "start": "webpack-dev-server --colors --progress",
     "build": "webpack --entry ./src/index.js --output-filename ./build/concerto.js --output-library Concerto --output-library-target umd",
+    "release": "cp ./build/*.js ./releases && cp ./build/*.js.map ./releases",
     "lint": "eslint src/ tests/",
     "test:diff": "npm run build && slimerjs ./tools/generate_svg_images.js && ./tools/visual_regression.sh",
     "test": "npm run lint && npm run test:diff"
@@ -29,7 +30,7 @@
     "webpack-dev-server": "^1.14.0"
   },
   "description": "A Javascript library for parsing and rendering MusicXML. Copyright (c) 2016 Taehoon Moon",
-  "main": "build/concerto.js",
+  "main": "releases/concerto.js",
   "dependencies": {},
   "keywords": [
     "musicxml",
