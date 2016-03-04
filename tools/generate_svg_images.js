@@ -1,12 +1,15 @@
 const fs = require('fs');
-const Concerto = require('../build/concerto');
-const path = './build/images';
+const system = require('system');
+const args = system.args;
+const Concerto = require('../' + args[1] + '/concerto');
+const path = args[2];
 const element = document.createElement('div');
+document.getElementsByTagName('body')[0].appendChild(element);
 const filenames = fs.list('./tests').filter(
   function(filename) { return /.xml$/.test(filename); }
 );
 
-fs.makeDirectory(path);
+fs.makeTree(path);
 filenames.forEach(function(filename) {
   const data = fs.read('./tests/' + filename);
   const domParser = new DOMParser();
