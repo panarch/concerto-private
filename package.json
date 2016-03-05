@@ -21,13 +21,13 @@
     "url": "https://github.com/panarch/concerto-private/issues"
   },
   "devDependencies": {
+    "@panarch/allegretto": "^1.2.42",
     "babel-core": "^6.3.21",
     "babel-eslint": "^4.1.6",
     "babel-loader": "^6.2.0",
     "babel-preset-es2015": "^6.3.13",
     "eslint": "^1.10.3",
     "slimerjs": "^0.9.6",
-    "vexflow": "^1.2.41",
     "webpack": "^1.12.9",
     "webpack-dev-server": "^1.14.0"
   },

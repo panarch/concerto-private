@@ -1,7 +1,7 @@
 // Copyright (c) Taehoon Moon 2015.
 // @author Taehoon Moon
 
-import Vex from 'vexflow';
+import Vex from '@panarch/allegretto';
 
 export default class Renderer {
   constructor(score, { element }) {

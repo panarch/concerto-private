@@ -1,7 +1,7 @@
 // Copyright (c) Taehoon Moon 2016.
 // @author Taehoon Moon
 
-import Vex from 'vexflow';
+import Vex from '@panarch/allegretto';
 import Table from './Table';
 
 export const getVFClef = clef => {

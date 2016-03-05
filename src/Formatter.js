@@ -1,7 +1,7 @@
 // Copyright (c) Taehoon Moon 2015.
 // @author Taehoon Moon
 
-import Vex from 'vexflow';
+import Vex from '@panarch/allegretto';
 //import VFStaveFormatter from './VFStaveFormatter';
 import Measure from './Measure';
 import Table from './Table';
