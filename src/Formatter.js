@@ -657,6 +657,9 @@ export default class Formatter {
       const vfAccidental = new Vex.Flow.Accidental(Table.VF_ACCIDENTAL[accidental]);
       staveNote.addAccidental(index, vfAccidental);
     });
+
+    for (let i = 0; i < note.dot; i++) staveNote.addDotToAll();
+
     return staveNote;
   }
 
