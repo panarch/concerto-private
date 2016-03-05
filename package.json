@@ -1,5 +1,5 @@
 {
-  "name": "concerto",
+  "name": "@panarch/concerto",
   "version": "0.1.0",
   "scripts": {
     "start": "webpack-dev-server --colors --progress",
@@ -14,12 +14,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/panarch/concerto.git"
+    "url": "https://github.com/panarch/concerto-private.git"
   },
   "author": "Taehoon Moon",
-  "private": true,
   "bugs": {
-    "url": "https://github.com/panarch/concerto/issues"
+    "url": "https://github.com/panarch/concerto-private/issues"
   },
   "devDependencies": {
     "babel-core": "^6.3.21",
