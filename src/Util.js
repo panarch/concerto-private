@@ -21,10 +21,28 @@ export const getVFClef = clef => {
   return vfClef;
 };
 
-export const getVFDuration = note => {
+export const getVFDuration = (note, divisions) => {
   const type = note.getType();
-  let duration = type ? Table.VF_NOTE_TYPE[type] : 'w';
-  duration += 'd'.repeat(note.getDot());
+  let duration;
+
+  if (type) {
+    duration = Table.VF_NOTE_TYPE_MAP.get(type);
+    duration += 'd'.repeat(note.getDot());
+  } else if (note.getFull()) {
+    duration = 'w';
+  } else {
+    let d = note.getDuration();
+    let i = Math.floor(Math.log2(d / divisions));
+    duration = Table.VF_NOTE_TYPES[i + Table.NOTE_QUARTER_INDEX];
+
+    for (; i < 3; i++) {
+      d -= divisions / Math.pow(2, -i);
+      if (d <= 0) break;
+
+      duration += 'd';
+    }
+  }
+
   if (note.getRest()) duration += 'r';
 
   return duration;
