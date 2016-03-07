@@ -182,7 +182,8 @@ const parseNote = (data, noteNode, state) => {
       hidden: true,
     }));
   } else if (state.duration < notesDuration) {
-    console.error('notesState.duration > notesDuration');
+    // TODO: sonata16.xml grace note handling
+    console.error(`notesState.duration(${state.duration}) > notesDuration(${notesDuration})`);
   }
 
   const note = {
@@ -284,6 +285,27 @@ const parseNotes = (data, noteNodes) => {
   });
 };
 
+const fillNotesMap = notesMap => {
+  const maxDuration = [...notesMap.values()].reduce(
+    (max, notes) => {
+      const sum = sumNotesDuration(notes);
+      return max > sum ? max : sum;
+    },
+    0
+  );
+
+  notesMap.forEach(notes => {
+    const duration = maxDuration - sumNotesDuration(notes);
+    if (duration <= 0) return;
+
+    notes.push(new Note({
+      tag: 'note',
+      hidden: true,
+      duration,
+    }));
+  });
+};
+
 export const parsePart = partNode => {
   const id = partNode.getAttribute('id');
   const measures = [...partNode.getElementsByTagName('measure')].map(node => {
@@ -301,6 +323,7 @@ export const parsePart = partNode => {
       data.width = Number(node.getAttribute('width'));
 
     parseNotes(data, [...node.childNodes]);
+    fillNotesMap(data.notesMap);
     return new Measure(data);
   });
 
