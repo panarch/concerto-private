@@ -1230,11 +1230,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var sumNotesDuration = function sumNotesDuration(notes) {
-	  return notes.reduce(function (prev, next) {
-	    var prevDuration = prev.duration ? prev.duration : 0;
-	    var nextDuration = next.duration ? next.duration : 0;
-	
-	    return { duration: prevDuration + nextDuration };
+	  return notes.reduce(function (duration, note) {
+	    return duration + (note.duration ? note.duration : 0);
 	  }, 0);
 	};
 	
@@ -1306,7 +1303,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      hidden: true
 	    }));
 	  } else if (state.duration < notesDuration) {
-	    console.error('notesState.duration > notesDuration');
+	    // TODO: sonata16.xml grace note handling
+	    console.error('notesState.duration(' + state.duration + ') > notesDuration(' + notesDuration + ')');
 	  }
 	
 	  var note = {
@@ -1411,6 +1409,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
+	var fillNotesMap = function fillNotesMap(notesMap) {
+	  var maxDuration = [].concat(_toConsumableArray(notesMap.values())).reduce(function (max, notes) {
+	    var sum = sumNotesDuration(notes);
+	    return max > sum ? max : sum;
+	  }, 0);
+	
+	  notesMap.forEach(function (notes) {
+	    var duration = maxDuration - sumNotesDuration(notes);
+	    if (duration <= 0) return;
+	
+	    notes.push(new _Note2.default({
+	      tag: 'note',
+	      hidden: true,
+	      duration: duration
+	    }));
+	  });
+	};
+	
 	var parsePart = exports.parsePart = function parsePart(partNode) {
 	  var id = partNode.getAttribute('id');
 	  var measures = [].concat(_toConsumableArray(partNode.getElementsByTagName('measure'))).map(function (node) {
@@ -1427,6 +1443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (node.hasAttribute('width')) data.width = Number(node.getAttribute('width'));
 	
 	    parseNotes(data, [].concat(_toConsumableArray(node.childNodes)));
+	    fillNotesMap(data.notesMap);
 	    return new _Measure2.default(data);
 	  });
 	
@@ -1850,9 +1867,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _vexflow = __webpack_require__(15);
+	var _allegretto = __webpack_require__(15);
 	
-	var _vexflow2 = _interopRequireDefault(_vexflow);
+	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
 	var _Measure = __webpack_require__(6);
 	
@@ -1895,7 +1912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      div.style.zIndex = -1;
 	      document.getElementsByTagName('body')[0].appendChild(div);
 	
-	      return _vexflow2.default.Flow.Renderer.getSVGContext(div, 100, 100);
+	      return _allegretto2.default.Flow.Renderer.getSVGContext(div, 100, 100);
 	    }
 	  }, {
 	    key: 'resetState',
@@ -2113,8 +2130,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var y = measure.getStaffY(staff);
 	
 	            if (printMeasure.isStaffDisplayed(staff)) {
-	              var stave = new _vexflow2.default.Flow.Stave(x, y, width, options);
-	              stave.setBegBarType(_vexflow2.default.Flow.Barline.type.NONE);
+	              var stave = new _allegretto2.default.Flow.Stave(x, y, width, options);
+	              stave.setBegBarType(_allegretto2.default.Flow.Barline.type.NONE);
 	              measure.setStave(staff, stave);
 	            }
 	          }
@@ -2212,7 +2229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (measure.isNewLineStarting() && keyUpdated) {
 	            prevMeasure.getStaves().forEach(function (stave) {
 	              var vfKey = (0, _Util.getVFKeySignature)(key);
-	              if (key) stave.addKeySignature(vfKey, undefined, _vexflow2.default.Flow.StaveModifier.Position.END);
+	              if (key) stave.addKeySignature(vfKey, undefined, _allegretto2.default.Flow.StaveModifier.Position.END);
 	            });
 	          }
 	
@@ -2390,7 +2407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        contents.forEach(function (content, i) {
 	          var textOptions = { shift_y: topY + i * 20 };
 	          if (stave) {
-	            var position = _vexflow2.default.Flow.Modifier.Position.LEFT;
+	            var position = _allegretto2.default.Flow.Modifier.Position.LEFT;
 	            textOptions.shift_x = 8;
 	            stave.setText(content, position, textOptions);
 	          } else staveConnector.setText(content, textOptions);
@@ -2408,8 +2425,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var topStave = findTopStave(0, mi, _this11.parts.length - 1);
 	          var bottomStave = findBottomStave(_this11.parts.length - 1, mi, 0);
 	          if (topStave && bottomStave) {
-	            var staveConnector = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
-	            staveConnector.setType(_vexflow2.default.Flow.StaveConnector.type.SINGLE_LEFT);
+	            var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	            staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
 	            connectors.push({ page: page, staveConnector: staveConnector });
 	          }
 	        }
@@ -2427,8 +2444,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            bottomStave = findBottomStave(stopPartIndex, mi, startPartIndex - 1);
 	            if (!topStave || !bottomStave) return;
 	
-	            var _staveConnector = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
-	            var connectorType = partGroup.groupSymbol === 'bracket' ? _vexflow2.default.Flow.StaveConnector.type.BRACKET : _vexflow2.default.Flow.StaveConnector.type.SINGLE_LEFT;
+	            var _staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	            var connectorType = partGroup.groupSymbol === 'bracket' ? _allegretto2.default.Flow.StaveConnector.type.BRACKET : _allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT;
 	            _staveConnector.setType(connectorType);
 	
 	            /* TODO: Current vexflow StaveConnector only provides a single text
@@ -2442,14 +2459,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          if (partGroup.groupBarline) {
-	            var _staveConnector2 = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
-	            _staveConnector2.setType(_vexflow2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
+	            var _staveConnector2 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	            _staveConnector2.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
 	            connectors.push({ page: page, staveConnector: _staveConnector2 });
 	          }
 	
 	          if (!isNewLineStarting) return;
 	
-	          var staveConnector = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
+	          var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
 	          var hasGroupSymbol = false;
 	          if (partGroup.groupSymbol) {
 	            hasGroupSymbol = true;
@@ -2461,7 +2478,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (mi === 0 && partGroup.groupName) setText({ staveConnector: staveConnector, text: partGroup.groupName });else if (mi > 0 && partGroup.groupAbbreviation) setText({ staveConnector: staveConnector, text: partGroup.groupAbbreviation });
 	
 	          // TODO: update vexflow StaveConnector NONE type
-	          if (!hasGroupSymbol) staveConnector.setType(_vexflow2.default.Flow.StaveConnector.type.SINGLE_LEFT);
+	          if (!hasGroupSymbol) staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
 	
 	          connectors.push({ page: page, staveConnector: staveConnector });
 	        });
@@ -2484,19 +2501,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (!topStave || !bottomStave) return;
 	
 	          if (isNewLineStarting) {
-	            var _staveConnector3 = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
-	            _staveConnector3.setType(_vexflow2.default.Flow.StaveConnector.type.BRACE);
+	            var _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	            _staveConnector3.setType(_allegretto2.default.Flow.StaveConnector.type.BRACE);
 	            connectors.push({ page: page, staveConnector: _staveConnector3 });
 	
 	            if (mi === 0 && scorePart.partName) setText({ staveConnector: _staveConnector3, text: scorePart.partName });else if (mi > 0 && isNewLineStarting && scorePart.partAbbreviation) setText({ staveConnector: _staveConnector3, text: scorePart.partAbbreviation });
 	
-	            _staveConnector3 = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
-	            _staveConnector3.setType(_vexflow2.default.Flow.StaveConnector.type.SINGLE_LEFT);
+	            _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	            _staveConnector3.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
 	            connectors.push({ page: page, staveConnector: _staveConnector3 });
 	          }
 	
-	          var staveConnector = new _vexflow2.default.Flow.StaveConnector(topStave, bottomStave);
-	          staveConnector.setType(_vexflow2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
+	          var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	          staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
 	          connectors.push({ page: page, staveConnector: staveConnector });
 	        });
 	      };
@@ -2524,12 +2541,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  }, {
 	    key: '_formatNote',
-	    value: function _formatNote(note, clef) {
-	      if (note.getHidden()) return new _vexflow2.default.Flow.GhostNote({ duration: (0, _Util.getVFDuration)(note) });
+	    value: function _formatNote(note, clef, divisions) {
+	      if (note.getHidden()) {
+	        return new _allegretto2.default.Flow.GhostNote({ duration: (0, _Util.getVFDuration)(note, divisions) });
+	      }
 	
 	      var data = {
 	        keys: [],
-	        duration: (0, _Util.getVFDuration)(note),
+	        duration: (0, _Util.getVFDuration)(note, divisions),
 	        clef: note.getRest() ? 'treble' : (0, _Util.getVFClef)(clef)
 	      };
 	
@@ -2545,16 +2564,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (data.keys.length === 0) data.keys = _Table2.default.VF_DEFAULT_REST_KEYS;
 	      if (note.getFull()) data.align_center = true;
-	      if (note.getStem()) data.stem_direction = note.getStem() === 'up' ? _vexflow2.default.Flow.StaveNote.STEM_UP : _vexflow2.default.Flow.StaveNote.STEM_DOWN;
+	      if (note.getStem()) data.stem_direction = note.getStem() === 'up' ? _allegretto2.default.Flow.StaveNote.STEM_UP : _allegretto2.default.Flow.StaveNote.STEM_DOWN;
 	
-	      var staveNote = new _vexflow2.default.Flow.StaveNote(data);
+	      var staveNote = new _allegretto2.default.Flow.StaveNote(data);
 	      accidentals.forEach(function (accidental, index) {
 	        if (!accidental) return;
 	
-	        var vfAccidental = new _vexflow2.default.Flow.Accidental(_Table2.default.VF_ACCIDENTAL[accidental]);
+	        var vfAccidental = new _allegretto2.default.Flow.Accidental(_Table2.default.VF_ACCIDENTAL[accidental]);
 	        staveNote.addAccidental(index, vfAccidental);
 	      });
-	      return staveNote;
+	
+	      for (var i = 0; i < note.dot; i++) {
+	        staveNote.addDotToAll();
+	      }return staveNote;
 	    }
 	  }, {
 	    key: '_formatMeasures',
@@ -2577,7 +2599,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (note.getGrace()) break; // TODO
 	
 	                var clef = measureCache.getClef(note.getStaff());
-	                var staveNote = _this12._formatNote(note, clef);
+	                var divisions = measureCache.getDivisions();
+	                var staveNote = _this12._formatNote(note, clef, divisions);
 	                staveNote.setStave(measure.getStave(note.getStaff()));
 	                note.setVFNote(staveNote);
 	                vfNotes.push(staveNote);
@@ -2585,7 +2608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                staff = note.staff;
 	                break;
 	              case 'clef':
-	                var clefNote = new _vexflow2.default.Flow.ClefNote((0, _Util.getVFClef)(note), 'small');
+	                var clefNote = new _allegretto2.default.Flow.ClefNote((0, _Util.getVFClef)(note), 'small');
 	                clefNote.setStave(measure.getStave(staff));
 	                vfNotes.push(clefNote);
 	                measureCache.setClef(staff, note);
@@ -2600,8 +2623,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var _ref4$beatType = _ref4.beatType;
 	          var beatType = _ref4$beatType === undefined ? 4 : _ref4$beatType;
 	
-	          var vfVoice = new _vexflow2.default.Flow.Voice({ num_beats: beats, beat_value: beatType });
-	          vfVoice.setMode(_vexflow2.default.Flow.Voice.Mode.SOFT);
+	          var vfVoice = new _allegretto2.default.Flow.Voice({ num_beats: beats, beat_value: beatType });
+	          vfVoice.setMode(_allegretto2.default.Flow.Voice.Mode.SOFT);
 	          vfVoice.addTickables(vfNotes);
 	          vfVoiceMap.set(voice, vfVoice);
 	        });
@@ -2626,16 +2649,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	          vfStaves = vfStaves.concat(measure.getStaves());
 	        });
 	
+	        if (vfVoices.length === 0) return;
 	        var width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX();
-	
-	        /* TODO: fix Vex.Flow.Formatter required
-	        const vfFormatter = new Vex.Flow.Formatter();
+	        var vfFormatter = new _allegretto2.default.Flow.Formatter();
 	        vfFormatter.joinVoices(vfVoices).format(vfVoices, width);
-	        */
-	        vfVoices.forEach(function (vfVoice) {
-	          var vfFormatter = new _vexflow2.default.Flow.Formatter();
-	          vfFormatter.joinVoices([vfVoice]).format([vfVoice], width);
-	        });
 	      });
 	    }
 	  }, {
@@ -2664,7 +2681,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                break;
 	              case 'end':
 	                vfBeamNotes.push(staveNote);
-	                vfBeams.push(new _vexflow2.default.Flow.Beam(vfBeamNotes));
+	                vfBeams.push(new _allegretto2.default.Flow.Beam(vfBeamNotes));
 	                break;
 	            }
 	          });
@@ -2702,7 +2719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
 	
 	          if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
-	            vfTiesMap.get(mi - 1 + '/' + voice).push(new _vexflow2.default.Flow.StaveTie({
+	            vfTiesMap.get(mi - 1 + '/' + voice).push(new _allegretto2.default.Flow.StaveTie({
 	              first_note: tieNotesMap.get(voice)[0],
 	              first_indices: tieStartIndicesMap.get(voice),
 	              last_indices: tieStartIndicesMap.get(voice)
@@ -2733,7 +2750,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                tieStopIndicesMap.get(voice).push(index);
 	              });
 	
-	              vfTies.push(new _vexflow2.default.Flow.StaveTie({
+	              vfTies.push(new _allegretto2.default.Flow.StaveTie({
 	                first_note: tieNotes[0],
 	                last_note: tieNotes[1],
 	                first_indices: tieStartIndicesMap.get(voice),
@@ -2792,7 +2809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var slurState = slurStateMap.get(voice);
 	          if (measure.isNewLineStarting() && slurState.from) {
-	            var curve = new _vexflow2.default.Flow.Curve(slurState.from, undefined);
+	            var curve = new _allegretto2.default.Flow.Curve(slurState.from, undefined);
 	            vfSlursMap.get(mi - 1 + '/' + voice).push(curve);
 	            slurState.from = undefined;
 	            slurState.partial = true;
@@ -2826,7 +2843,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                if (slurState.from === undefined && !slurState.partial) return; // TODO: grace note
 	
-	                vfSlurs.push(new _vexflow2.default.Flow.Curve(slurState.from, slurState.to, slurState.options));
+	                vfSlurs.push(new _allegretto2.default.Flow.Curve(slurState.from, slurState.to, slurState.options));
 	
 	                slurStateMap.set(voice, {});
 	                break;
@@ -2880,7 +2897,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * VexFlow 1.2.41 built on 2016-02-10.
+	 * VexFlow 1.2.42 built on 2016-02-14.
 	 * Copyright (c) 2010 Mohit Muthanna Cheppudira <mohit@muthanna.com>
 	 *
 	 * http://www.vexflow.com  http://github.com/0xfe/vexflow
@@ -14274,23 +14291,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (arguments.length > 0) this.init(element);
 	  }
 	
-	  // The measureTextCache is used in Javascript runtimes where
-	  // there is no proper DOM support for SVG bounding boxes. This
-	  // is currently only useful in the NodeJS visual regression tests.
-	  SVGContext.measureTextCache = {};
-	
-	  // If enabled, will start collecting and indexing getBBox data by
-	  // font name, size, weight, and style. This should be disabled by
-	  // default (or you will find yourself slowly leaking RAM.)
-	  SVGContext.collectMeasurements = false;
-	
-	  // If enabled, will warn if there are new getBBox requests that are
-	  // not in the cache. This is enabled in the VexFlow tests, and if you
-	  // see a warning on the console, you will need to enable collectMeasurements
-	  // above, then update measureTextCache with the new values. See
-	  // tests/measure_text_cache.js for instructions on how to do this.
-	  SVGContext.validateMeasurement = false;
-	
 	  SVGContext.addPrefix = Vex.Prefix;
 	
 	  SVGContext.prototype = {
@@ -14817,44 +14817,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    // ## Text Methods:
 	    measureText: function(text) {
-	      var index = text + this.attributes["font-style"] + this.attributes["font-family"] +
-	                  this.attributes["font-weight"] + this.attributes["font-size"];
-	
 	      var txt = this.create("text");
-	      if (typeof(txt.getBBox) === "function") {
-	        txt.textContent = text;
-	        this.applyAttributes(txt, this.attributes);
+	      if (typeof(txt.getBBox) !== "function")
+	        return { x: 0, y: 0, width: 0, height: 0 };
 	
-	        // Temporarily add it to the document for measurement.
-	        this.svg.appendChild(txt);
+	      txt.textContent = text;
+	      this.applyAttributes(txt, this.attributes);
 	
-	        var bbox = txt.getBBox();
-	        if( this.ie &&
-	            text !== "" &&
-	            this.attributes["font-style"] == "italic") bbox = this.ieMeasureTextFix(bbox, text);
-	        this.svg.removeChild(txt);
+	      // Temporarily add it to the document for measurement.
+	      this.svg.appendChild(txt);
 	
-	        // For runtimes that do not have full support of bounding boxes, collect
-	        // some data which can be used later to extrapolate them.
-	        if (SVGContext.collectMeasurements) {
-	          SVGContext.measureTextCache[index] = {
-	            x: bbox.x,
-	            y: bbox.y,
-	            width: bbox.width,
-	            height: bbox.height
-	          };
-	        }
-	        if (SVGContext.validateMeasurements) {
-	          if (!(index in SVGContext.measureTextCache)) {
-	            Vex.W("measureTextCache is stale. Please update tests/measure_text_cache.js: ", index);
-	          }
-	        }
-	        return bbox;
-	      } else {
-	        // Inside NodeJS or other runtimes that don't support getBBox. This
-	        // is currently only useful for the NodeJS visual regression tests.
-	        return SVGContext.measureTextCache[index];
-	      }
+	      var bbox = txt.getBBox();
+	      if (this.ie && text !== "" && this.attributes["font-style"] == "italic")
+	        bbox = this.ieMeasureTextFix(bbox, text);
+	
+	      this.svg.removeChild(txt);
+	      return bbox;
 	    },
 	
 	    ieMeasureTextFix: function(bbox, text) {
@@ -19006,48 +18984,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Copyright (c) Taehoon Moon 2016.
 	// @author Taehoon Moon
 	
-	exports.default = {
-	  VF_CLEF: {
-	    'G/2': 'treble',
-	    'F/3': 'barriton-f',
-	    'F/4': 'bass',
-	    'F/5': 'subbass',
-	    'C/1': 'soprano',
-	    'C/2': 'mezzo-soprano',
-	    'C/3': 'alto',
-	    'C/4': 'tenor',
-	    'C/5': 'barriton-c',
-	    'percussion': 'percussion',
-	    'TAB': 'tab'
-	  },
-	
-	  VF_NOTE_TYPE: {
-	    '1024th': '64',
-	    '512th': '64',
-	    '256th': '64',
-	    '128th': '128',
-	    '64th': '64',
-	    '32nd': '32',
-	    '16th': '16',
-	    'eighth': '8',
-	    'quarter': 'q',
-	    'half': 'h',
-	    'whole': 'w',
-	    'breve': 'w', // TODO: breve, long and maxima
-	    'long': 'w',
-	    'maxima': 'w'
-	  },
-	
-	  VF_DEFAULT_REST_KEYS: ['b/4'],
-	
-	  VF_ACCIDENTAL: {
-	    'sharp': '#',
-	    'double-sharp': '##',
-	    'natural': 'n',
-	    'flat': 'b',
-	    'flat-flat': 'bb'
-	  }
+	var Table = {};
+	Table.VF_CLEF = {
+	  'G/2': 'treble',
+	  'F/3': 'barriton-f',
+	  'F/4': 'bass',
+	  'F/5': 'subbass',
+	  'C/1': 'soprano',
+	  'C/2': 'mezzo-soprano',
+	  'C/3': 'alto',
+	  'C/4': 'tenor',
+	  'C/5': 'barriton-c',
+	  'percussion': 'percussion',
+	  'TAB': 'tab'
 	};
+	
+	Table.NOTE_QUARTER_INDEX = 8;
+	Table.NOTE_TYPES = ['1024th', '512th', '256th', '128th', '64th', '32nd', '16th', 'eighth', 'quarter', 'half', 'whole', 'breve', 'long', 'maxima'];
+	
+	Table.VF_NOTE_TYPES = ['128', '128', '128', '128', '64', '32', '16', '8', 'q', ' h', 'w', 'w', 'w', 'w'];
+	
+	// NOTE_TYPES -> VF_NOTE_TYPES
+	// TODO: breve, long and maxima
+	Table.VF_NOTE_TYPE_MAP = Table.NOTE_TYPES.reduce(function (map, key, i) {
+	  return map.set(key, Table.VF_NOTE_TYPES[i]);
+	}, new Map());
+	
+	Table.VF_DEFAULT_REST_KEYS = ['b/4'];
+	
+	Table.VF_ACCIDENTAL = {
+	  'sharp': '#',
+	  'double-sharp': '##',
+	  'natural': 'n',
+	  'flat': 'b',
+	  'flat-flat': 'bb'
+	};
+	
+	exports.default = Table;
 
 /***/ },
 /* 17 */
@@ -19060,9 +19033,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
 	
-	var _vexflow = __webpack_require__(15);
+	var _allegretto = __webpack_require__(15);
 	
-	var _vexflow2 = _interopRequireDefault(_vexflow);
+	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
 	var _Table = __webpack_require__(16);
 	
@@ -19090,10 +19063,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return vfClef;
 	};
 	
-	var getVFDuration = exports.getVFDuration = function getVFDuration(note) {
+	var getVFDuration = exports.getVFDuration = function getVFDuration(note, divisions) {
 	  var type = note.getType();
-	  var duration = type ? _Table2.default.VF_NOTE_TYPE[type] : 'w';
-	  duration += 'd'.repeat(note.getDot());
+	  var duration = undefined;
+	
+	  if (type) {
+	    duration = _Table2.default.VF_NOTE_TYPE_MAP.get(type);
+	    duration += 'd'.repeat(note.getDot());
+	  } else if (note.getFull()) {
+	    duration = 'w';
+	  } else {
+	    var d = note.getDuration();
+	    var i = Math.floor(Math.log2(d / divisions));
+	    duration = _Table2.default.VF_NOTE_TYPES[i + _Table2.default.NOTE_QUARTER_INDEX];
+	
+	    for (; i < 3; i++) {
+	      d -= divisions / Math.pow(2, -i);
+	      if (d <= 0) break;
+	
+	      duration += 'd';
+	    }
+	  }
+	
 	  if (note.getRest()) duration += 'r';
 	
 	  return duration;
@@ -19103,7 +19094,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (keySig === undefined) return;
 	
 	  var fifths = keySig.fifths;
-	  var keySpecs = _vexflow2.default.Flow.keySignature.keySpecs;
+	  var keySpecs = _allegretto2.default.Flow.keySignature.keySpecs;
 	
 	  var vfKey = undefined;
 	  Object.keys(keySpecs).forEach(function (key) {
@@ -19125,14 +19116,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var connectorType = undefined;
 	  switch (groupSymbol) {
 	    case 'brace':
-	      connectorType = _vexflow2.default.Flow.StaveConnector.type.BRACE;
+	      connectorType = _allegretto2.default.Flow.StaveConnector.type.BRACE;
 	      break;
 	    case 'bracket':
-	      connectorType = _vexflow2.default.Flow.StaveConnector.type.BRACKET;
+	      connectorType = _allegretto2.default.Flow.StaveConnector.type.BRACKET;
 	      break;
 	    case 'line':
 	    default:
-	      connectorType = _vexflow2.default.Flow.StaveConnector.type.DOUBLE;
+	      connectorType = _allegretto2.default.Flow.StaveConnector.type.DOUBLE;
 	  }
 	
 	  return connectorType;
@@ -19151,9 +19142,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _vexflow = __webpack_require__(15);
+	var _allegretto = __webpack_require__(15);
 	
-	var _vexflow2 = _interopRequireDefault(_vexflow);
+	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -19186,7 +19177,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.contexts = [];
 	      for (var i = 0; i < this.numPages; i++) {
-	        var context = _vexflow2.default.Flow.Renderer.getSVGContext(this.element, width, height);
+	        var context = _allegretto2.default.Flow.Renderer.getSVGContext(this.element, width, height);
 	        this.contexts.push(context);
 	      }
 	    }
