@@ -630,12 +630,14 @@ export default class Formatter {
   }
   */
 
-  _formatNote(note, clef) {
-    if (note.getHidden()) return new Vex.Flow.GhostNote({ duration: getVFDuration(note) });
+  _formatNote(note, clef, divisions) {
+    if (note.getHidden()) {
+      return new Vex.Flow.GhostNote({ duration: getVFDuration(note, divisions) });
+    }
 
     const data = {
       keys: [],
-      duration: getVFDuration(note),
+      duration: getVFDuration(note, divisions),
       clef: note.getRest() ? 'treble' : getVFClef(clef),
     };
 
@@ -680,7 +682,8 @@ export default class Formatter {
               if (note.getGrace()) break; // TODO
 
               const clef = measureCache.getClef(note.getStaff());
-              const staveNote = this._formatNote(note, clef);
+              const divisions = measureCache.getDivisions();
+              const staveNote = this._formatNote(note, clef, divisions);
               staveNote.setStave(measure.getStave(note.getStaff()));
               note.setVFNote(staveNote);
               vfNotes.push(staveNote);
@@ -718,16 +721,10 @@ export default class Formatter {
         vfStaves = vfStaves.concat(measure.getStaves());
       });
 
+      if (vfVoices.length === 0) return;
       const width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX();
-
-      /* TODO: fix Vex.Flow.Formatter required
       const vfFormatter = new Vex.Flow.Formatter();
       vfFormatter.joinVoices(vfVoices).format(vfVoices, width);
-      */
-      vfVoices.forEach(vfVoice => {
-        const vfFormatter = new Vex.Flow.Formatter();
-        vfFormatter.joinVoices([vfVoice]).format([vfVoice], width);
-      })
     });
   }
 
