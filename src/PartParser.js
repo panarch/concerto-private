@@ -108,12 +108,10 @@ const parseAttributes = (data, attrNode, state) => {
 };
 
 const sumNotesDuration = notes => {
-  return notes.reduce((prev, next) => {
-    const prevDuration = prev.duration ? prev.duration : 0;
-    const nextDuration = next.duration ? next.duration : 0;
-
-    return { duration: prevDuration + nextDuration };
-  }, 0);
+  return notes.reduce(
+    (duration, note) => duration + (note.duration ? note.duration : 0),
+    0
+  );
 };
 
 const parseNoteNotations = (note, head, notationsNode) => {
