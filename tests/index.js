@@ -57,4 +57,7 @@ urls.forEach(url => {
 });
 
 selectNode.addEventListener('change', () => load(selectNode.value));
-load(urls[0]);
+
+const url = urls[0];
+selectNode.value = url;
+load(url);
