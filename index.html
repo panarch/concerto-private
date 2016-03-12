@@ -8,16 +8,29 @@
         <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=3">
         <style>
           body {
+            overflow: none;
             background-color: #555;
           }
 
           svg {
             background-color: white;
-            margin: 5px;
+            margin: 0 5px 5px 5px;
           }
 
           select {
-            margin: 5px;
+            position: absolute;
+            left: 5px;
+            top: 3px;
+            height: 30px;
+          }
+
+          #page {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 35px);
+            overflow: scroll;
           }
         </style>
     </head>
