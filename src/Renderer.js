@@ -14,12 +14,16 @@ export default class Renderer {
 
   getContexts() { return this.contexts; }
 
+  createContext(element, width, height) {
+    return Vex.Flow.Renderer.getSVGContext(element, width, height);
+  }
+
   setupRenderers() {
     const { width, height } = this.pageSize;
 
     this.contexts = [];
     for (let i = 0; i < this.numPages; i++) {
-      const context = Vex.Flow.Renderer.getSVGContext(this.element, width, height);
+      const context = this.createContext(this.element, width, height);
       this.contexts.push(context);
     }
   }
