@@ -19169,6 +19169,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.contexts;
 	    }
 	  }, {
+	    key: 'createContext',
+	    value: function createContext(element, width, height) {
+	      return _allegretto2.default.Flow.Renderer.getSVGContext(element, width, height);
+	    }
+	  }, {
 	    key: 'setupRenderers',
 	    value: function setupRenderers() {
 	      var _pageSize = this.pageSize;
@@ -19177,7 +19182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.contexts = [];
 	      for (var i = 0; i < this.numPages; i++) {
-	        var context = _allegretto2.default.Flow.Renderer.getSVGContext(this.element, width, height);
+	        var context = this.createContext(this.element, width, height);
 	        this.contexts.push(context);
 	      }
 	    }
