@@ -11,6 +11,7 @@ export default class Part {
     this.vfSlursMap = new Map(); // {begin measure index}/{voice} -> vfSlurs
   }
 
+  getMeasure(i) { return this.measures[i]; }
   getMeasures() { return this.measures; }
 
   getNumStaffs() {

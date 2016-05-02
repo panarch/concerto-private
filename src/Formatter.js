@@ -19,6 +19,7 @@ export default class Formatter {
     this.credits = this.score.getCredits();
     this.parts = this.score.getParts();
     this.partList = this.score.getPartList();
+    this.measurePacks = this.score.getMeasurePacks();
     this.context = this.createContext();
 
     this.measureCacheMap = new Map();
@@ -465,8 +466,7 @@ export default class Formatter {
   formatPartList() {
     const partGroups = this.partList.getPartGroups();
     const scoreParts = this.partList.getScoreParts();
-    const numMeasures = this.parts[0].getMeasures().length;
-    const connectors = [];
+    const numMeasures = this.measurePacks.length;
 
     const findTopStave = (pi, mi, max) => {
       for (; pi < max; pi++) {
@@ -503,6 +503,8 @@ export default class Formatter {
     let page = 1;
 
     for (let mi = 0; mi < numMeasures; mi++) {
+      const connectors = [];
+      this.measurePacks[mi].setConnectors(connectors);
       const firstPartMeasure = this.parts[0].getMeasures()[mi];
       const isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
       if (firstPartMeasure.hasNewPage()) page++;
@@ -611,8 +613,6 @@ export default class Formatter {
         connectors.push({ page, staveConnector });
       });
     }
-
-    this.partList.setConnectors(connectors);
   }
 
   /*

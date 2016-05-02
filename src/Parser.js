@@ -9,6 +9,7 @@ import Identification from './Identification';
 import Defaults from './Defaults';
 import Credit from './Credit';
 import PartList from './PartList';
+import MeasurePack from './MeasurePack';
 
 const parseMovement = scorePartwise => {
   const titleNode = scorePartwise.getElementsByTagName('movement-title')[0];
@@ -183,6 +184,20 @@ const parseParts = partNodes => {
   return partNodes.map(node => parsePart(node));
 };
 
+const createMeasurePacks = parts => {
+  const numMeasures = parts[0].getMeasures().length;
+  const measurePacks = [];
+
+  for (let i = 0; i < numMeasures; i++) {
+    const measures = parts.map(part => part.getMeasure(i));
+    measurePacks.push(
+      new MeasurePack({ measures })
+    );
+  }
+
+  return measurePacks;
+};
+
 export const parse = (doc) => {
   const scorePartwise = doc.getElementsByTagName('score-partwise')[0];
   const version = scorePartwise.getAttribute('version');
@@ -194,6 +209,7 @@ export const parse = (doc) => {
   const credits = parseCredits([...scorePartwise.getElementsByTagName('credit')]);
   const partList = parsePartList(scorePartwise.getElementsByTagName('part-list')[0]);
   const parts = parseParts([...scorePartwise.getElementsByTagName('part')]);
+  const measurePacks = createMeasurePacks(parts);
 
   return new Score({
     version,
@@ -203,5 +219,6 @@ export const parse = (doc) => {
     credits,
     partList,
     parts,
+    measurePacks,
   });
 };

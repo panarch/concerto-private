@@ -114,10 +114,12 @@ export default class Renderer {
     });
   }
 
-  renderPartList() {
-    this.score.getPartList().getConnectors().forEach(connector => {
-      const context = this.contexts[connector.page - 1];
-      connector.staveConnector.setContext(context).draw();
+  renderConnectors() {
+    this.score.getMeasurePacks().forEach(measurePack => {
+      measurePack.getConnectors().forEach(connector => {
+        const context = this.contexts[connector.page - 1];
+        connector.staveConnector.setContext(context).draw();
+      });
     });
   }
 
@@ -141,7 +143,7 @@ export default class Renderer {
     this.renderBeams();
     this.renderTies();
     this.renderSlurs();
-    this.renderPartList();
+    this.renderConnectors();
     this.renderCredits();
   }
 }

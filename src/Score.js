@@ -2,7 +2,8 @@
 // @author Taehoon Moon
 
 export default class Score {
-  constructor({ version, movement, identification, defaults, credits, partList, parts }) {
+  constructor({ version, movement, identification, defaults, credits,
+      partList, parts, measurePacks }) {
     this.formatted = false;
     this.version = version;
     this.movement = movement;
@@ -11,6 +12,7 @@ export default class Score {
     this.credits = credits;
     this.partList = partList;
     this.parts = parts;
+    this.measurePacks = measurePacks;
   }
 
   getFormatted() { return this.formatted; }
@@ -20,6 +22,7 @@ export default class Score {
   getCredits() { return this.credits; }
   getPartList() { return this.partList; }
   getParts() { return this.parts; }
+  getMeasurePacks() { return this.measurePacks; }
 
   getNumPages() {
     let num = 1;
