@@ -505,6 +505,7 @@ export default class Formatter {
     for (let mi = 0; mi < numMeasures; mi++) {
       const connectors = [];
       this.measurePacks[mi].setConnectors(connectors);
+
       const firstPartMeasure = this.parts[0].getMeasures()[mi];
       const isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
       if (firstPartMeasure.hasNewPage()) page++;
@@ -665,7 +666,7 @@ export default class Formatter {
     return staveNote;
   }
 
-  _formatMeasures(part, pi) {
+  _formatNotes(part, pi) {
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
       const measureCache = this.getMeasureCache(pi, mi);
@@ -711,20 +712,24 @@ export default class Formatter {
   }
 
   formatNotes() {
-    this.parts.forEach((part, pi) => this._formatMeasures(part, pi));
-    this.parts[0].getMeasures().forEach((_, mi) => {
-      let vfStaves = [];
-      let vfVoices = [];
-      this.parts.forEach((part, pi) => {
-        const measure = part.getMeasures()[mi];
-        vfVoices = vfVoices.concat(measure.getVFVoices());
-        vfStaves = vfStaves.concat(measure.getStaves());
-      });
+    this.parts.forEach((part, pi) => this._formatNotes(part, pi));
+  }
+
+  formatVoices() {
+    this.measurePacks.forEach((measurePack, mi) => {
+      const vfStaves = measurePack.getVFStaves();
+      const vfVoices = measurePack.getVFVoices();
 
       if (vfVoices.length === 0) return;
+      // TODO: it should find minimum, not simply using the first stave
       const width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX();
-      const vfFormatter = new Vex.Flow.Formatter();
-      vfFormatter.joinVoices(vfVoices).format(vfVoices, width);
+      const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices);
+      const minTotalWidth = vfFormatter.preCalculateMinTotalWidth(vfVoices);
+
+      vfFormatter.format(vfVoices, width);
+
+      measurePack.setMinTotalWidth(minTotalWidth);
+      measurePack.setVFFormatter(vfFormatter);
     });
   }
 
@@ -934,6 +939,7 @@ export default class Formatter {
     this.formatPartList();
     //this.formatStaves();
     this.formatNotes();
+    this.formatVoices();
     this.formatBeam();
     this.formatTie();
     this.formatSlur();
