@@ -376,6 +376,12 @@ export default class Formatter {
     });
   }
 
+  formatAttributes() {
+    this.formatClef();
+    this.formatKeySignature();
+    this.formatTimeSignature();
+  }
+
   formatDivisions() {
     this.parts.forEach((part, pi) => {
       let divisions;
@@ -931,9 +937,7 @@ export default class Formatter {
     this.formatY();
     this.createStaves();
     this.formatMeasureNumber();
-    this.formatClef();
-    this.formatKeySignature();
-    this.formatTimeSignature();
+    this.formatAttributes();
     this.formatDivisions();
     this.formatCredits();
     this.formatPartList();
