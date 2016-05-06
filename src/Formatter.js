@@ -40,7 +40,7 @@ export default class Formatter {
   resetState() {
     this.state = {
       numParts: this.parts.length,
-      numMeasures: this.parts[0].getMeasures().length,
+      numMeasures: this.measurePacks.length,
       pageNumber: 1,
       topSystemDistanceMap: new Map(),
       systemDistanceMap: new Map(),
@@ -268,15 +268,10 @@ export default class Formatter {
   formatClef() {
     this.parts.forEach((part, pi) => {
       const clefMap = new Map(); // {staff}
-      let prevMeasure;
+      const measures = part.getMeasures();
 
-      part.getMeasures().forEach((measure, mi) => {
-        const clefUpdated = new Map(); // {staff}
-
-        measure.getClefMap().forEach((clef, staff) => {
-          clefMap.set(staff, clef);
-          clefUpdated.set(staff, clef);
-        });
+      measures.forEach((measure, mi) => {
+        measure.getClefMap().forEach((clef, staff) => clefMap.set(staff, clef));
 
         if (mi === 0 || measure.isNewLineStarting()) {
           measure.getStaveMap().forEach((stave, staff) => {
@@ -285,26 +280,31 @@ export default class Formatter {
           });
         }
 
-        clefUpdated.forEach((clef, staff) => {
-          if (!prevMeasure) return;
-
-          const vfClef = getVFClef(clef);
-          const stave = prevMeasure.getStave(staff);
-          if (stave) stave.addEndClef(vfClef, 'small');
-        });
-
         // update cache
         this.getMeasureCache(pi, mi).setClefMap(new Map(clefMap));
 
+        const clefUpdated = new Map(); // {staff}
         measure.getNotesMap().forEach(notes => {
           let staff = 1;
           notes.forEach(note => {
             if (note.staff && note.staff !== staff) staff = note.staff;
-            if (note.tag === 'clef') clefMap.set(staff, note);
+            if (note.tag === 'clef') {
+              clefMap.set(staff, note);
+              clefUpdated.set(staff, true);
+            }
           });
         });
 
-        prevMeasure = measure;
+        const nextMeasure = measures[mi + 1];
+        if (!nextMeasure || !nextMeasure.isNewLineStarting()) return;
+
+        nextMeasure.getClefMap().forEach((clef, staff) => {
+          if (clefUpdated.has(staff)) return;
+
+          const vfClef = getVFClef(clef);
+          const stave = measure.getStave(staff);
+          if (stave) stave.addEndClef(vfClef, 'small');
+        });
       });
     });
   }
