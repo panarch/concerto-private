@@ -82,17 +82,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _Parser = __webpack_require__(7);
 	
-	var _Formatter = __webpack_require__(14);
+	var _Formatter = __webpack_require__(15);
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _Renderer = __webpack_require__(18);
+	var _Renderer = __webpack_require__(19);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
+	
+	var _Util = __webpack_require__(18);
+	
+	var _Util2 = _interopRequireDefault(_Util);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// use module.exports for node.js compatibility
+	// Copyright (c) Taehoon Moon 2015.
+	// @author Taehoon Moon
+	
 	module.exports = {
 	  Score: _Score2.default,
 	  Defaults: _Defaults2.default,
@@ -102,9 +109,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Measure: _Measure2.default,
 	  Formatter: _Formatter2.default,
 	  Renderer: _Renderer2.default,
+	  Util: _Util2.default,
 	  parse: _Parser.parse
-	}; // Copyright (c) Taehoon Moon 2015.
-	// @author Taehoon Moonundefined
+	};
 
 /***/ },
 /* 1 */
@@ -132,6 +139,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var credits = _ref.credits;
 	    var partList = _ref.partList;
 	    var parts = _ref.parts;
+	    var measurePacks = _ref.measurePacks;
 	
 	    _classCallCheck(this, Score);
 	
@@ -143,6 +151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.credits = credits;
 	    this.partList = partList;
 	    this.parts = parts;
+	    this.measurePacks = measurePacks;
 	  }
 	
 	  _createClass(Score, [{
@@ -179,6 +188,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "getParts",
 	    value: function getParts() {
 	      return this.parts;
+	    }
+	  }, {
+	    key: "getMeasurePacks",
+	    value: function getMeasurePacks() {
+	      return this.measurePacks;
 	    }
 	  }, {
 	    key: "getNumPages",
@@ -440,6 +454,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(Part, [{
+	    key: "getMeasure",
+	    value: function getMeasure(i) {
+	      return this.measures[i];
+	    }
+	  }, {
 	    key: "getMeasures",
 	    value: function getMeasures() {
 	      return this.measures;
@@ -910,6 +929,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _PartList2 = _interopRequireDefault(_PartList);
 	
+	var _MeasurePack = __webpack_require__(14);
+	
+	var _MeasurePack2 = _interopRequireDefault(_MeasurePack);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) Taehoon Moon 2015.
@@ -1087,6 +1110,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
+	var createMeasurePacks = function createMeasurePacks(parts) {
+	  var numMeasures = parts[0].getMeasures().length;
+	  var measurePacks = [];
+	
+	  var _loop = function _loop(i) {
+	    var measures = parts.map(function (part) {
+	      return part.getMeasure(i);
+	    });
+	    measurePacks.push(new _MeasurePack2.default({ measures: measures }));
+	  };
+	
+	  for (var i = 0; i < numMeasures; i++) {
+	    _loop(i);
+	  }
+	
+	  return measurePacks;
+	};
+	
 	var parse = exports.parse = function parse(doc) {
 	  var scorePartwise = doc.getElementsByTagName('score-partwise')[0];
 	  var version = scorePartwise.getAttribute('version');
@@ -1096,6 +1137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var credits = parseCredits([].concat(_toConsumableArray(scorePartwise.getElementsByTagName('credit'))));
 	  var partList = parsePartList(scorePartwise.getElementsByTagName('part-list')[0]);
 	  var parts = parseParts([].concat(_toConsumableArray(scorePartwise.getElementsByTagName('part'))));
+	  var measurePacks = createMeasurePacks(parts);
 	
 	  return new _Score2.default({
 	    version: version,
@@ -1104,7 +1146,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    defaults: defaults,
 	    credits: credits,
 	    partList: partList,
-	    parts: parts
+	    parts: parts,
+	    measurePacks: measurePacks
 	  });
 	};
 
@@ -1820,9 +1863,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.id = id;
 	    this.scoreParts = scoreParts;
 	    this.partGroups = partGroups;
-	
-	    // formatted
-	    this.connectors = [];
 	  }
 	
 	  _createClass(PartList, [{
@@ -1835,6 +1875,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function getPartGroups() {
 	      return this.partGroups;
 	    }
+	  }]);
+	
+	  return PartList;
+	})();
+	
+	exports.default = PartList;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	// Copyright (c) Taehoon Moon 2016.
+	// @author Taehoon Moon
+	
+	var MeasurePack = (function () {
+	  function MeasurePack(_ref) {
+	    var measures = _ref.measures;
+	
+	    _classCallCheck(this, MeasurePack);
+	
+	    this.measures = measures;
+	
+	    this.minTotalWidth = null;
+	    this.connectors = [];
+	    this.vfFormatter = null;
+	  }
+	
+	  _createClass(MeasurePack, [{
+	    key: "getMeasure",
+	    value: function getMeasure(i) {
+	      return this.measures[i];
+	    }
+	  }, {
+	    key: "getTopMeasure",
+	    value: function getTopMeasure() {
+	      return this.getMeasure(0);
+	    }
+	  }, {
+	    key: "getBottomMeasure",
+	    value: function getBottomMeasure() {
+	      return this.getMeasure(this.measures.length - 1);
+	    }
+	  }, {
+	    key: "getMinTotalWidth",
+	    value: function getMinTotalWidth() {
+	      return this.minTotalWidth;
+	    }
+	  }, {
+	    key: "setMinTotalWidth",
+	    value: function setMinTotalWidth(minTotalWidth) {
+	      this.minTotalWidth = minTotalWidth;
+	    }
 	  }, {
 	    key: "getConnectors",
 	    value: function getConnectors() {
@@ -1845,15 +1947,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function setConnectors(connectors) {
 	      this.connectors = connectors;
 	    }
+	  }, {
+	    key: "getVFFormatter",
+	    value: function getVFFormatter() {
+	      return this.vfFormatter;
+	    }
+	  }, {
+	    key: "setVFFormatter",
+	    value: function setVFFormatter(vfFormatter) {
+	      this.vfFormatter = vfFormatter;
+	    }
+	  }, {
+	    key: "getVFVoices",
+	    value: function getVFVoices() {
+	      return this.measures.reduce(function (vfVoices, measure) {
+	        return vfVoices.concat(measure.getVFVoices());
+	      }, []);
+	    }
+	  }, {
+	    key: "getVFStaves",
+	    value: function getVFStaves() {
+	      return this.measures.reduce(function (vfStaves, measure) {
+	        return vfStaves.concat(measure.getStaves());
+	      }, []);
+	    }
 	  }]);
 	
-	  return PartList;
+	  return MeasurePack;
 	})();
 	
-	exports.default = PartList;
+	exports.default = MeasurePack;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1867,7 +1993,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _allegretto = __webpack_require__(15);
+	var _allegretto = __webpack_require__(16);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
@@ -1875,11 +2001,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Table = __webpack_require__(16);
+	var _Table = __webpack_require__(17);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
-	var _Util = __webpack_require__(17);
+	var _Util = __webpack_require__(18);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -1896,6 +2022,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.credits = this.score.getCredits();
 	    this.parts = this.score.getParts();
 	    this.partList = this.score.getPartList();
+	    this.measurePacks = this.score.getMeasurePacks();
 	    this.context = this.createContext();
 	
 	    this.measureCacheMap = new Map();
@@ -1919,7 +2046,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function resetState() {
 	      this.state = {
 	        numParts: this.parts.length,
-	        numMeasures: this.parts[0].getMeasures().length,
+	        numMeasures: this.measurePacks.length,
 	        pageNumber: 1,
 	        topSystemDistanceMap: new Map(),
 	        systemDistanceMap: new Map(),
@@ -2162,14 +2289,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.parts.forEach(function (part, pi) {
 	        var clefMap = new Map(); // {staff}
-	        var prevMeasure = undefined;
+	        var measures = part.getMeasures();
 	
-	        part.getMeasures().forEach(function (measure, mi) {
-	          var clefUpdated = new Map(); // {staff}
-	
+	        measures.forEach(function (measure, mi) {
 	          measure.getClefMap().forEach(function (clef, staff) {
-	            clefMap.set(staff, clef);
-	            clefUpdated.set(staff, clef);
+	            return clefMap.set(staff, clef);
 	          });
 	
 	          if (mi === 0 || measure.isNewLineStarting()) {
@@ -2179,26 +2303,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	          }
 	
-	          clefUpdated.forEach(function (clef, staff) {
-	            if (!prevMeasure) return;
-	
-	            var vfClef = (0, _Util.getVFClef)(clef);
-	            var stave = prevMeasure.getStave(staff);
-	            if (stave) stave.addEndClef(vfClef, 'small');
-	          });
-	
 	          // update cache
 	          _this6.getMeasureCache(pi, mi).setClefMap(new Map(clefMap));
 	
+	          var clefUpdated = new Map(); // {staff}
 	          measure.getNotesMap().forEach(function (notes) {
 	            var staff = 1;
 	            notes.forEach(function (note) {
 	              if (note.staff && note.staff !== staff) staff = note.staff;
-	              if (note.tag === 'clef') clefMap.set(staff, note);
+	              if (note.tag === 'clef') {
+	                clefMap.set(staff, note);
+	                clefUpdated.set(staff, true);
+	              }
 	            });
 	          });
 	
-	          prevMeasure = measure;
+	          var nextMeasure = measures[mi + 1];
+	          if (!nextMeasure || !nextMeasure.isNewLineStarting()) return;
+	
+	          nextMeasure.getClefMap().forEach(function (clef, staff) {
+	            if (clefUpdated.has(staff)) return;
+	
+	            var vfClef = (0, _Util.getVFClef)(clef);
+	            var stave = measure.getStave(staff);
+	            if (stave) stave.addEndClef(vfClef, 'small');
+	          });
 	        });
 	      });
 	    }
@@ -2274,6 +2403,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          prevMeasure = measure;
 	        });
 	      });
+	    }
+	  }, {
+	    key: 'formatAttributes',
+	    value: function formatAttributes() {
+	      this.formatClef();
+	      this.formatKeySignature();
+	      this.formatTimeSignature();
 	    }
 	  }, {
 	    key: 'formatDivisions',
@@ -2380,8 +2516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var partGroups = this.partList.getPartGroups();
 	      var scoreParts = this.partList.getScoreParts();
-	      var numMeasures = this.parts[0].getMeasures().length;
-	      var connectors = [];
+	      var numMeasures = this.measurePacks.length;
 	
 	      var findTopStave = function findTopStave(pi, mi, max) {
 	        for (; pi < max; pi++) {
@@ -2417,6 +2552,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var page = 1;
 	
 	      var _loop2 = function _loop2(mi) {
+	        var connectors = [];
+	        _this11.measurePacks[mi].setConnectors(connectors);
+	
 	        var firstPartMeasure = _this11.parts[0].getMeasures()[mi];
 	        var isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
 	        if (firstPartMeasure.hasNewPage()) page++;
@@ -2521,8 +2659,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var mi = 0; mi < numMeasures; mi++) {
 	        _loop2(mi);
 	      }
-	
-	      this.partList.setConnectors(connectors);
 	    }
 	
 	    /*
@@ -2579,8 +2715,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }return staveNote;
 	    }
 	  }, {
-	    key: '_formatMeasures',
-	    value: function _formatMeasures(part, pi) {
+	    key: '_formatNotes',
+	    value: function _formatNotes(part, pi) {
 	      var _this12 = this;
 	
 	      part.getMeasures().forEach(function (measure, mi) {
@@ -2638,21 +2774,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _this13 = this;
 	
 	      this.parts.forEach(function (part, pi) {
-	        return _this13._formatMeasures(part, pi);
+	        return _this13._formatNotes(part, pi);
 	      });
-	      this.parts[0].getMeasures().forEach(function (_, mi) {
-	        var vfStaves = [];
-	        var vfVoices = [];
-	        _this13.parts.forEach(function (part, pi) {
-	          var measure = part.getMeasures()[mi];
-	          vfVoices = vfVoices.concat(measure.getVFVoices());
-	          vfStaves = vfStaves.concat(measure.getStaves());
-	        });
+	    }
+	  }, {
+	    key: 'formatVoices',
+	    value: function formatVoices() {
+	      this.measurePacks.forEach(function (measurePack, mi) {
+	        var vfStaves = measurePack.getVFStaves();
+	        var vfVoices = measurePack.getVFVoices();
 	
 	        if (vfVoices.length === 0) return;
-	        var width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX();
-	        var vfFormatter = new _allegretto2.default.Flow.Formatter();
-	        vfFormatter.joinVoices(vfVoices).format(vfVoices, width);
+	        // TODO: it should find minimum, not simply using the first stave
+	        var width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX() - 10;
+	        var vfFormatter = new _allegretto2.default.Flow.Formatter().joinVoices(vfVoices);
+	        var minTotalWidth = vfFormatter.preCalculateMinTotalWidth(vfVoices);
+	
+	        vfFormatter.format(vfVoices, width);
+	
+	        measurePack.setMinTotalWidth(minTotalWidth);
+	        measurePack.setVFFormatter(vfFormatter);
 	      });
 	    }
 	  }, {
@@ -2873,14 +3014,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatY();
 	      this.createStaves();
 	      this.formatMeasureNumber();
-	      this.formatClef();
-	      this.formatKeySignature();
-	      this.formatTimeSignature();
+	      this.formatAttributes();
 	      this.formatDivisions();
 	      this.formatCredits();
 	      this.formatPartList();
 	      //this.formatStaves();
 	      this.formatNotes();
+	      this.formatVoices();
 	      this.formatBeam();
 	      this.formatTie();
 	      this.formatSlur();
@@ -2893,7 +3033,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Formatter;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -18973,7 +19113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	//# sourceMappingURL=vexflow-debug.js.map
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -19023,7 +19163,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Table;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -19033,11 +19173,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
 	
-	var _allegretto = __webpack_require__(15);
+	var _allegretto = __webpack_require__(16);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Table = __webpack_require__(16);
+	var _Table = __webpack_require__(17);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
@@ -19128,9 +19268,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  return connectorType;
 	};
+	
+	exports.default = {
+	  getVFClef: getVFClef,
+	  getVFDuration: getVFDuration,
+	  getVFKeySignature: getVFKeySignature,
+	  getVFConnectorType: getVFConnectorType
+	};
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -19142,7 +19289,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _allegretto = __webpack_require__(15);
+	var _allegretto = __webpack_require__(16);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
@@ -19296,13 +19443,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: 'renderPartList',
-	    value: function renderPartList() {
+	    key: 'renderConnectors',
+	    value: function renderConnectors() {
 	      var _this6 = this;
 	
-	      this.score.getPartList().getConnectors().forEach(function (connector) {
-	        var context = _this6.contexts[connector.page - 1];
-	        connector.staveConnector.setContext(context).draw();
+	      this.score.getMeasurePacks().forEach(function (measurePack) {
+	        measurePack.getConnectors().forEach(function (connector) {
+	          var context = _this6.contexts[connector.page - 1];
+	          connector.staveConnector.setContext(context).draw();
+	        });
 	      });
 	    }
 	  }, {
@@ -19337,7 +19486,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderBeams();
 	      this.renderTies();
 	      this.renderSlurs();
-	      this.renderPartList();
+	      this.renderConnectors();
 	      this.renderCredits();
 	    }
 	  }]);
