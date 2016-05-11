@@ -11,8 +11,8 @@ export default class MeasurePack {
   }
 
   getMeasure(i) { return this.measures[i]; }
-  getTopMeasure() { return this.getMeasure[0]; }
-  getBottomMeasure() { return this.getMeasure[this.measures.length - 1]; }
+  getTopMeasure() { return this.getMeasure(0); }
+  getBottomMeasure() { return this.getMeasure(this.measures.length - 1); }
 
   getMinTotalWidth() { return this.minTotalWidth; }
   setMinTotalWidth(minTotalWidth) { this.minTotalWidth = minTotalWidth; }
