@@ -85,3 +85,10 @@ export const getVFConnectorType = groupSymbol => {
 
   return connectorType;
 };
+
+export default {
+  getVFClef,
+  getVFDuration,
+  getVFKeySignature,
+  getVFConnectorType,
+};

@@ -10,6 +10,7 @@ import Measure from './Measure';
 import { parse } from './Parser';
 import Formatter from './Formatter';
 import Renderer from './Renderer';
+import Util from './Util';
 
 // use module.exports for node.js compatibility
 module.exports = {
@@ -21,5 +22,6 @@ module.exports = {
   Measure,
   Formatter,
   Renderer,
+  Util,
   parse,
 };
