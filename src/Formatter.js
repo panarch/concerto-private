@@ -685,6 +685,7 @@ export default class Formatter {
 
         const vfNotes = [];
         let staff = 1;
+        let clefModifier;
         notesMap.get(voice).forEach(note => {
           switch (note.getTag()) {
             case 'note':
@@ -694,6 +695,11 @@ export default class Formatter {
               const divisions = measureCache.getDivisions();
               const staveNote = this._formatNote(note, clef, divisions);
               staveNote.setStave(measure.getStave(note.getStaff()));
+              if (clefModifier) {
+                staveNote.addModifier(0, clefModifier);
+                clefModifier = null;
+              }
+
               note.setVFNote(staveNote);
               vfNotes.push(staveNote);
 
@@ -702,11 +708,16 @@ export default class Formatter {
             case 'clef':
               const clefNote = new Vex.Flow.ClefNote(getVFClef(note), 'small');
               clefNote.setStave(measure.getStave(staff));
-              vfNotes.push(clefNote);
               measureCache.setClef(staff, note);
+
+              clefModifier = new Vex.Flow.AttrNoteGroup([clefNote]);
               break;
           }
         });
+
+        if (clefModifier) {
+          measure.getStave(staff).addEndClef(clefModifier.attr_notes[0].type, 'small');
+        }
 
         const { beats = 4, beatType = 4 } = measureCache.hasTime() ? measureCache.getTime() : {};
         const vfVoice = new Vex.Flow.Voice({ num_beats: beats, beat_value: beatType });
