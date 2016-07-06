@@ -2731,6 +2731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var vfNotes = [];
 	          var staff = 1;
+	          var clefModifier = undefined;
 	          notesMap.get(voice).forEach(function (note) {
 	            switch (note.getTag()) {
 	              case 'note':
@@ -2740,6 +2741,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var divisions = measureCache.getDivisions();
 	                var staveNote = _this12._formatNote(note, clef, divisions);
 	                staveNote.setStave(measure.getStave(note.getStaff()));
+	                if (clefModifier) {
+	                  staveNote.addModifier(0, clefModifier);
+	                  clefModifier = null;
+	                }
+	
 	                note.setVFNote(staveNote);
 	                vfNotes.push(staveNote);
 	
@@ -2748,11 +2754,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	              case 'clef':
 	                var clefNote = new _allegretto2.default.Flow.ClefNote((0, _Util.getVFClef)(note), 'small');
 	                clefNote.setStave(measure.getStave(staff));
-	                vfNotes.push(clefNote);
 	                measureCache.setClef(staff, note);
+	
+	                clefModifier = new _allegretto2.default.Flow.AttrNoteGroup([clefNote]);
 	                break;
 	            }
 	          });
+	
+	          if (clefModifier) {
+	            measure.getStave(staff).addEndClef(clefModifier.attr_notes[0].type, 'small');
+	          }
 	
 	          var _ref4 = measureCache.hasTime() ? measureCache.getTime() : {};
 	
