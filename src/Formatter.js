@@ -332,7 +332,9 @@ export default class Formatter {
         if (measure.isNewLineStarting() && keyUpdated) {
           prevMeasure.getStaves().forEach(stave => {
             const vfKey = getVFKeySignature(key);
-            if (key) stave.addKeySignature(vfKey, undefined, Vex.Flow.StaveModifier.Position.END);
+            // TODO: replace it to use StaveModifier later
+            const END = 6; // Vex.Flow.StaveModifier.Position.END
+            if (key) stave.addKeySignature(vfKey, undefined, END);
           });
         }
 
