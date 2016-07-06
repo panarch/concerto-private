@@ -21,7 +21,6 @@
     "url": "https://github.com/panarch/concerto-private/issues"
   },
   "devDependencies": {
-    "@panarch/allegretto": "^1.2.5-3.1",
     "babel-core": "^6.3.21",
     "babel-eslint": "^4.1.6",
     "babel-loader": "^6.2.0",
@@ -30,6 +29,9 @@
     "slimerjs": "^0.9.6",
     "webpack": "^1.12.9",
     "webpack-dev-server": "^1.14.0"
+  },
+  "peerDependencies": {
+    "@panarch/allegretto": "^1.2.5-3.1"
   },
   "description": "A Javascript library for parsing and rendering MusicXML. Copyright (c) 2016 Taehoon Moon",
   "main": "releases/concerto.js",
