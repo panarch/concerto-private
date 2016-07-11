@@ -34,7 +34,7 @@ export default class Renderer {
       let context = this.contexts[index];
 
       part.getMeasures().forEach((measure, mi) =>{
-        if (measure.hasNewPage()) {
+        if (mi > 0 && measure.hasNewPage()) {
           index++;
           context = this.contexts[index];
         }
@@ -52,7 +52,7 @@ export default class Renderer {
       let context = this.contexts[index];
 
       part.getMeasures().forEach((measure, mi) =>{
-        if (measure.hasNewPage()) {
+        if (mi > 0 && measure.hasNewPage()) {
           index++;
           context = this.contexts[index];
         }
@@ -68,7 +68,7 @@ export default class Renderer {
       let context = this.contexts[index];
 
       part.getMeasures().forEach((measure, mi) => {
-        if (measure.hasNewPage()) {
+        if (mi > 0 && measure.hasNewPage()) {
           index++;
           context = this.contexts[index];
         }
@@ -84,7 +84,7 @@ export default class Renderer {
       let context = this.contexts[index];
 
       part.getMeasures().forEach((measure, mi) => {
-        if (measure.hasNewPage()) {
+        if (mi > 0 && measure.hasNewPage()) {
           index++;
           context = this.contexts[index];
         }
@@ -102,7 +102,7 @@ export default class Renderer {
       let context = this.contexts[index];
 
       part.getMeasures().forEach((measure, mi) => {
-        if (measure.hasNewPage()) {
+        if (mi > 0 && measure.hasNewPage()) {
           index++;
           context = this.contexts[index];
         }

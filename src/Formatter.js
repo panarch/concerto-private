@@ -329,7 +329,7 @@ export default class Formatter {
           })
         }
 
-        if (measure.isNewLineStarting() && keyUpdated) {
+        if (mi > 0 && measure.isNewLineStarting() && keyUpdated) {
           prevMeasure.getStaves().forEach(stave => {
             const vfKey = getVFKeySignature(key);
             // TODO: replace it to use StaveModifier later
@@ -365,7 +365,7 @@ export default class Formatter {
           });
         }
 
-        if (measure.isNewLineStarting() && timeUpdated) {
+        if (mi > 0 && measure.isNewLineStarting() && timeUpdated) {
           prevMeasure.getStaves().forEach(stave => {
             stave.addEndTimeSignature(`${time.beats}/${time.beatType}`);
           });
@@ -516,7 +516,7 @@ export default class Formatter {
 
       const firstPartMeasure = this.parts[0].getMeasures()[mi];
       const isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
-      if (firstPartMeasure.hasNewPage()) page++;
+      if (mi > 0 && firstPartMeasure.hasNewPage()) page++;
 
       if (isNewLineStarting) {
         const topStave = findTopStave(0, mi, this.parts.length - 1);

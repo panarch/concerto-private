@@ -26,8 +26,8 @@ export default class Score {
 
   getNumPages() {
     let num = 1;
-    this.parts[0].getMeasures().forEach(measure => {
-      if (measure.hasNewPage()) num++;
+    this.parts[0].getMeasures().forEach((measure, mi) => {
+      if (mi > 0 && measure.hasNewPage()) num++;
     });
 
     return num;
