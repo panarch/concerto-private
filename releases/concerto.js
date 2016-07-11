@@ -198,8 +198,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "getNumPages",
 	    value: function getNumPages() {
 	      var num = 1;
-	      this.parts[0].getMeasures().forEach(function (measure) {
-	        if (measure.hasNewPage()) num++;
+	      this.parts[0].getMeasures().forEach(function (measure, mi) {
+	        if (mi > 0 && measure.hasNewPage()) num++;
 	      });
 	
 	      return num;
@@ -1031,24 +1031,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var partNameNode = node.getElementsByTagName('part-name')[0];
 	    var partAbbreviationNode = node.getElementsByTagName('part-abbreviation')[0];
 	    var midiInstNode = node.getElementsByTagName('midi-instrument')[0];
-	    var volumeNode = midiInstNode.getElementsByTagName('volume')[0];
-	    var panNode = midiInstNode.getElementsByTagName('pan')[0];
 	    var scorePart = {
-	      midiInstrument: {
-	        id: midiInstNode.getAttribute('id'),
-	        midiChannel: Number(midiInstNode.getElementsByTagName('midi-channel')[0].textContent),
-	        midiProgram: Number(midiInstNode.getElementsByTagName('midi-program')[0].textContent)
-	      },
 	      scoreInstrument: {
 	        id: scoreInstNode.getAttribute('id'),
 	        instrumentName: scoreInstNode.getElementsByTagName('instrument-name')[0].textContent
 	      }
 	    };
 	
-	    if (volumeNode) scorePart.midiInstrument.volume = Number(volumeNode.textContent);
-	    if (panNode) scorePart.midiInstrument.pan = Number(panNode.textContent);
 	    if (partNameNode) scorePart.partName = partNameNode.textContent;
 	    if (partAbbreviationNode) scorePart.partAbbreviation = partAbbreviationNode.textContent;
+	    if (midiInstNode) {
+	      var volumeNode = midiInstNode.getElementsByTagName('volume')[0];
+	      var panNode = midiInstNode.getElementsByTagName('pan')[0];
+	      scorePart.midiInstrument = {
+	        id: midiInstNode.getAttribute('id'),
+	        midiChannel: Number(midiInstNode.getElementsByTagName('midi-channel')[0].textContent),
+	        midiProgram: Number(midiInstNode.getElementsByTagName('midi-program')[0].textContent)
+	      };
+	
+	      if (volumeNode) scorePart.midiInstrument.volume = Number(volumeNode.textContent);
+	      if (panNode) scorePart.midiInstrument.pan = Number(panNode.textContent);
+	    }
 	
 	    return scorePart;
 	  });
@@ -2355,7 +2358,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	          }
 	
-	          if (measure.isNewLineStarting() && keyUpdated) {
+	          if (mi > 0 && measure.isNewLineStarting() && keyUpdated) {
 	            prevMeasure.getStaves().forEach(function (stave) {
 	              var vfKey = (0, _Util.getVFKeySignature)(key);
 	              // TODO: replace it to use StaveModifier later
@@ -2394,7 +2397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	          }
 	
-	          if (measure.isNewLineStarting() && timeUpdated) {
+	          if (mi > 0 && measure.isNewLineStarting() && timeUpdated) {
 	            prevMeasure.getStaves().forEach(function (stave) {
 	              stave.addEndTimeSignature(time.beats + '/' + time.beatType);
 	            });
@@ -2559,7 +2562,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var firstPartMeasure = _this11.parts[0].getMeasures()[mi];
 	        var isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
-	        if (firstPartMeasure.hasNewPage()) page++;
+	        if (mi > 0 && firstPartMeasure.hasNewPage()) page++;
 	
 	        if (isNewLineStarting) {
 	          var topStave = findTopStave(0, mi, _this11.parts.length - 1);
@@ -2756,13 +2759,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                clefNote.setStave(measure.getStave(staff));
 	                measureCache.setClef(staff, note);
 	
-	                clefModifier = new _allegretto2.default.Flow.AttrNoteGroup([clefNote]);
+	                clefModifier = new _allegretto2.default.Flow.NoteSubGroup([clefNote]);
 	                break;
 	            }
 	          });
 	
 	          if (clefModifier) {
-	            measure.getStave(staff).addEndClef(clefModifier.attr_notes[0].type, 'small');
+	            measure.getStave(staff).addEndClef(clefModifier.subNotes[0].type, 'small');
 	          }
 	
 	          var _ref4 = measureCache.hasTime() ? measureCache.getTime() : {};
@@ -3050,7 +3053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * VexFlow 1.2.53.1 built on 2016-07-06.
+	 * VexFlow 1.2.53.2 built on 2016-07-11.
 	 * Copyright (c) 2010 Mohit Muthanna Cheppudira <mohit@muthanna.com>
 	 *
 	 * http://www.vexflow.com  http://github.com/0xfe/vexflow
@@ -12816,21 +12819,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Accidental;
 	  }(Modifier);
 	
-	  var AttrNoteGroup = function (_Modifier) {
-	    inherits(AttrNoteGroup, _Modifier);
-	    createClass(AttrNoteGroup, null, [{
+	  var NoteSubGroup = function (_Modifier) {
+	    inherits(NoteSubGroup, _Modifier);
+	    createClass(NoteSubGroup, null, [{
 	      key: 'format',
 	
 	
 	      // Arrange groups inside a `ModifierContext`
-	      value: function format(attrnote_groups, state) {
-	        if (!attrnote_groups || attrnote_groups.length === 0) return false;
+	      value: function format(groups, state) {
+	        if (!groups || groups.length === 0) return false;
 	
 	        var width = 0;
-	        for (var i = 0; i < attrnote_groups.length; ++i) {
-	          var attrnote_group = attrnote_groups[i];
-	          attrnote_group.preFormat();
-	          width += attrnote_group.getWidth();
+	        for (var i = 0; i < groups.length; ++i) {
+	          var group = groups[i];
+	          group.preFormat();
+	          width += group.getWidth();
 	        }
 	
 	        state.left_shift += width;
@@ -12839,23 +12842,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'CATEGORY',
 	      get: function get() {
-	        return 'attrnotegroup';
+	        return 'notesubgroup';
 	      }
 	    }]);
 	
-	    function AttrNoteGroup(attr_notes) {
+	    function NoteSubGroup(subNotes) {
 	      var _ret;
 	
-	      classCallCheck(this, AttrNoteGroup);
+	      classCallCheck(this, NoteSubGroup);
 	
-	      var _this = possibleConstructorReturn(this, Object.getPrototypeOf(AttrNoteGroup).call(this));
+	      var _this = possibleConstructorReturn(this, Object.getPrototypeOf(NoteSubGroup).call(this));
 	
 	      _this.note = null;
 	      _this.index = null;
 	      _this.position = Modifier.Position.LEFT;
-	      _this.attr_notes = attr_notes;
-	      _this.attr_notes.forEach(function (note) {
-	        return note.ignore_ticks = false;
+	      _this.subNotes = subNotes;
+	      _this.subNotes.forEach(function (subNote) {
+	        subNote.ignore_ticks = false;
 	      });
 	      _this.width = 0;
 	      _this.preFormatted = false;
@@ -12867,15 +12870,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        resolution: Flow.RESOLUTION
 	      }).setStrict(false);
 	
-	      _this.voice.addTickables(_this.attr_notes);
+	      _this.voice.addTickables(_this.subNotes);
 	
 	      return _ret = _this, possibleConstructorReturn(_this, _ret);
 	    }
 	
-	    createClass(AttrNoteGroup, [{
+	    createClass(NoteSubGroup, [{
 	      key: 'getCategory',
 	      value: function getCategory() {
-	        return AttrNoteGroup.CATEGORY;
+	        return NoteSubGroup.CATEGORY;
 	      }
 	    }, {
 	      key: 'preFormat',
@@ -12907,38 +12910,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this2 = this;
 	
 	        if (!this.context) {
-	          throw new Vex$1.RuntimeError('NoContext', "Can't draw attr note without a context.");
+	          throw new Vex$1.RuntimeError('NoContext', "Can't draw notes without a context.");
 	        }
 	
 	        var note = this.getNote();
 	
 	        if (!(note && this.index !== null)) {
-	          throw new Vex$1.RuntimeError('NoAttachedNote', "Can't draw attr note without a parent note and parent note index.");
+	          throw new Vex$1.RuntimeError('NoAttachedNote', "Can't draw notes without a parent note and parent note index.");
 	        }
 	
-	        var alignAttrNotesWithNote = function alignAttrNotesWithNote(attr_notes, note, groupWidth) {
+	        var alignSubNotesWithNote = function alignSubNotesWithNote(subNotes, note) {
 	          // Shift over the tick contexts of each note
 	          var tickContext = note.getTickContext();
 	          var extraPx = tickContext.getExtraPx();
 	          var x = tickContext.getX() - extraPx.left - extraPx.extraLeft + _this2.getSpacingFromNextModifier();
 	
-	          attr_notes.forEach(function (attrNote) {
-	            var tick_context = attrNote.getTickContext();
+	          subNotes.forEach(function (subNote) {
+	            var tick_context = subNote.getTickContext();
 	            var x_offset = tick_context.getX();
-	            attrNote.setStave(note.stave);
+	            subNote.setStave(note.stave);
 	            tick_context.setX(x + x_offset);
 	          });
 	        };
 	
-	        alignAttrNotesWithNote(this.attr_notes, note, this.width);
+	        alignSubNotesWithNote(this.subNotes, note, this.width);
 	
 	        // Draw notes
-	        this.attr_notes.forEach(function (attrNote) {
-	          return attrNote.setContext(_this2.context).draw();
+	        this.subNotes.forEach(function (subNote) {
+	          return subNote.setContext(_this2.context).draw();
 	        });
 	      }
 	    }]);
-	    return AttrNoteGroup;
+	    return NoteSubGroup;
 	  }(Modifier);
 	
 	  var StaveTie = function () {
@@ -15246,7 +15249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // Add new modifiers to this array. The ordering is significant -- lower
 	      // modifiers are formatted and rendered before higher ones.
-	      this.PREFORMAT = [StaveNote, Dot, FretHandFinger, Accidental, GraceNoteGroup, AttrNoteGroup, Stroke, StringNumber, Articulation, Ornament, Annotation, Bend, Vibrato];
+	      this.PREFORMAT = [StaveNote, Dot, FretHandFinger, Accidental, GraceNoteGroup, NoteSubGroup, Stroke, StringNumber, Articulation, Ornament, Annotation, Bend, Vibrato];
 	
 	      // If post-formatting is required for an element, add it to this array.
 	      this.POSTFORMAT = [StaveNote];
@@ -21402,7 +21405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Vex$1.Flow.Repetition = Repetition;
 	  Vex$1.Flow.BarNote = BarNote;
 	  Vex$1.Flow.GhostNote = GhostNote;
-	  Vex$1.Flow.AttrNoteGroup = AttrNoteGroup;
+	  Vex$1.Flow.NoteSubGroup = NoteSubGroup;
 	  Vex$1.Flow.GraceNoteGroup = GraceNoteGroup;
 	  Vex$1.Flow.Tremolo = Tremolo;
 	  Vex$1.Flow.StringNumber = StringNumber;
@@ -21646,7 +21649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var context = _this.contexts[index];
 	
 	        part.getMeasures().forEach(function (measure, mi) {
-	          if (measure.hasNewPage()) {
+	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
 	            context = _this.contexts[index];
 	          }
@@ -21667,7 +21670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var context = _this2.contexts[index];
 	
 	        part.getMeasures().forEach(function (measure, mi) {
-	          if (measure.hasNewPage()) {
+	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
 	            context = _this2.contexts[index];
 	          }
@@ -21688,7 +21691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var context = _this3.contexts[index];
 	
 	        part.getMeasures().forEach(function (measure, mi) {
-	          if (measure.hasNewPage()) {
+	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
 	            context = _this3.contexts[index];
 	          }
@@ -21709,7 +21712,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var context = _this4.contexts[index];
 	
 	        part.getMeasures().forEach(function (measure, mi) {
-	          if (measure.hasNewPage()) {
+	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
 	            context = _this4.contexts[index];
 	          }
@@ -21732,7 +21735,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var context = _this5.contexts[index];
 	
 	        part.getMeasures().forEach(function (measure, mi) {
-	          if (measure.hasNewPage()) {
+	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
 	            context = _this5.contexts[index];
 	          }
