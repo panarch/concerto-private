@@ -710,7 +710,7 @@ export default class Formatter {
               clefNote.setStave(measure.getStave(staff));
               measureCache.setClef(staff, note);
 
-              clefModifier = new Vex.Flow.AttrNoteGroup([clefNote]);
+              clefModifier = new Vex.Flow.NoteSubGroup([clefNote]);
               break;
           }
         });
