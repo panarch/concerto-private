@@ -105,24 +105,27 @@ const parsePartList = partListNode => {
     const partNameNode = node.getElementsByTagName('part-name')[0];
     const partAbbreviationNode = node.getElementsByTagName('part-abbreviation')[0];
     const midiInstNode = node.getElementsByTagName('midi-instrument')[0];
-    const volumeNode = midiInstNode.getElementsByTagName('volume')[0];
-    const panNode = midiInstNode.getElementsByTagName('pan')[0];
     const scorePart = {
-      midiInstrument: {
-        id: midiInstNode.getAttribute('id'),
-        midiChannel: Number(midiInstNode.getElementsByTagName('midi-channel')[0].textContent),
-        midiProgram: Number(midiInstNode.getElementsByTagName('midi-program')[0].textContent),
-      },
       scoreInstrument: {
         id: scoreInstNode.getAttribute('id'),
         instrumentName: scoreInstNode.getElementsByTagName('instrument-name')[0].textContent,
       },
-    }
+    };
 
-    if (volumeNode) scorePart.midiInstrument.volume = Number(volumeNode.textContent);
-    if (panNode) scorePart.midiInstrument.pan = Number(panNode.textContent);
     if (partNameNode) scorePart.partName = partNameNode.textContent;
     if (partAbbreviationNode) scorePart.partAbbreviation = partAbbreviationNode.textContent;
+    if (midiInstNode) {
+      const volumeNode = midiInstNode.getElementsByTagName('volume')[0];
+      const panNode = midiInstNode.getElementsByTagName('pan')[0];
+      scorePart.midiInstrument = {
+        id: midiInstNode.getAttribute('id'),
+        midiChannel: Number(midiInstNode.getElementsByTagName('midi-channel')[0].textContent),
+        midiProgram: Number(midiInstNode.getElementsByTagName('midi-program')[0].textContent),
+      };
+
+      if (volumeNode) scorePart.midiInstrument.volume = Number(volumeNode.textContent);
+      if (panNode) scorePart.midiInstrument.pan = Number(panNode.textContent);
+    }
 
     return scorePart;
   });
