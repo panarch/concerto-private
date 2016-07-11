@@ -716,7 +716,7 @@ export default class Formatter {
         });
 
         if (clefModifier) {
-          measure.getStave(staff).addEndClef(clefModifier.attr_notes[0].type, 'small');
+          measure.getStave(staff).addEndClef(clefModifier.subNotes[0].type, 'small');
         }
 
         const { beats = 4, beatType = 4 } = measureCache.hasTime() ? measureCache.getTime() : {};
