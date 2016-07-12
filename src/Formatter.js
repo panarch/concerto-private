@@ -639,6 +639,47 @@ export default class Formatter {
   }
   */
 
+  _formatNoteArticulations(staveNote, note) {
+    if (!note.notations.articulations) return;
+
+    const notations = note.notations;
+    const HEAD_ATTACHINGS = [
+      'staccato',
+      'staccatissimo',
+      'accent',
+      'spiccato',
+      'tenuto',
+    ];
+    const ARTICULATION_MAP = {
+      staccato: 'a.',
+      staccatissimo: 'av',
+      tenuto: 'a-',
+      accent: 'a>',
+      'strong-accent': 'a^',
+      'breath-mark': 'a,',
+    };
+    const { ABOVE, BELOW } = Vex.Flow.Modifier.Position;
+
+    const articulations = notations.articulations ? notations.articulations : [];
+    articulations.forEach(articulation => {
+      const value = ARTICULATION_MAP[articulation.tag];
+      if (!value) return;
+
+      const vfArticulation = new Vex.Flow.Articulation(value);
+      const vfPosition = HEAD_ATTACHINGS.indexOf(articulation.tag) !== -1 ?
+        (note.getStem() === 'up' ? BELOW : ABOVE) :
+        ABOVE;
+
+      staveNote.addArticulation(0, vfArticulation.setPosition(vfPosition));
+    });
+  }
+
+  _formatNoteNotations(staveNote, note) {
+    if (!note.notations) return;
+
+    this._formatNoteArticulations(staveNote, note);
+  }
+
   _formatNote(note, clef, divisions) {
     if (note.getHidden()) {
       return new Vex.Flow.GhostNote({ duration: getVFDuration(note, divisions) });
@@ -670,6 +711,8 @@ export default class Formatter {
     });
 
     for (let i = 0; i < note.dot; i++) staveNote.addDotToAll();
+
+    this._formatNoteNotations(staveNote, note);
 
     return staveNote;
   }

@@ -3,7 +3,7 @@
 
 export default class Note {
   constructor({ tag, rest, full, grace, staff, voice, dot, duration, hidden,
-      heads, stem, type, beam, chord, slur }) {
+      heads, stem, type, beam, chord, slur, notations }) {
     this.tag = tag;
     this.staff = staff;
     this.voice = voice;
@@ -19,6 +19,7 @@ export default class Note {
     this.beam = beam;
     this.chord = chord;
     this.slur = slur;
+    this.notations = notations;
 
     this.vfNote = null;
   }
@@ -38,6 +39,7 @@ export default class Note {
   getBeam() { return this.beam; }
   getChord() { return this.chord; }
   getSlur() { return this.slur; }
+  getNotations() { return this.notations; }
 
   getVFNote() { return this.vfNote; }
   setVFNote(vfNote) { this.vfNote = vfNote; }

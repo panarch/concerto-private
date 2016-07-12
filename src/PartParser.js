@@ -114,9 +114,32 @@ const sumNotesDuration = notes => {
   );
 };
 
+const parseNoteArticulations = (notations, articulationsNode) => {
+  notations.articulations = [...articulationsNode.childNodes]
+      .filter(node => node.tagName).map(node => {
+    if (!node.tagName) return;
+
+    const articulation = { tag: node.tagName };
+
+    function _parseAttr(attr, key, isNumber = true) {
+      if (node.hasAttribute(attr)) {
+        const value = node.getAttribute(attr);
+        articulation[key] = isNumber ? Number(value) : value;
+      }
+    }
+
+    _parseAttr('default-x', 'defaultX');
+    _parseAttr('default-y', 'defaultY');
+    _parseAttr('placement', 'placement', false);
+
+    return articulation;
+  });
+};
+
 const parseNoteNotations = (note, head, notationsNode) => {
   if (!notationsNode) return;
 
+  const articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
   const tiedNodes = notationsNode.getElementsByTagName('tied');
   const slurNodes = [...notationsNode.getElementsByTagName('slur')].filter(node => {
     return node.getAttribute('type') !== 'continue';
@@ -133,6 +156,9 @@ const parseNoteNotations = (note, head, notationsNode) => {
       note.slur.placement = slurNode.getAttribute('placement');
     }
   }
+
+  note.notations = {};
+  if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
 };
 
 const parseNote = (data, noteNode, state) => {
