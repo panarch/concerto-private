@@ -7,7 +7,7 @@
  <identification>
   <rights>Copyright © Concerto</rights>
   <encoding>
-   <encoding-date>2016-07-11</encoding-date>
+   <encoding-date>2016-07-12</encoding-date>
    <encoder>TaehoonMoon</encoder>
    <software>Sibelius 8.4.1</software>
    <software>Direct export, not from Dolet</software>
@@ -225,13 +225,74 @@
    <backup>
     <duration>1024</duration>
    </backup>
-   <note default-x="75">
-    <rest />
-    <duration>1024</duration>
+   <note color="#000000" default-x="75" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
-    <type>whole</type>
+    <type>quarter</type>
+    <stem>up</stem>
     <staff>2</staff>
+    <notations>
+     <articulations>
+      <staccato />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="145" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <accent />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="215" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <staccato />
+      <accent />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="285" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <strong-accent />
+     </articulations>
+    </notations>
    </note>
   </measure>
   <!--============== Part: P1, Measure: 2 ==============-->
@@ -309,13 +370,74 @@
    <backup>
     <duration>1024</duration>
    </backup>
-   <note default-x="15">
-    <rest />
-    <duration>1024</duration>
+   <note color="#000000" default-x="15" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
-    <type>whole</type>
+    <type>quarter</type>
+    <stem>up</stem>
     <staff>2</staff>
+    <notations>
+     <articulations>
+      <tenuto />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="85" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <tenuto />
+      <accent />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="155" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <detached-legato />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="225" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <breath-mark />
+     </articulations>
+    </notations>
    </note>
   </measure>
   <!--============== Part: P1, Measure: 3 ==============-->
@@ -401,40 +523,50 @@
     <type>quarter</type>
     <staff>2</staff>
    </note>
-   <note color="#000000" default-x="85" default-y="-50">
+   <note color="#000000" default-x="85" default-y="10">
     <pitch>
-     <step>E</step>
+     <step>C</step>
      <octave>3</octave>
     </pitch>
     <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
     <type>quarter</type>
-    <stem>down</stem>
+    <stem>up</stem>
     <staff>2</staff>
+    <notations>
+     <articulations>
+      <spiccato />
+     </articulations>
+    </notations>
    </note>
-   <note color="#000000" default-x="155" default-y="-40">
+   <note color="#000000" default-x="155" default-y="10">
     <pitch>
-     <step>G</step>
+     <step>C</step>
      <octave>3</octave>
     </pitch>
     <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
     <type>quarter</type>
-    <stem>down</stem>
+    <stem>up</stem>
     <staff>2</staff>
+    <notations>
+     <articulations>
+      <staccatissimo />
+     </articulations>
+    </notations>
    </note>
-   <note color="#000000" default-x="225" default-y="-50">
+   <note color="#000000" default-x="225" default-y="10">
     <pitch>
-     <step>E</step>
+     <step>C</step>
      <octave>3</octave>
     </pitch>
     <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
     <type>quarter</type>
-    <stem>down</stem>
+    <stem>up</stem>
     <staff>2</staff>
    </note>
   </measure>
@@ -527,13 +659,73 @@
    <backup>
     <duration>1024</duration>
    </backup>
-   <note default-x="57">
-    <rest />
-    <duration>1024</duration>
+   <note color="#000000" default-x="57" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
-    <type>whole</type>
+    <type>quarter</type>
+    <stem>up</stem>
     <staff>2</staff>
+    <notations>
+     <articulations>
+      <falloff />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="115" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <doit />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="173" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <plop />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="231" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <scoop />
+     </articulations>
+    </notations>
    </note>
   </measure>
   <!--============== Part: P1, Measure: 5 ==============-->
@@ -610,13 +802,73 @@
    <backup>
     <duration>1024</duration>
    </backup>
-   <note default-x="15">
-    <rest />
-    <duration>1024</duration>
+   <note color="#000000" default-x="15" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
-    <type>whole</type>
+    <type>quarter</type>
+    <stem>up</stem>
     <staff>2</staff>
+    <notations>
+     <articulations>
+      <stress placement="above" />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="73" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <stress placement="below" />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="130" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <unstress placement="above" />
+     </articulations>
+    </notations>
+   </note>
+   <note color="#000000" default-x="189" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+    <notations>
+     <articulations>
+      <unstress placement="below" />
+     </articulations>
+    </notations>
    </note>
   </measure>
   <!--============== Part: P1, Measure: 6 ==============-->
@@ -680,12 +932,39 @@
    <backup>
     <duration>1024</duration>
    </backup>
-   <note default-x="15">
-    <rest />
-    <duration>1024</duration>
+   <direction>
+    <direction-type>
+     <other-direction default-y="10" print-object="no">Marcato below</other-direction>
+    </direction-type>
+    <voice>2</voice>
+    <staff>2</staff>
+   </direction>
+   <note color="#000000" default-x="15" default-y="10">
+    <pitch>
+     <step>C</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>256</duration>
     <instrument id="P1-I1" />
     <voice>2</voice>
-    <type>whole</type>
+    <type>quarter</type>
+    <stem>up</stem>
+    <staff>2</staff>
+   </note>
+   <note default-x="73">
+    <rest />
+    <duration>256</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>quarter</type>
+    <staff>2</staff>
+   </note>
+   <note default-x="130">
+    <rest />
+    <duration>512</duration>
+    <instrument id="P1-I1" />
+    <voice>2</voice>
+    <type>half</type>
     <staff>2</staff>
    </note>
   </measure>
