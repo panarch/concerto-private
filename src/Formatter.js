@@ -148,9 +148,15 @@ export default class Formatter {
         height += Measure.STAFF_HEIGHT + this.state.staffDistanceMap.get(`${pi}/${staff}`);
       }
 
+      /*
+        `aboveBottomY + (pi === 0 ? systemDistance : staffDistance);`
+        => Above code is correct, but Sibelius(8.4.1) uses system-distance between part...
+           So below code used:
+        `aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);`
+      */
       const measureTopY = pi === 0 && (measure.hasNewPage() || mi === 0) ?
         topSystemDistance + pageTopMargin :
-        aboveBottomY + (pi === 0 ? systemDistance : staffDistance);
+        aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);
       const measureBottomY = measureTopY + height;
 
       aboveBottomY = measureBottomY;

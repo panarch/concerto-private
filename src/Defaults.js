@@ -94,4 +94,4 @@ Defaults.SYSTEM_MARGINS = {
 };
 Defaults.TOP_SYSTEM_DISTANCE = 40;
 Defaults.SYSTEM_DISTANCE = 40;
-Defaults.STAFF_DISTANCE = 30;
+Defaults.STAFF_DISTANCE = 0;
