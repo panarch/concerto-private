@@ -136,16 +136,41 @@ const parseNoteArticulations = (notations, articulationsNode) => {
   });
 };
 
+const parseNoteTuplets = (notations, tupletNodes) => {
+  notations.tuplets = [];
+
+  tupletNodes.forEach(node => {
+    const tuplet = {
+      type: node.getAttribute('type'),
+    };
+
+    if (node.hasAttribute('number')) tuplet.number = Number(node.getAttribute('number'));
+    if (node.hasAttribute('placement')) tuplet.placement = node.getAttribute('placement');
+
+    function getTupletNumber(_node) {
+      return Number(_node.getElementsByTagName('tuplet-number')[0].textContent);
+    }
+
+    const actualNode = node.getElementsByTagName('tuplet-actual')[0];
+    const normalNode = node.getElementsByTagName('tuplet-normal')[0];
+    if (actualNode) tuplet.actual = { number: getTupletNumber(actualNode) };
+    if (normalNode) tuplet.normal = { number: getTupletNumber(normalNode) };
+
+    notations.tuplets.push(tuplet);
+  });
+};
+
 const parseNoteNotations = (note, head, notationsNode) => {
   if (!notationsNode) return;
 
   const articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
+  const tupletNodes = [...notationsNode.getElementsByTagName('tuplet')];
   const tiedNodes = notationsNode.getElementsByTagName('tied');
   const slurNodes = [...notationsNode.getElementsByTagName('slur')].filter(node => {
     return node.getAttribute('type') !== 'continue';
   });
 
-  if (tiedNodes.length > 0) {
+  if (head && tiedNodes.length > 0) {
     head.tied = tiedNodes.length > 1 ? 'stop-and-start' : tiedNodes[0].getAttribute('type');
   }
 
@@ -159,6 +184,7 @@ const parseNoteNotations = (note, head, notationsNode) => {
 
   note.notations = {};
   if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
+  if (tupletNodes.length > 0) parseNoteTuplets(note.notations, tupletNodes);
 };
 
 const parseNote = (data, noteNode, state) => {
@@ -174,6 +200,7 @@ const parseNote = (data, noteNode, state) => {
   const notationsNode = noteNode.getElementsByTagName('notations')[0];
   const beamNodes = [...noteNode.getElementsByTagName('beam')];
   const tieNodes = [...noteNode.getElementsByTagName('tie')];
+  const timeModificationNode = noteNode.getElementsByTagName('time-modification')[0];
   const numDots = noteNode.getElementsByTagName('dot').length;
   const staff = staffNode ? Number(staffNode.textContent) : 1;
   const voice = voiceNode ? Number(voiceNode.textContent) : 1;
@@ -234,19 +261,21 @@ const parseNote = (data, noteNode, state) => {
     const alterNode = pitchNode.getElementsByTagName('alter')[0];
     if (alterNode) pitch.alter = Number(alterNode.textContent);
     if (accidentalNode) pitch.accidental = accidentalNode.textContent;
-    if (notationsNode) parseNoteNotations(note, pitch, notationsNode);
     if (tieNodes.length > 0) {
       pitch.tie = tieNodes.length > 1 ? 'stop-and-start' : tieNodes[0].getAttribute('type');
     }
 
     if (isChord) {
       notes[notes.length - 1].heads.push(pitch);
+      if (notationsNode) parseNoteNotations(note, pitch, notationsNode);
+
       return;
     }
 
     note.heads.push(pitch);
   }
 
+  if (notationsNode) parseNoteNotations(note, note.heads[0], notationsNode);
   if (durationNode) {
     const duration = Number(durationNode.textContent);
     note.duration = duration;
@@ -262,6 +291,13 @@ const parseNote = (data, noteNode, state) => {
     });
 
     note.beam = beamNodes[0].textContent;
+  }
+
+  if (timeModificationNode) {
+    note.timeModification = {
+      actualNotes: Number(timeModificationNode.getElementsByTagName('actual-notes')[0].textContent),
+      normalNotes: Number(timeModificationNode.getElementsByTagName('normal-notes')[0].textContent),
+    };
   }
 
   notes.push(new Note(note));

@@ -3,7 +3,7 @@
 
 export default class Note {
   constructor({ tag, rest, full, grace, staff, voice, dot, duration, hidden,
-      heads, stem, type, beam, chord, slur, notations }) {
+      heads, stem, type, beam, chord, slur, notations, timeModification }) {
     this.tag = tag;
     this.staff = staff;
     this.voice = voice;
@@ -20,6 +20,7 @@ export default class Note {
     this.chord = chord;
     this.slur = slur;
     this.notations = notations;
+    this.timeModification = timeModification;
 
     this.vfNote = null;
   }

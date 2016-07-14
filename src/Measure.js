@@ -26,6 +26,7 @@ export default class Measure {
     this.staffDisplayedMap = new Map();
     this.vfVoiceMap = new Map(); // voice -> vfVoice
     this.vfBeamsMap = new Map(); // voice -> vfBeams
+    this.vfTupletsMap = new Map(); // voice -> vfTuplets
   }
 
   getPrint() { return this.print; }
@@ -184,6 +185,9 @@ export default class Measure {
   getVFBeams() { return [...this.vfBeamsMap.values()].reduce((a, b) => a.concat(b), []); }
   getVFBeamsMap() { return this.vfBeamsMap; }
   setVFBeamsMap(vfBeamsMap) { this.vfBeamsMap = vfBeamsMap; }
+  getVFTuplets() { return [...this.vfTupletsMap.values()].reduce((a, b) => a.concat(b), []); }
+  getVFTupletsMap() { return this.vfTupletsMap; }
+  setVFTupletsMap(vfTupletsMap) { this.vfTupletsMap = vfTupletsMap; }
 }
 
 Measure.STAFF_HEIGHT = 40;

@@ -78,6 +78,22 @@ export default class Renderer {
     });
   }
 
+  renderTuplets() {
+    this.score.getParts().forEach((part, pi) => {
+      let index = 0;
+      let context = this.contexts[index];
+
+      part.getMeasures().forEach((measure, mi) => {
+        if (mi > 0 && measure.hasNewPage()) {
+          index++;
+          context = this.contexts[index];
+        }
+
+        measure.getVFTuplets().forEach(vfTuplet => vfTuplet.setContext(context).draw());
+      });
+    });
+  }
+
   renderTies() {
     this.score.getParts().forEach((part, pi) => {
       let index = 0;
@@ -141,6 +157,7 @@ export default class Renderer {
     this.renderStaves();
     this.renderVoices();
     this.renderBeams();
+    this.renderTuplets();
     this.renderTies();
     this.renderSlurs();
     this.renderConnectors();

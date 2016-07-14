@@ -10,6 +10,7 @@ import {
   getVFDuration,
   getVFKeySignature,
   getVFConnectorType,
+  Stack,
 } from './Util';
 
 export default class Formatter {
@@ -728,6 +729,7 @@ export default class Formatter {
       const notesMap = measure.getNotesMap();
       const measureCache = this.getMeasureCache(pi, mi);
       const vfVoiceMap = new Map();
+      const vfTupletsMap = new Map();
 
       measure.getVoices().forEach(voice => {
         if (measure.getStaves().length === 0) return;
@@ -735,7 +737,8 @@ export default class Formatter {
         const vfNotes = [];
         let staff = 1;
         let clefModifier;
-        notesMap.get(voice).forEach(note => {
+        const notes = notesMap.get(voice);
+        notes.forEach(note => {
           switch (note.getTag()) {
             case 'note':
               if (note.getGrace()) break; // TODO
@@ -768,6 +771,8 @@ export default class Formatter {
           measure.getStave(staff).addEndClef(clefModifier.subNotes[0].type, 'small');
         }
 
+        vfTupletsMap.set(voice, this._formatTuplet(notes));
+
         const { beats = 4, beatType = 4 } = measureCache.hasTime() ? measureCache.getTime() : {};
         const vfVoice = new Vex.Flow.Voice({ num_beats: beats, beat_value: beatType });
         vfVoice.setMode(Vex.Flow.Voice.Mode.SOFT);
@@ -776,6 +781,7 @@ export default class Formatter {
       });
 
       measure.setVFVoiceMap(vfVoiceMap);
+      measure.setVFTupletsMap(vfTupletsMap);
     });
   }
 
@@ -839,6 +845,49 @@ export default class Formatter {
 
   formatBeam() {
     this.parts.forEach(part => this._formatBeam(part));
+  }
+
+  _formatTuplet(notes) {
+    const vfTuplets = [];
+    const tupletStack = new Stack();
+    notes.forEach((note, i) => {
+      if (note.getTag() !== 'note') return;
+      if (note.getGrace()) return; // TODO
+      if (!note.notations || !note.notations.tuplets ||
+          !note.notations.tuplets.length === 0) {
+        return;
+      }
+
+      note.notations.tuplets.forEach(tuplet => {
+        switch (tuplet.type) {
+        case 'start':
+          tupletStack.push({
+            index: i,
+            numActual: (tuplet.actual ?
+              tuplet.actual.number : note.timeModification.actualNotes),
+            numNormal: (tuplet.normal ?
+              tuplet.normal.number : note.timeModification.normalNotes),
+            location: (tuplet.placement === 'below' ?
+              Vex.Flow.Tuplet.LOCATION_BOTTOM : Vex.Flow.Tuplet.LOCATION_TOP),
+          });
+
+          break;
+        case 'stop':
+          const { index, numActual, numNormal, location } = tupletStack.pop();
+          const vfNotes = notes.slice(index, i + 1).map(_note => _note.getVFNote());
+          const vfTuplet = new Vex.Flow.Tuplet(vfNotes, {
+            num_notes: numActual,
+            notes_occupied: numNormal,
+          });
+
+          vfTuplet.setTupletLocation(location);
+          vfTuplets.push(vfTuplet);
+          break;
+        }
+      });
+    });
+
+    return vfTuplets;
   }
 
   _formatTie(part) {
