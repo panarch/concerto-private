@@ -86,9 +86,19 @@ export const getVFConnectorType = groupSymbol => {
   return connectorType;
 };
 
+export class Stack {
+  constructor() { this.items = []; }
+  push(item) { this.items.splice(0, 0, item); }
+  pop() { return this.items.splice(0, 1)[0]; }
+  top() { return this.items[0]; }
+  clear() { this.items = []; }
+  empty() { return this.items.length === 0; }
+}
+
 export default {
   getVFClef,
   getVFDuration,
   getVFKeySignature,
   getVFConnectorType,
+  Stack,
 };
