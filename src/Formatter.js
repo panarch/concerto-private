@@ -1005,8 +1005,8 @@ export default class Formatter {
     this.formatPartList();
     //this.formatStaves();
     this.formatNotes();
-    this.formatVoices();
     this.formatBeam();
+    this.formatVoices();
     this.formatTie();
     this.formatSlur();
   }
