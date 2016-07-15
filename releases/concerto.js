@@ -361,7 +361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	Defaults.TOP_SYSTEM_DISTANCE = 40;
 	Defaults.SYSTEM_DISTANCE = 40;
-	Defaults.STAFF_DISTANCE = 30;
+	Defaults.STAFF_DISTANCE = 0;
 
 /***/ },
 /* 3 */
@@ -573,6 +573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.staffDisplayedMap = new Map();
 	    this.vfVoiceMap = new Map(); // voice -> vfVoice
 	    this.vfBeamsMap = new Map(); // voice -> vfBeams
+	    this.vfTupletsMap = new Map(); // voice -> vfTuplets
 	  }
 	
 	  _createClass(Measure, [{
@@ -876,6 +877,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function setVFBeamsMap(vfBeamsMap) {
 	      this.vfBeamsMap = vfBeamsMap;
 	    }
+	  }, {
+	    key: "getVFTuplets",
+	    value: function getVFTuplets() {
+	      return [].concat(_toConsumableArray(this.vfTupletsMap.values())).reduce(function (a, b) {
+	        return a.concat(b);
+	      }, []);
+	    }
+	  }, {
+	    key: "getVFTupletsMap",
+	    value: function getVFTupletsMap() {
+	      return this.vfTupletsMap;
+	    }
+	  }, {
+	    key: "setVFTupletsMap",
+	    value: function setVFTupletsMap(vfTupletsMap) {
+	      this.vfTupletsMap = vfTupletsMap;
+	    }
 	  }]);
 	
 	  return Measure;
@@ -888,7 +906,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Measure.RIGHT_MARGIN = 0;
 	Measure.TOP_SYSTEM_DISTANCE = 0;
 	Measure.SYSTEM_DISTANCE = 40;
-	Measure.STAFF_DISTANCE = 30;
+	Measure.STAFF_DISTANCE = 0;
 
 /***/ },
 /* 7 */
@@ -1281,15 +1299,72 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, 0);
 	};
 	
-	var parseNoteNotations = function parseNoteNotations(note, head, notationsNode) {
-	  if (!notationsNode) return;
+	var parseNoteArticulations = function parseNoteArticulations(notations, articulationsNode) {
+	  notations.articulations = [].concat(_toConsumableArray(articulationsNode.childNodes)).filter(function (node) {
+	    return node.tagName;
+	  }).map(function (node) {
+	    if (!node.tagName) return;
 	
+	    var articulation = { tag: node.tagName };
+	
+	    function _parseAttr(attr, key) {
+	      var isNumber = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+	
+	      if (node.hasAttribute(attr)) {
+	        var value = node.getAttribute(attr);
+	        articulation[key] = isNumber ? Number(value) : value;
+	      }
+	    }
+	
+	    _parseAttr('default-x', 'defaultX');
+	    _parseAttr('default-y', 'defaultY');
+	    _parseAttr('placement', 'placement', false);
+	
+	    return articulation;
+	  });
+	};
+	
+	var parseNoteTuplets = function parseNoteTuplets(notations, tupletNodes) {
+	  notations.tuplets = [];
+	
+	  tupletNodes.forEach(function (node) {
+	    var tuplet = {
+	      type: node.getAttribute('type')
+	    };
+	
+	    if (node.hasAttribute('number')) tuplet.number = Number(node.getAttribute('number'));
+	    if (node.hasAttribute('placement')) tuplet.placement = node.getAttribute('placement');
+	
+	    function getTupletNumber(_node) {
+	      return Number(_node.getElementsByTagName('tuplet-number')[0].textContent);
+	    }
+	
+	    var actualNode = node.getElementsByTagName('tuplet-actual')[0];
+	    var normalNode = node.getElementsByTagName('tuplet-normal')[0];
+	    if (actualNode) tuplet.actual = { number: getTupletNumber(actualNode) };
+	    if (normalNode) tuplet.normal = { number: getTupletNumber(normalNode) };
+	
+	    notations.tuplets.push(tuplet);
+	  });
+	};
+	
+	var parseNoteTechnical = function parseNoteTechnical(note, head, technicalNode) {
+	  var fretNode = technicalNode.getElementsByTagName('fret')[0];
+	  var stringNode = technicalNode.getElementsByTagName('string')[0];
+	
+	  if (fretNode) head.fret = Number(fretNode.textContent);
+	  if (stringNode) head.string = Number(stringNode.textContent);
+	};
+	
+	var parseNoteNotations = function parseNoteNotations(note, head, notationsNode) {
+	  var articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
+	  var tupletNodes = [].concat(_toConsumableArray(notationsNode.getElementsByTagName('tuplet')));
 	  var tiedNodes = notationsNode.getElementsByTagName('tied');
 	  var slurNodes = [].concat(_toConsumableArray(notationsNode.getElementsByTagName('slur'))).filter(function (node) {
 	    return node.getAttribute('type') !== 'continue';
 	  });
 	
-	  if (tiedNodes.length > 0) {
+	  if (head && tiedNodes.length > 0) {
 	    head.tied = tiedNodes.length > 1 ? 'stop-and-start' : tiedNodes[0].getAttribute('type');
 	  }
 	
@@ -1300,6 +1375,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      note.slur.placement = slurNode.getAttribute('placement');
 	    }
 	  }
+	
+	  note.notations = {};
+	  if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
+	  if (tupletNodes.length > 0) parseNoteTuplets(note.notations, tupletNodes);
 	};
 	
 	var parseNote = function parseNote(data, noteNode, state) {
@@ -1313,8 +1392,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var durationNode = noteNode.getElementsByTagName('duration')[0];
 	  var accidentalNode = noteNode.getElementsByTagName('accidental')[0];
 	  var notationsNode = noteNode.getElementsByTagName('notations')[0];
+	  var technicalNode = noteNode.getElementsByTagName('technical')[0];
 	  var beamNodes = [].concat(_toConsumableArray(noteNode.getElementsByTagName('beam')));
 	  var tieNodes = [].concat(_toConsumableArray(noteNode.getElementsByTagName('tie')));
+	  var timeModificationNode = noteNode.getElementsByTagName('time-modification')[0];
 	  var numDots = noteNode.getElementsByTagName('dot').length;
 	  var staff = staffNode ? Number(staffNode.textContent) : 1;
 	  var voice = voiceNode ? Number(voiceNode.textContent) : 1;
@@ -1375,19 +1456,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var alterNode = pitchNode.getElementsByTagName('alter')[0];
 	    if (alterNode) pitch.alter = Number(alterNode.textContent);
 	    if (accidentalNode) pitch.accidental = accidentalNode.textContent;
-	    if (notationsNode) parseNoteNotations(note, pitch, notationsNode);
 	    if (tieNodes.length > 0) {
 	      pitch.tie = tieNodes.length > 1 ? 'stop-and-start' : tieNodes[0].getAttribute('type');
 	    }
 	
 	    if (isChord) {
 	      notes[notes.length - 1].heads.push(pitch);
+	      if (notationsNode) parseNoteNotations(note, pitch, notationsNode);
+	      if (technicalNode) parseNoteTechnical(note, pitch, technicalNode);
+	
 	      return;
 	    }
 	
 	    note.heads.push(pitch);
 	  }
 	
+	  if (notationsNode) parseNoteNotations(note, note.heads[0], notationsNode);
+	  if (technicalNode) parseNoteTechnical(note, note.heads[0], technicalNode);
 	  if (durationNode) {
 	    var duration = Number(durationNode.textContent);
 	    note.duration = duration;
@@ -1403,6 +1488,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	
 	    note.beam = beamNodes[0].textContent;
+	  }
+	
+	  if (timeModificationNode) {
+	    note.timeModification = {
+	      actualNotes: Number(timeModificationNode.getElementsByTagName('actual-notes')[0].textContent),
+	      normalNotes: Number(timeModificationNode.getElementsByTagName('normal-notes')[0].textContent)
+	    };
 	  }
 	
 	  notes.push(new _Note2.default(note));
@@ -1603,6 +1695,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var beam = _ref.beam;
 	    var chord = _ref.chord;
 	    var slur = _ref.slur;
+	    var notations = _ref.notations;
+	    var timeModification = _ref.timeModification;
 	
 	    _classCallCheck(this, Note);
 	
@@ -1621,6 +1715,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.beam = beam;
 	    this.chord = chord;
 	    this.slur = slur;
+	    this.notations = notations;
+	    this.timeModification = timeModification;
 	
 	    this.vfNote = null;
 	  }
@@ -1699,6 +1795,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "getSlur",
 	    value: function getSlur() {
 	      return this.slur;
+	    }
+	  }, {
+	    key: "getNotations",
+	    value: function getNotations() {
+	      return this.notations;
 	    }
 	  }, {
 	    key: "getVFNote",
@@ -2163,7 +2264,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          height += _Measure2.default.STAFF_HEIGHT + _this3.state.staffDistanceMap.get(pi + '/' + staff);
 	        }
 	
-	        var measureTopY = pi === 0 && (measure.hasNewPage() || mi === 0) ? topSystemDistance + pageTopMargin : aboveBottomY + (pi === 0 ? systemDistance : staffDistance);
+	        /*
+	          `aboveBottomY + (pi === 0 ? systemDistance : staffDistance);`
+	          => Above code is correct, but Sibelius(8.4.1) uses system-distance between part...
+	             So below code used:
+	          `aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);`
+	        */
+	        var measureTopY = pi === 0 && (measure.hasNewPage() || mi === 0) ? topSystemDistance + pageTopMargin : aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);
 	        var measureBottomY = measureTopY + height;
 	
 	        aboveBottomY = measureBottomY;
@@ -2245,6 +2352,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.parts.forEach(function (part) {
 	        var numStaffs = part.getNumStaffs();
 	        var measures = part.getMeasures();
+	        var clef = measures[0].getClef();
 	        var printMeasure = measures[0];
 	
 	        measures.forEach(function (measure, mi) {
@@ -2260,7 +2368,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var y = measure.getStaffY(staff);
 	
 	            if (printMeasure.isStaffDisplayed(staff)) {
-	              var stave = new _allegretto2.default.Flow.Stave(x, y, width, options);
+	              var StaveClass = clef.sign === 'TAB' ? _allegretto2.default.Flow.TabStave : _allegretto2.default.Flow.Stave;
+	              var stave = new StaveClass(x, y, width, options);
 	              stave.setBegBarType(_allegretto2.default.Flow.Barline.type.NONE);
 	              measure.setStave(staff, stave);
 	            }
@@ -2353,6 +2462,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          if (mi === 0 || measure.isNewLineStarting() || keyUpdated) {
 	            measure.getStaves().forEach(function (stave) {
+	              if (stave instanceof _allegretto2.default.Flow.TabStave) return;
+	
 	              var vfKey = (0, _Util.getVFKeySignature)(key);
 	              if (key) stave.addKeySignature(vfKey);
 	            });
@@ -2360,6 +2471,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          if (mi > 0 && measure.isNewLineStarting() && keyUpdated) {
 	            prevMeasure.getStaves().forEach(function (stave) {
+	              if (stave instanceof _allegretto2.default.Flow.TabStave) return;
+	
 	              var vfKey = (0, _Util.getVFKeySignature)(key);
 	              // TODO: replace it to use StaveModifier later
 	              var END = 6; // Vex.Flow.StaveModifier.Position.END
@@ -2681,6 +2794,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	    */
 	
 	  }, {
+	    key: '_formatNoteArticulations',
+	    value: function _formatNoteArticulations(staveNote, note) {
+	      if (!note.notations.articulations) return;
+	
+	      var notations = note.notations;
+	      var HEAD_ATTACHINGS = ['staccato', 'staccatissimo', 'accent', 'spiccato', 'tenuto'];
+	      var ARTICULATION_MAP = {
+	        staccato: 'a.',
+	        staccatissimo: 'av',
+	        tenuto: 'a-',
+	        accent: 'a>',
+	        'strong-accent': 'a^',
+	        'breath-mark': 'a,'
+	      };
+	      var _Vex$Flow$Modifier$Po = _allegretto2.default.Flow.Modifier.Position;
+	      var ABOVE = _Vex$Flow$Modifier$Po.ABOVE;
+	      var BELOW = _Vex$Flow$Modifier$Po.BELOW;
+	
+	      var articulations = notations.articulations ? notations.articulations : [];
+	      articulations.forEach(function (articulation) {
+	        var value = ARTICULATION_MAP[articulation.tag];
+	        if (!value) return;
+	
+	        var vfArticulation = new _allegretto2.default.Flow.Articulation(value);
+	        var vfPosition = HEAD_ATTACHINGS.indexOf(articulation.tag) !== -1 ? note.getStem() === 'up' ? BELOW : ABOVE : ABOVE;
+	
+	        staveNote.addArticulation(0, vfArticulation.setPosition(vfPosition));
+	      });
+	    }
+	  }, {
+	    key: '_formatNoteNotations',
+	    value: function _formatNoteNotations(staveNote, note) {
+	      if (!note.notations) return;
+	
+	      this._formatNoteArticulations(staveNote, note);
+	    }
+	  }, {
 	    key: '_formatNote',
 	    value: function _formatNote(note, clef, divisions) {
 	      if (note.getHidden()) {
@@ -2689,6 +2839,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var data = {
 	        keys: [],
+	        positions: [],
 	        duration: (0, _Util.getVFDuration)(note, divisions),
 	        clef: note.getRest() ? 'treble' : (0, _Util.getVFClef)(clef)
 	      };
@@ -2698,16 +2849,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var step = _ref3.step;
 	        var octave = _ref3.octave;
 	        var accidental = _ref3.accidental;
+	        var fret = _ref3.fret;
+	        var string = _ref3.string;
 	
 	        data.keys.push(step + '/' + octave);
 	        accidentals.push(accidental ? accidental : null);
+	
+	        if (data.clef === 'tab') data.positions.push({ str: string, fret: fret });
 	      });
 	
 	      if (data.keys.length === 0) data.keys = _Table2.default.VF_DEFAULT_REST_KEYS;
 	      if (note.getFull()) data.align_center = true;
 	      if (note.getStem()) data.stem_direction = note.getStem() === 'up' ? _allegretto2.default.Flow.StaveNote.STEM_UP : _allegretto2.default.Flow.StaveNote.STEM_DOWN;
 	
-	      var staveNote = new _allegretto2.default.Flow.StaveNote(data);
+	      var StaveNoteClass = data.clef === 'tab' ? _allegretto2.default.Flow.TabNote : _allegretto2.default.Flow.StaveNote;
+	      var staveNote = new StaveNoteClass(data);
+	
+	      this._formatNoteNotations(staveNote, note);
+	
+	      if (data.clef === 'tab') return staveNote;
+	
 	      accidentals.forEach(function (accidental, index) {
 	        if (!accidental) return;
 	
@@ -2728,6 +2889,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var notesMap = measure.getNotesMap();
 	        var measureCache = _this12.getMeasureCache(pi, mi);
 	        var vfVoiceMap = new Map();
+	        var vfTupletsMap = new Map();
 	
 	        measure.getVoices().forEach(function (voice) {
 	          if (measure.getStaves().length === 0) return;
@@ -2735,7 +2897,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var vfNotes = [];
 	          var staff = 1;
 	          var clefModifier = undefined;
-	          notesMap.get(voice).forEach(function (note) {
+	          var notes = notesMap.get(voice);
+	          notes.forEach(function (note) {
 	            switch (note.getTag()) {
 	              case 'note':
 	                if (note.getGrace()) break; // TODO
@@ -2768,6 +2931,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            measure.getStave(staff).addEndClef(clefModifier.subNotes[0].type, 'small');
 	          }
 	
+	          vfTupletsMap.set(voice, _this12._formatTuplet(notes));
+	
 	          var _ref4 = measureCache.hasTime() ? measureCache.getTime() : {};
 	
 	          var _ref4$beats = _ref4.beats;
@@ -2782,6 +2947,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        measure.setVFVoiceMap(vfVoiceMap);
+	        measure.setVFTupletsMap(vfTupletsMap);
 	      });
 	    }
 	  }, {
@@ -2857,6 +3023,54 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.parts.forEach(function (part) {
 	        return _this14._formatBeam(part);
 	      });
+	    }
+	  }, {
+	    key: '_formatTuplet',
+	    value: function _formatTuplet(notes) {
+	      var vfTuplets = [];
+	      var tupletStack = new _Util.Stack();
+	      notes.forEach(function (note, i) {
+	        if (note.getTag() !== 'note') return;
+	        if (note.getGrace()) return; // TODO
+	        if (!note.notations || !note.notations.tuplets || !note.notations.tuplets.length === 0) {
+	          return;
+	        }
+	
+	        note.notations.tuplets.forEach(function (tuplet) {
+	          switch (tuplet.type) {
+	            case 'start':
+	              tupletStack.push({
+	                index: i,
+	                numActual: tuplet.actual ? tuplet.actual.number : note.timeModification.actualNotes,
+	                numNormal: tuplet.normal ? tuplet.normal.number : note.timeModification.normalNotes,
+	                location: tuplet.placement === 'below' ? _allegretto2.default.Flow.Tuplet.LOCATION_BOTTOM : _allegretto2.default.Flow.Tuplet.LOCATION_TOP
+	              });
+	
+	              break;
+	            case 'stop':
+	              var _tupletStack$pop = tupletStack.pop();
+	
+	              var index = _tupletStack$pop.index;
+	              var numActual = _tupletStack$pop.numActual;
+	              var numNormal = _tupletStack$pop.numNormal;
+	              var location = _tupletStack$pop.location;
+	
+	              var vfNotes = notes.slice(index, i + 1).map(function (_note) {
+	                return _note.getVFNote();
+	              });
+	              var vfTuplet = new _allegretto2.default.Flow.Tuplet(vfNotes, {
+	                num_notes: numActual,
+	                notes_occupied: numNormal
+	              });
+	
+	              vfTuplet.setTupletLocation(location);
+	              vfTuplets.push(vfTuplet);
+	              break;
+	          }
+	        });
+	      });
+	
+	      return vfTuplets;
 	    }
 	  }, {
 	    key: '_formatTie',
@@ -3036,8 +3250,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatPartList();
 	      //this.formatStaves();
 	      this.formatNotes();
-	      this.formatVoices();
 	      this.formatBeam();
+	      this.formatVoices();
 	      this.formatTie();
 	      this.formatSlur();
 	    }
@@ -21474,10 +21688,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })(); // Copyright (c) Taehoon Moon 2016.
+	// @author Taehoon Moon
+	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
+	exports.Stack = exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
 	
 	var _allegretto = __webpack_require__(16);
 	
@@ -21489,8 +21706,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	// Copyright (c) Taehoon Moon 2016.
-	// @author Taehoon Moon
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var getVFClef = exports.getVFClef = function getVFClef(clef) {
 	  if (clef === undefined) return;
@@ -21575,11 +21791,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return connectorType;
 	};
 	
+	var Stack = exports.Stack = (function () {
+	  function Stack() {
+	    _classCallCheck(this, Stack);
+	
+	    this.items = [];
+	  }
+	
+	  _createClass(Stack, [{
+	    key: 'push',
+	    value: function push(item) {
+	      this.items.splice(0, 0, item);
+	    }
+	  }, {
+	    key: 'pop',
+	    value: function pop() {
+	      return this.items.splice(0, 1)[0];
+	    }
+	  }, {
+	    key: 'top',
+	    value: function top() {
+	      return this.items[0];
+	    }
+	  }, {
+	    key: 'clear',
+	    value: function clear() {
+	      this.items = [];
+	    }
+	  }, {
+	    key: 'empty',
+	    value: function empty() {
+	      return this.items.length === 0;
+	    }
+	  }]);
+	
+	  return Stack;
+	})();
+	
 	exports.default = {
 	  getVFClef: getVFClef,
 	  getVFDuration: getVFDuration,
 	  getVFKeySignature: getVFKeySignature,
-	  getVFConnectorType: getVFConnectorType
+	  getVFConnectorType: getVFConnectorType,
+	  Stack: Stack
 	};
 
 /***/ },
@@ -21703,8 +21957,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: 'renderTies',
-	    value: function renderTies() {
+	    key: 'renderTuplets',
+	    value: function renderTuplets() {
 	      var _this4 = this;
 	
 	      this.score.getParts().forEach(function (part, pi) {
@@ -21717,17 +21971,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            context = _this4.contexts[index];
 	          }
 	
-	          measure.getVoices().forEach(function (voice) {
-	            part.getVFTies(mi + '/' + voice).forEach(function (tie) {
-	              return tie.setContext(context).draw();
-	            });
+	          measure.getVFTuplets().forEach(function (vfTuplet) {
+	            return vfTuplet.setContext(context).draw();
 	          });
 	        });
 	      });
 	    }
 	  }, {
-	    key: 'renderSlurs',
-	    value: function renderSlurs() {
+	    key: 'renderTies',
+	    value: function renderTies() {
 	      var _this5 = this;
 	
 	      this.score.getParts().forEach(function (part, pi) {
@@ -21741,6 +21993,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          measure.getVoices().forEach(function (voice) {
+	            part.getVFTies(mi + '/' + voice).forEach(function (tie) {
+	              return tie.setContext(context).draw();
+	            });
+	          });
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'renderSlurs',
+	    value: function renderSlurs() {
+	      var _this6 = this;
+	
+	      this.score.getParts().forEach(function (part, pi) {
+	        var index = 0;
+	        var context = _this6.contexts[index];
+	
+	        part.getMeasures().forEach(function (measure, mi) {
+	          if (mi > 0 && measure.hasNewPage()) {
+	            index++;
+	            context = _this6.contexts[index];
+	          }
+	
+	          measure.getVoices().forEach(function (voice) {
 	            part.getVFSlurs(mi + '/' + voice).forEach(function (slur) {
 	              return slur.setContext(context).draw();
 	            });
@@ -21751,11 +22026,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'renderConnectors',
 	    value: function renderConnectors() {
-	      var _this6 = this;
+	      var _this7 = this;
 	
 	      this.score.getMeasurePacks().forEach(function (measurePack) {
 	        measurePack.getConnectors().forEach(function (connector) {
-	          var context = _this6.contexts[connector.page - 1];
+	          var context = _this7.contexts[connector.page - 1];
 	          connector.staveConnector.setContext(context).draw();
 	        });
 	      });
@@ -21763,10 +22038,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'renderCredits',
 	    value: function renderCredits() {
-	      var _this7 = this;
+	      var _this8 = this;
 	
 	      this.score.getCredits().forEach(function (credit) {
-	        var context = _this7.contexts[credit.getPage() - 1];
+	        var context = _this8.contexts[credit.getPage() - 1];
 	
 	        credit.getTexts().forEach(function (_ref2) {
 	          var content = _ref2.content;
@@ -21790,6 +22065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderStaves();
 	      this.renderVoices();
 	      this.renderBeams();
+	      this.renderTuplets();
 	      this.renderTies();
 	      this.renderSlurs();
 	      this.renderConnectors();
