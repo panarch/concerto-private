@@ -1,6 +1,7 @@
 import Concerto from '../src/index';
 
 const urls = [
+  './tests/BrookeWestSample.xml',
   './tests/Tuplets.Basic.xml',
   './tests/Tuplets.Complex.xml',
   './tests/Articulations.xml',
