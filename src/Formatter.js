@@ -808,8 +808,20 @@ export default class Formatter {
       const vfVoices = measurePack.getVFVoices();
 
       if (vfVoices.length === 0) return;
-      // TODO: it should find minimum, not simply using the first stave
-      const width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX() - 10;
+
+      let maxStartX = -Infinity;
+      let minEndX = Infinity;
+      vfStaves.forEach(vfStave => {
+        minEndX = Math.min(minEndX, vfStave.getNoteEndX());
+        maxStartX = Math.max(maxStartX, vfStave.getNoteStartX());
+      });
+
+      vfStaves.forEach(vfStave => {
+        vfStave.start_x = maxStartX;
+        vfStave.end_x = minEndX;
+      });
+
+      const width = minEndX - maxStartX - 10;
       const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices);
       const minTotalWidth = vfFormatter.preCalculateMinTotalWidth(vfVoices);
 
