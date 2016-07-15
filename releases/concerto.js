@@ -2244,6 +2244,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return false;
 	      };
 	
+	      var measureDisplayed = false;
+	
 	      this.parts.forEach(function (part, pi) {
 	        var measure = part.getMeasures()[mi];
 	        var numStaffs = part.getNumStaffs();
@@ -2270,9 +2272,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	             So below code used:
 	          `aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);`
 	        */
-	        var measureTopY = pi === 0 && (measure.hasNewPage() || mi === 0) ? topSystemDistance + pageTopMargin : aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);
+	        var measureTopY = !measureDisplayed && (measure.hasNewPage() || mi === 0) ? topSystemDistance + pageTopMargin : aboveBottomY + (!measureDisplayed || staffDistance === 0 ? systemDistance : staffDistance);
 	        var measureBottomY = measureTopY + height;
 	
+	        measureDisplayed = true;
 	        aboveBottomY = measureBottomY;
 	        measureTopYs.push(measureTopY);
 	        measureBottomYs.push(measureBottomY);
@@ -2992,40 +2995,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: '_formatBeam',
-	    value: function _formatBeam(part) {
-	      part.getMeasures().forEach(function (measure, mi) {
-	        var notesMap = measure.getNotesMap();
-	        var vfBeamsMap = new Map();
+	    value: function _formatBeam(measure) {
+	      var notesMap = measure.getNotesMap();
+	      var vfBeamsMap = new Map();
 	
-	        measure.getVoices().forEach(function (voice) {
-	          if (measure.getStaves().length === 0) return;
+	      measure.getVoices().forEach(function (voice) {
+	        if (measure.getStaves().length === 0) return;
 	
-	          var vfBeams = [];
-	          var vfBeamNotes = [];
-	          notesMap.get(voice).forEach(function (note) {
-	            if (note.getTag() !== 'note') return;
-	            if (note.getGrace()) return; // TODO
+	        var vfBeams = [];
+	        var vfBeamNotes = [];
+	        notesMap.get(voice).forEach(function (note) {
+	          if (note.getTag() !== 'note') return;
+	          if (note.getGrace()) return; // TODO
 	
-	            var staveNote = note.getVFNote();
-	            switch (note.beam) {
-	              case 'begin':
-	                vfBeamNotes = [staveNote];
-	                break;
-	              case 'continue':
-	                vfBeamNotes.push(staveNote);
-	                break;
-	              case 'end':
-	                vfBeamNotes.push(staveNote);
-	                vfBeams.push(new _allegretto2.default.Flow.Beam(vfBeamNotes));
-	                break;
-	            }
-	          });
-	
-	          vfBeamsMap.set(voice, vfBeams);
+	          var staveNote = note.getVFNote();
+	          switch (note.beam) {
+	            case 'begin':
+	              vfBeamNotes = [staveNote];
+	              break;
+	            case 'continue':
+	              vfBeamNotes.push(staveNote);
+	              break;
+	            case 'end':
+	              vfBeamNotes.push(staveNote);
+	              vfBeams.push(new _allegretto2.default.Flow.Beam(vfBeamNotes));
+	              break;
+	          }
 	        });
 	
-	        measure.setVFBeamsMap(vfBeamsMap);
+	        vfBeamsMap.set(voice, vfBeams);
 	      });
+	
+	      measure.setVFBeamsMap(vfBeamsMap);
 	    }
 	  }, {
 	    key: 'formatBeam',
@@ -3033,7 +3034,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _this14 = this;
 	
 	      this.parts.forEach(function (part) {
-	        return _this14._formatBeam(part);
+	        part.getMeasures().forEach(function (measure) {
+	          return _this14._formatBeam(measure);
+	        });
 	      });
 	    }
 	  }, {
