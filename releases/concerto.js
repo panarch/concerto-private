@@ -2967,8 +2967,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var vfVoices = measurePack.getVFVoices();
 	
 	        if (vfVoices.length === 0) return;
-	        // TODO: it should find minimum, not simply using the first stave
-	        var width = vfStaves[0].getNoteEndX() - vfStaves[0].getNoteStartX() - 10;
+	
+	        var maxStartX = -Infinity;
+	        var minEndX = Infinity;
+	        vfStaves.forEach(function (vfStave) {
+	          minEndX = Math.min(minEndX, vfStave.getNoteEndX());
+	          maxStartX = Math.max(maxStartX, vfStave.getNoteStartX());
+	        });
+	
+	        vfStaves.forEach(function (vfStave) {
+	          vfStave.start_x = maxStartX;
+	          vfStave.end_x = minEndX;
+	        });
+	
+	        var width = minEndX - maxStartX - 10;
 	        var vfFormatter = new _allegretto2.default.Flow.Formatter().joinVoices(vfVoices);
 	        var minTotalWidth = vfFormatter.preCalculateMinTotalWidth(vfVoices);
 	
