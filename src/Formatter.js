@@ -129,6 +129,8 @@ export default class Formatter {
       return false;
     };
 
+    let measureDisplayed = false;
+
     this.parts.forEach((part, pi) => {
       const measure = part.getMeasures()[mi];
       const numStaffs = part.getNumStaffs();
@@ -155,11 +157,12 @@ export default class Formatter {
            So below code used:
         `aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);`
       */
-      const measureTopY = pi === 0 && (measure.hasNewPage() || mi === 0) ?
+      const measureTopY = !measureDisplayed && (measure.hasNewPage() || mi === 0) ?
         topSystemDistance + pageTopMargin :
-        aboveBottomY + (pi === 0 || staffDistance === 0 ? systemDistance : staffDistance);
+        aboveBottomY + (!measureDisplayed || staffDistance === 0 ? systemDistance : staffDistance);
       const measureBottomY = measureTopY + height;
 
+      measureDisplayed = true;
       aboveBottomY = measureBottomY;
       measureTopYs.push(measureTopY);
       measureBottomYs.push(measureBottomY);
