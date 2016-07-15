@@ -230,6 +230,7 @@ export default class Formatter {
     this.parts.forEach(part => {
       const numStaffs = part.getNumStaffs();
       const measures = part.getMeasures();
+      const clef = measures[0].getClef();
       let printMeasure = measures[0];
 
       measures.forEach((measure, mi) => {
@@ -246,7 +247,8 @@ export default class Formatter {
           const y = measure.getStaffY(staff);
 
           if (printMeasure.isStaffDisplayed(staff)) {
-            const stave = new Vex.Flow.Stave(x, y, width, options);
+            const StaveClass = clef.sign === 'TAB' ? Vex.Flow.TabStave : Vex.Flow.Stave;
+            const stave = new StaveClass(x, y, width, options);
             stave.setBegBarType(Vex.Flow.Barline.type.NONE);
             measure.setStave(staff, stave);
           }
@@ -331,6 +333,8 @@ export default class Formatter {
 
         if (mi === 0 || measure.isNewLineStarting() || keyUpdated) {
           measure.getStaves().forEach(stave => {
+            if (stave instanceof Vex.Flow.TabStave) return;
+
             const vfKey = getVFKeySignature(key);
             if (key) stave.addKeySignature(vfKey);
           })
@@ -338,6 +342,8 @@ export default class Formatter {
 
         if (mi > 0 && measure.isNewLineStarting() && keyUpdated) {
           prevMeasure.getStaves().forEach(stave => {
+            if (stave instanceof Vex.Flow.TabStave) return;
+
             const vfKey = getVFKeySignature(key);
             // TODO: replace it to use StaveModifier later
             const END = 6; // Vex.Flow.StaveModifier.Position.END
@@ -694,14 +700,17 @@ export default class Formatter {
 
     const data = {
       keys: [],
+      positions: [],
       duration: getVFDuration(note, divisions),
       clef: note.getRest() ? 'treble' : getVFClef(clef),
     };
 
     const accidentals = [];
-    note.getHeads().forEach(({step, octave, accidental}) => {
+    note.getHeads().forEach(({ step, octave, accidental, fret, string }) => {
       data.keys.push(`${step}/${octave}`);
       accidentals.push(accidental ? accidental : null);
+
+      if (data.clef === 'tab') data.positions.push({ str: string, fret });
     });
 
     if (data.keys.length === 0) data.keys = Table.VF_DEFAULT_REST_KEYS;
@@ -709,7 +718,13 @@ export default class Formatter {
     if (note.getStem()) data.stem_direction = note.getStem() === 'up' ?
       Vex.Flow.StaveNote.STEM_UP : Vex.Flow.StaveNote.STEM_DOWN;
 
-    const staveNote = new Vex.Flow.StaveNote(data);
+    const StaveNoteClass = data.clef === 'tab' ? Vex.Flow.TabNote : Vex.Flow.StaveNote;
+    const staveNote = new StaveNoteClass(data);
+
+    this._formatNoteNotations(staveNote, note);
+
+    if (data.clef === 'tab') return staveNote;
+
     accidentals.forEach((accidental, index) => {
       if (!accidental) return;
 
@@ -718,8 +733,6 @@ export default class Formatter {
     });
 
     for (let i = 0; i < note.dot; i++) staveNote.addDotToAll();
-
-    this._formatNoteNotations(staveNote, note);
 
     return staveNote;
   }

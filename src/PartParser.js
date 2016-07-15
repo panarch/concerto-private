@@ -160,9 +160,15 @@ const parseNoteTuplets = (notations, tupletNodes) => {
   });
 };
 
-const parseNoteNotations = (note, head, notationsNode) => {
-  if (!notationsNode) return;
+const parseNoteTechnical = (note, head, technicalNode) => {
+  const fretNode = technicalNode.getElementsByTagName('fret')[0];
+  const stringNode = technicalNode.getElementsByTagName('string')[0];
 
+  if (fretNode) head.fret = Number(fretNode.textContent);
+  if (stringNode) head.string = Number(stringNode.textContent);
+};
+
+const parseNoteNotations = (note, head, notationsNode) => {
   const articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
   const tupletNodes = [...notationsNode.getElementsByTagName('tuplet')];
   const tiedNodes = notationsNode.getElementsByTagName('tied');
@@ -198,6 +204,7 @@ const parseNote = (data, noteNode, state) => {
   const durationNode = noteNode.getElementsByTagName('duration')[0];
   const accidentalNode = noteNode.getElementsByTagName('accidental')[0];
   const notationsNode = noteNode.getElementsByTagName('notations')[0];
+  const technicalNode = noteNode.getElementsByTagName('technical')[0];
   const beamNodes = [...noteNode.getElementsByTagName('beam')];
   const tieNodes = [...noteNode.getElementsByTagName('tie')];
   const timeModificationNode = noteNode.getElementsByTagName('time-modification')[0];
@@ -268,6 +275,7 @@ const parseNote = (data, noteNode, state) => {
     if (isChord) {
       notes[notes.length - 1].heads.push(pitch);
       if (notationsNode) parseNoteNotations(note, pitch, notationsNode);
+      if (technicalNode) parseNoteTechnical(note, pitch, technicalNode);
 
       return;
     }
@@ -276,6 +284,7 @@ const parseNote = (data, noteNode, state) => {
   }
 
   if (notationsNode) parseNoteNotations(note, note.heads[0], notationsNode);
+  if (technicalNode) parseNoteTechnical(note, note.heads[0], technicalNode);
   if (durationNode) {
     const duration = Number(durationNode.textContent);
     note.duration = duration;
