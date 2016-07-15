@@ -832,44 +832,44 @@ export default class Formatter {
     });
   }
 
-  _formatBeam(part) {
-    part.getMeasures().forEach((measure, mi) => {
-      const notesMap = measure.getNotesMap();
-      const vfBeamsMap = new Map();
+  _formatBeam(measure) {
+    const notesMap = measure.getNotesMap();
+    const vfBeamsMap = new Map();
 
-      measure.getVoices().forEach(voice => {
-        if (measure.getStaves().length === 0) return;
+    measure.getVoices().forEach(voice => {
+      if (measure.getStaves().length === 0) return;
 
-        const vfBeams = [];
-        let vfBeamNotes = [];
-        notesMap.get(voice).forEach(note => {
-          if (note.getTag() !== 'note') return;
-          if (note.getGrace()) return; // TODO
+      const vfBeams = [];
+      let vfBeamNotes = [];
+      notesMap.get(voice).forEach(note => {
+        if (note.getTag() !== 'note') return;
+        if (note.getGrace()) return; // TODO
 
-          const staveNote = note.getVFNote();
-          switch (note.beam) {
-            case 'begin':
-              vfBeamNotes = [staveNote];
-              break;
-            case 'continue':
-              vfBeamNotes.push(staveNote);
-              break;
-            case 'end':
-              vfBeamNotes.push(staveNote);
-              vfBeams.push(new Vex.Flow.Beam(vfBeamNotes));
-              break;
-          }
-        });
-
-        vfBeamsMap.set(voice, vfBeams);
+        const staveNote = note.getVFNote();
+        switch (note.beam) {
+          case 'begin':
+            vfBeamNotes = [staveNote];
+            break;
+          case 'continue':
+            vfBeamNotes.push(staveNote);
+            break;
+          case 'end':
+            vfBeamNotes.push(staveNote);
+            vfBeams.push(new Vex.Flow.Beam(vfBeamNotes));
+            break;
+        }
       });
 
-      measure.setVFBeamsMap(vfBeamsMap);
+      vfBeamsMap.set(voice, vfBeams);
     });
+
+    measure.setVFBeamsMap(vfBeamsMap);
   }
 
   formatBeam() {
-    this.parts.forEach(part => this._formatBeam(part));
+    this.parts.forEach(part => {
+      part.getMeasures().forEach(measure => this._formatBeam(measure));
+    });
   }
 
   _formatTuplet(notes) {
