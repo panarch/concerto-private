@@ -70,6 +70,7 @@ export default class Measure {
       defaultValue;
   }
 
+  getStaffDisplayedMap() { return this.staffDisplayedMap; }
   setStaffDisplayed(staff = 1, displayed) {
     this.staffDisplayedMap.set(staff, displayed);
   }
@@ -179,6 +180,7 @@ export default class Measure {
 
   getNotesMap() { return this.notesMap; }
   getVoices() { return this.voices; }
+  getStaffs() { return this.staffs; }
   getVFVoices() { return [...this.vfVoiceMap.values()]; }
   getVFVoiceMap() { return this.vfVoiceMap; }
   setVFVoiceMap(vfVoiceMap) { this.vfVoiceMap = vfVoiceMap; }

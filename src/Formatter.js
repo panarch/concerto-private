@@ -74,6 +74,50 @@ export default class Formatter {
     return this.measureCacheMap.get(key);
   }
 
+  getDisplayed(measure) {
+    const staffDisplayedMap = measure.getStaffDisplayedMap();
+    const numStaffs = measure.getNumStaffs();
+
+    for (let staff = 1; staff <= numStaffs; staff++) {
+      if (staffDisplayedMap.get(staff)) return true;
+    }
+
+    return false;
+  }
+
+  getPrintMeasure({ parts, mi }) {
+    for (let pi = 0; pi < parts.length; pi++) {
+      const measure = parts[pi].getMeasures()[mi];
+      const numStaffs = measure.getNumStaffs();
+      const staffDisplayedMap = measure.getStaffDisplayedMap();
+
+      for (let staff = 1; staff <= numStaffs; staff++) {
+        if (staffDisplayedMap.get(staff)) return measure;
+      }
+    }
+
+    // Unexpected
+    console.error('Formatter->getPrintMeasure, failed to find print measure');
+    return parts[0].getMeasures()[mi];
+  }
+
+  formatStaffDisplayed() {
+    for (let mi = 0; mi < this.state.numMeasures; mi++) {
+      this.parts.forEach((part, pi) => {
+        this.updateStaffDisplayed(mi);
+
+        const numStaffs = part.getNumStaffs();
+        const measure = part.getMeasures()[mi];
+
+        for (let staff = 1; staff <= numStaffs; staff++) {
+          const key = `${pi}/${staff}`;
+          const staffDisplayed = this.state.staffDisplayedMap.get(key);
+          measure.setStaffDisplayed(staff, staffDisplayed);
+        }
+      });
+    }
+  }
+
   formatX() {
     this.state.pageNumber = 1;
     const pageLeftMargin = this.defaults.getPageLeftMargin(this.state.pageNumber);
@@ -82,7 +126,7 @@ export default class Formatter {
     let x = 0;
     this.parts.forEach((part, pi) => {
       part.getMeasures().forEach((measure, mi) => {
-        const printMeasure = this.parts[0].getMeasures()[mi];
+        const printMeasure = this.getPrintMeasure({ parts: this.parts, mi });
 
         if (printMeasure.hasNewPage())
           this.state.pageNumber++;
@@ -119,16 +163,6 @@ export default class Formatter {
   updateMeasureYs({ aboveBottomY, mi }) {
     const measureTopYs = [];
     const measureBottomYs = [];
-
-    const getDisplayed = (pi, numStaffs) => {
-      for (let staff = 1; staff <= numStaffs; staff++) {
-        if (this.state.staffDisplayedMap.get(`${pi}/${staff}`))
-          return true;
-      }
-
-      return false;
-    };
-
     let measureDisplayed = false;
 
     this.parts.forEach((part, pi) => {
@@ -138,7 +172,7 @@ export default class Formatter {
       const pageTopMargin = this.defaults.getPageTopMargin(this.state.pageNumber);
       const systemDistance = this.state.systemDistanceMap.get(pi);
       const staffDistance = this.state.staffDistanceMap.get(`${pi}/1`);
-      const displayed = getDisplayed(pi, numStaffs);
+      const displayed = this.getDisplayed(measure);
 
       if (displayed === false) {
         measureTopYs.push(undefined);
@@ -204,8 +238,6 @@ export default class Formatter {
         if ((measure.isNewLineStarting() || mi === 0) && pi === 0) {
           if (measure.hasNewPage()) this.state.pageNumber++;
 
-          this.updateStaffDisplayed(mi);
-
           ({ measureTopYs, measureBottomYs } = this.updateMeasureYs({
             aboveBottomY: measureBottomYs[measureBottomYs.length - 1],
             mi,
@@ -221,7 +253,6 @@ export default class Formatter {
           measure.setStaffY(staff,
             measureTopY + (Measure.STAFF_HEIGHT + staffDistance) * (staff - 1)
           );
-          measure.setStaffDisplayed(staff, this.state.staffDisplayedMap.get(`${pi}/${staff}`));
         }
 
         measure.setY(measureTopY);
@@ -902,7 +933,10 @@ export default class Formatter {
           break;
         case 'stop':
           const { index, numActual, numNormal, location } = tupletStack.pop();
-          const vfNotes = notes.slice(index, i + 1).map(_note => _note.getVFNote());
+          const vfNotes = notes.slice(index, i + 1)
+                            .filter(_note => !_note.getGrace())
+                            .map(_note => _note.getVFNote());
+
           const vfTuplet = new Vex.Flow.Tuplet(vfNotes, {
             num_notes: numActual,
             notes_occupied: numNormal,
@@ -1072,6 +1106,7 @@ export default class Formatter {
 
   format() {
     this.resetState();
+    this.formatStaffDisplayed();
     this.formatX();
     this.formatY();
     this.createStaves();
