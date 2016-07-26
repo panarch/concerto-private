@@ -86,6 +86,22 @@ export const getVFConnectorType = groupSymbol => {
   return connectorType;
 };
 
+export const getVFJustification = justify => {
+  const Justification = Vex.Flow.TextNote.Justification;
+  switch (justify) {
+    case 'left':  return Justification.LEFT;
+    case 'right': return Justification.RIGHT;
+  }
+
+  return Justification.CENTER;
+};
+
+export const splitVFDuration = vfDuration => {
+  const [type, dot] = /^([whqb0-9]{1,2})(d*)$/.exec(vfDuration).slice(1, 3);
+
+  return String(Number(Vex.Flow.sanitizeDuration(type)) * 2) + dot;
+}
+
 export class Stack {
   constructor() { this.items = []; }
   push(item) { this.items.splice(0, 0, item); }
