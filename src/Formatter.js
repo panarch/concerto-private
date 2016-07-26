@@ -10,6 +10,8 @@ import {
   getVFDuration,
   getVFKeySignature,
   getVFConnectorType,
+  getVFJustification,
+  splitVFDuration,
   Stack,
 } from './Util';
 
@@ -66,6 +68,8 @@ export default class Formatter {
     }
   }
 
+  getLyricName(lyric) { return lyric.number ? lyric.number : lyric.name; }
+
   getMeasureCache(pi, mi) {
     const key = `${pi}/${mi}`;
     if (!this.measureCacheMap.has(key))
@@ -99,6 +103,28 @@ export default class Formatter {
     // Unexpected
     console.error('Formatter->getPrintMeasure, failed to find print measure');
     return parts[0].getMeasures()[mi];
+  }
+
+  getLineGenerator(part) {
+    function* lineGenerator() {
+      const measures = part.getMeasures();
+      let lineMeasures = [];
+
+      for (let mi = 0; mi < measures.length; mi++) {
+        const measure = measures[mi];
+
+        if (mi > 0 && measure.isNewLineStarting()) {
+          yield lineMeasures;
+          lineMeasures = [measure];
+        } else {
+          lineMeasures.push(measure);
+        }
+      }
+
+      if (lineMeasures.length > 0) yield lineMeasures;
+    }
+
+    return lineGenerator();
   }
 
   formatStaffDisplayed() {
@@ -727,9 +753,9 @@ export default class Formatter {
     this._formatNoteArticulations(staveNote, note);
   }
 
-  _formatNote(note, clef, divisions) {
+  _formatNote(note, clef, divisions, lyricNames) {
     if (note.getHidden()) {
-      return new Vex.Flow.GhostNote({ duration: getVFDuration(note, divisions) });
+      return { vfNote: new Vex.Flow.GhostNote({ duration: getVFDuration(note, divisions) }) };
     }
 
     const data = {
@@ -757,7 +783,31 @@ export default class Formatter {
 
     this._formatNoteNotations(staveNote, note);
 
-    if (data.clef === 'tab') return staveNote;
+    const lyrics = note.lyrics ? note.lyrics : [];
+    const vfLyricNotesMap = new Map();
+
+    lyricNames.forEach(lyricName => {
+      const lyric = lyrics.filter(_lyric => this.getLyricName(_lyric) === lyricName)[0];
+      const vfLyricNotes = [];
+
+      if (lyric) {
+        const syllabicExists = ['begin', 'middle'].includes(lyric.syllabic);
+        const vfDuration = syllabicExists ? splitVFDuration(data.duration) : data.duration;
+        const textNote = new Vex.Flow.TextNote({ text: lyric.text, duration: vfDuration });
+        textNote.setJustification(getVFJustification(lyric.justify));
+        vfLyricNotes.push(textNote);
+
+        if (syllabicExists) {
+          vfLyricNotes.push(new Vex.Flow.TextNote({ text: '-', duration: vfDuration }));
+        }
+      } else {
+        vfLyricNotes.push(new Vex.Flow.GhostNote({ duration: data.duration }));
+      }
+
+      vfLyricNotesMap.set(lyricName, vfLyricNotes);
+    });
+
+    if (data.clef === 'tab') return { vfNote: staveNote, vfLyricNotesMap };
 
     accidentals.forEach((accidental, index) => {
       if (!accidental) return;
@@ -766,24 +816,34 @@ export default class Formatter {
       staveNote.addAccidental(index, vfAccidental);
     });
 
-    for (let i = 0; i < note.dot; i++) staveNote.addDotToAll();
+    for (let i = 0; i < note.dot; i++) {
+      staveNote.addDotToAll();
+      staveNote.dots -= staveNote.keys.length;
+    }
 
-    return staveNote;
+    return {
+      vfNote: staveNote,
+      vfLyricNotesMap,
+    };
   }
 
   _formatNotes(part, pi) {
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
+      const lyricNamesMap = measure.getLyricNamesMap();
       const measureCache = this.getMeasureCache(pi, mi);
       const vfVoiceMap = new Map();
+      const vfLyricVoicesMap = new Map();
       const vfTupletsMap = new Map();
 
       measure.getVoices().forEach(voice => {
         if (measure.getStaves().length === 0) return;
 
         const vfNotes = [];
+        const vfLyricNotesMap = new Map(); // lyricName -> notes
         let staff = 1;
         let clefModifier;
+        const lyricNames = lyricNamesMap.has(voice) ? lyricNamesMap.get(voice) : [];
         const notes = notesMap.get(voice);
         notes.forEach(note => {
           switch (note.getTag()) {
@@ -792,15 +852,36 @@ export default class Formatter {
 
               const clef = measureCache.getClef(note.getStaff());
               const divisions = measureCache.getDivisions();
-              const staveNote = this._formatNote(note, clef, divisions);
-              staveNote.setStave(measure.getStave(note.getStaff()));
+              const {
+                vfNote,
+                vfLyricNotesMap: _vfLyricNotesMap = new Map(),
+              } = this._formatNote(note, clef, divisions, lyricNames);
+
+              const vfStave = measure.getStave(note.getStaff());
+
+              vfNote.setStave(vfStave);
+              _vfLyricNotesMap.forEach(vfLyricNotes => {
+                vfLyricNotes.forEach(vfLyricNote => {
+                  vfLyricNote.setContext(this.context);
+                  vfLyricNote.setStave(vfStave)
+                });
+              });
+
               if (clefModifier) {
-                staveNote.addModifier(0, clefModifier);
+                vfNote.addModifier(0, clefModifier);
                 clefModifier = null;
               }
 
-              note.setVFNote(staveNote);
-              vfNotes.push(staveNote);
+              note.setVFLyricNotesMap(_vfLyricNotesMap);
+              note.setVFNote(vfNote);
+              vfNotes.push(vfNote);
+              _vfLyricNotesMap.forEach((_vfLyricNotes, lyricName) => {
+                let vfLyricNotes = vfLyricNotesMap.has(lyricName) ?
+                  vfLyricNotesMap.get(lyricName) : [];
+
+                vfLyricNotes = vfLyricNotes.concat(_vfLyricNotes);
+                vfLyricNotesMap.set(lyricName, vfLyricNotes);
+              });
 
               staff = note.staff;
               break;
@@ -821,25 +902,116 @@ export default class Formatter {
         vfTupletsMap.set(voice, this._formatTuplet(notes));
 
         const { beats = 4, beatType = 4 } = measureCache.hasTime() ? measureCache.getTime() : {};
-        const vfVoice = new Vex.Flow.Voice({ num_beats: beats, beat_value: beatType });
+        const voiceOptions = { num_beats: beats, beat_value: beatType };
+        const vfVoice = new Vex.Flow.Voice(voiceOptions);
         vfVoice.setMode(Vex.Flow.Voice.Mode.SOFT);
         vfVoice.addTickables(vfNotes);
         vfVoiceMap.set(voice, vfVoice);
+
+        lyricNames.forEach(lyricName => {
+          const vfLyricNotes = vfLyricNotesMap.get(lyricName).map(vfLyricNote => {
+            return vfLyricNote.setContext(this.context);
+          });
+          const vfLyricVoice = new Vex.Flow.Voice(voiceOptions);
+          vfLyricVoice.setMode(Vex.Flow.Voice.Mode.SOFT);
+          vfLyricVoice.addTickables(vfLyricNotes);
+
+          const vfLyricVoices = vfLyricVoicesMap.get(voice);
+          if (vfLyricVoices) {
+            vfLyricVoices.push(vfLyricVoice);
+          } else {
+            vfLyricVoicesMap.set(voice, [vfLyricVoice]);
+          }
+
+        });
       });
 
       measure.setVFVoiceMap(vfVoiceMap);
+      measure.setVFLyricVoicesMap(vfLyricVoicesMap);
       measure.setVFTupletsMap(vfTupletsMap);
     });
   }
 
+  _formatLyricNamesMap() {
+    this.parts.forEach(part => part.getMeasures().forEach(measure => {
+      const notesMap = measure.getNotesMap();
+      const lyricNamesMap = new Map(); // voice -> Set<lyricName>
+      notesMap.forEach((notes, voice) => {
+        const lyricNames = new Set();
+
+        notes.forEach(note => {
+          if (!note.lyrics) return;
+
+          note.lyrics.forEach(lyric => lyricNames.add(this.getLyricName(lyric)));
+        });
+
+        if (lyricNames.size > 0) lyricNamesMap.set(voice, lyricNames);
+      });
+
+      measure.setLyricNamesMap(lyricNamesMap);
+    }));
+  }
+
   formatNotes() {
+    this._formatLyricNamesMap();
     this.parts.forEach((part, pi) => this._formatNotes(part, pi));
+  }
+
+  _formatLyric(measures) {
+    // calculate voice boundary first
+    const maxYMap = new Map(); // voice -> maxY
+    measures.forEach(measure => measure.getVoices().forEach(voice => {
+      const vfVoice = measure.getVFVoice(voice);
+      if (!vfVoice) return; // empty measure
+
+      const vfBoundingBox = vfVoice.getBoundingBox();
+      if (!vfBoundingBox) return;
+
+      if (!maxYMap.has(voice)) maxYMap.set(voice, -Infinity);
+
+      const { y, h } = vfBoundingBox;
+      const maxY = y + h;
+      if (maxY > maxYMap.get(voice)) maxYMap.set(voice, maxY);
+
+    }));
+
+    measures.forEach(measure => {
+      measure.getNotesMap().forEach((notes, voice) => {
+        const y = maxYMap.get(voice);
+        let line;
+
+        notes.forEach(note => {
+          note.getVFLyricNotesMap().forEach((vfLyricNotes, i) => vfLyricNotes.forEach(vfLyricNote => {
+            if (vfLyricNote instanceof Vex.Flow.GhostNote) return;
+
+            if (!line) {
+              const vfStave = vfLyricNote.getStave();
+              const height = y - vfStave.getYForLine(0);
+              line = height / vfStave.getOptions().spacing_between_lines_px;
+              line += 3 + 0.2;
+            }
+
+            vfLyricNote.setLine(line + i * 2);
+          }));
+        });
+      });
+    });
+  }
+
+  formatLyric() {
+    this.parts.forEach(part => {
+      const lineGenerator = this.getLineGenerator(part);
+      for (const measures of lineGenerator) {
+        this._formatLyric(measures);
+      }
+    });
   }
 
   formatVoices() {
     this.measurePacks.forEach((measurePack, mi) => {
       const vfStaves = measurePack.getVFStaves();
-      const vfVoices = measurePack.getVFVoices();
+      const vfLyricVoices = measurePack.getVFLyricVoices();
+      const vfVoices = measurePack.getVFVoices().concat(vfLyricVoices);
 
       if (vfVoices.length === 0) return;
 
@@ -859,10 +1031,21 @@ export default class Formatter {
       const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices);
       const minTotalWidth = vfFormatter.preCalculateMinTotalWidth(vfVoices);
 
-      vfFormatter.format(vfVoices, width);
-
+      //vfFormatter.format(vfVoices, width); -> runFormatterj
+      measurePack.setWidth(width);
       measurePack.setMinTotalWidth(minTotalWidth);
       measurePack.setVFFormatter(vfFormatter);
+    });
+  }
+
+  runFormatter() {
+    this.measurePacks.forEach(measurePack => {
+      const vfVoices = measurePack.getVFVoices().concat(measurePack.getVFLyricVoices());
+      const width = measurePack.getWidth();
+      const vfFormatter = measurePack.getVFFormatter();
+      if (!vfFormatter) return;
+
+      vfFormatter.format(vfVoices, width);
     });
   }
 
@@ -933,13 +1116,30 @@ export default class Formatter {
           break;
         case 'stop':
           const { index, numActual, numNormal, location } = tupletStack.pop();
-          const vfNotes = notes.slice(index, i + 1)
-                            .filter(_note => !_note.getGrace())
-                            .map(_note => _note.getVFNote());
+          const vfNotes = [];
+          const vfLyricNotesMap = new Map();
 
-          const vfTuplet = new Vex.Flow.Tuplet(vfNotes, {
+          notes.slice(index, i + 1).filter(_note => !_note.getGrace()).forEach(_note => {
+            vfNotes.push(_note.getVFNote());
+
+            _note.getVFLyricNotesMap().forEach((_vfLyricNotes, lyricName) => {
+              let vfLyricNotes = vfLyricNotesMap.has(lyricName) ?
+                vfLyricNotesMap.get(lyricName) : [];
+
+              vfLyricNotes = vfLyricNotes.concat(_vfLyricNotes);
+              vfLyricNotesMap.set(lyricName, vfLyricNotes);
+            });
+          });
+
+          const tupletOptions = {
             num_notes: numActual,
             notes_occupied: numNormal,
+          };
+
+          const vfTuplet = new Vex.Flow.Tuplet(vfNotes, tupletOptions);
+
+          vfLyricNotesMap.forEach(vfLyricNotes => {
+            new Vex.Flow.Tuplet(vfLyricNotes, tupletOptions);
           });
 
           vfTuplet.setTupletLocation(location);
@@ -1119,6 +1319,8 @@ export default class Formatter {
     this.formatNotes();
     this.formatBeam();
     this.formatVoices();
+    this.formatLyric();
+    this.runFormatter();
     this.formatTie();
     this.formatSlur();
   }

@@ -57,7 +57,8 @@ export default class Renderer {
           context = this.contexts[index];
         }
 
-        measure.getVFVoices().forEach(voice => voice.draw(context));
+        measure.getVFVoices().forEach(vfVoice => vfVoice.draw(context));
+        measure.getVFLyricVoices().forEach(vfVoice => vfVoice.draw(context));
       });
     });
   }

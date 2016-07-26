@@ -5,6 +5,7 @@ export default class MeasurePack {
   constructor({ measures }) {
     this.measures = measures;
 
+    this.width = null;
     this.minTotalWidth = null;
     this.connectors = [];
     this.vfFormatter = null;
@@ -14,6 +15,8 @@ export default class MeasurePack {
   getTopMeasure() { return this.getMeasure(0); }
   getBottomMeasure() { return this.getMeasure(this.measures.length - 1); }
 
+  getWidth() { return this.width; }
+  setWidth(width) { this.width = width; }
   getMinTotalWidth() { return this.minTotalWidth; }
   setMinTotalWidth(minTotalWidth) { this.minTotalWidth = minTotalWidth; }
 
@@ -25,6 +28,12 @@ export default class MeasurePack {
 
   getVFVoices() {
     return this.measures.reduce((vfVoices, measure) => vfVoices.concat(measure.getVFVoices()), []);
+  }
+
+  getVFLyricVoices() {
+    return this.measures.reduce((vfLyricVoices, measure) => (
+      vfLyricVoices.concat(measure.getVFLyricVoices())
+    ), []);
   }
 
   getVFStaves() {

@@ -8,7 +8,7 @@ export default class Measure {
     this.width = width;
     this.voices = voices;
     this.staffs = staffs;
-    this.notesMap = notesMap;
+    this.notesMap = notesMap; // voice -> notes
     this.key = key;
     this.time = time;
     this.clefMap = clefMap;
@@ -21,10 +21,13 @@ export default class Measure {
     // variables
     this.x = null;
     this.y = null;
+    this.lyricNamesMap = new Map(); // voice -> Set<lyricName>
+    this.boundingBox = null; // VexFlow BoundingBox
     this.staveMap = new Map();
     this.staffYMap = new Map();
     this.staffDisplayedMap = new Map();
     this.vfVoiceMap = new Map(); // voice -> vfVoice
+    this.vfLyricVoicesMap = new Map(); // voice -> vfVoice[]
     this.vfBeamsMap = new Map(); // voice -> vfBeams
     this.vfTupletsMap = new Map(); // voice -> vfTuplets
   }
@@ -158,6 +161,11 @@ export default class Measure {
     this.y = y;
   }
 
+  getBoundingBox() { return this.boundingBox; }
+  setBoundingBox(boundingBox) { this.boundingBox = boundingBox; }
+  getLyricNamesMap() { return this.lyricNamesMap; }
+  setLyricNamesMap(lyricNamesMap) { this.lyricNamesMap = lyricNamesMap; }
+
   getStaffY(staff = 1) { return this.staffYMap.get(staff); }
   setStaffY(staff, y) { this.staffYMap.set(staff, y); }
 
@@ -181,6 +189,12 @@ export default class Measure {
   getNotesMap() { return this.notesMap; }
   getVoices() { return this.voices; }
   getStaffs() { return this.staffs; }
+  getVFLyricVoices() {
+    return [...this.vfLyricVoicesMap.values()].reduce((a, b) => a.concat(b), []);
+  }
+  getVFLyricVoicesMap() { return this.vfLyricVoicesMap; }
+  setVFLyricVoicesMap(vfLyricVoicesMap) { this.vfLyricVoicesMap = vfLyricVoicesMap; }
+  getVFVoice(voice) { return this.vfVoiceMap.get(voice); }
   getVFVoices() { return [...this.vfVoiceMap.values()]; }
   getVFVoiceMap() { return this.vfVoiceMap; }
   setVFVoiceMap(vfVoiceMap) { this.vfVoiceMap = vfVoiceMap; }

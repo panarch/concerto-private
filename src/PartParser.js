@@ -193,6 +193,36 @@ const parseNoteNotations = (note, head, notationsNode) => {
   if (tupletNodes.length > 0) parseNoteTuplets(note.notations, tupletNodes);
 };
 
+const parseNoteLyrics = (note, lyricNodes) => {
+  note.lyrics = [];
+
+  lyricNodes.forEach(lyricNode => {
+    const lyric = {
+      text: lyricNode.getElementsByTagName('text')[0].textContent,
+    };
+
+    const syllabicNode = lyricNode.getElementsByTagName('syllabic')[0];
+    if (syllabicNode) lyric.syllabic = syllabicNode.textContent;
+
+    function _parseAttr(attr, key, isNumber = false) {
+      if (!lyricNode.hasAttribute(attr)) return;
+
+      const value = lyricNode.getAttribute(attr);
+      lyric[key] = isNumber ? Number(value) : value;
+    }
+
+    _parseAttr('number', 'number');
+    _parseAttr('name', 'name');
+    _parseAttr('justify', 'justify');
+    _parseAttr('placement', 'placement');
+    _parseAttr('default-x', 'defaultX', true);
+    _parseAttr('default-y', 'defaultY', true);
+
+    note.lyrics.push(lyric);
+  });
+
+};
+
 const parseNote = (data, noteNode, state) => {
   const staffNode = noteNode.getElementsByTagName('staff')[0];
   const voiceNode = noteNode.getElementsByTagName('voice')[0];
@@ -205,6 +235,7 @@ const parseNote = (data, noteNode, state) => {
   const accidentalNode = noteNode.getElementsByTagName('accidental')[0];
   const notationsNode = noteNode.getElementsByTagName('notations')[0];
   const technicalNode = noteNode.getElementsByTagName('technical')[0];
+  const lyricNodes = [...noteNode.getElementsByTagName('lyric')];
   const beamNodes = [...noteNode.getElementsByTagName('beam')];
   const tieNodes = [...noteNode.getElementsByTagName('tie')];
   const timeModificationNode = noteNode.getElementsByTagName('time-modification')[0];
@@ -293,6 +324,7 @@ const parseNote = (data, noteNode, state) => {
 
   if (typeNode) note.type = typeNode.textContent;
   if (stemNode) note.stem = stemNode.textContent;
+  if (lyricNodes.length > 0) parseNoteLyrics(note, lyricNodes);
 
   if (beamNodes.length > 0 && beamNodes[0].hasAttribute('number')) {
     beamNodes.sort((prev, next) => {
