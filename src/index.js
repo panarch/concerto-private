@@ -1,6 +1,8 @@
 // Copyright (c) Taehoon Moon 2015.
 // @author Taehoon Moon
 
+import 'babel-polyfill';
+import './hotfix';
 import Score from './Score';
 import Defaults from './Defaults';
 import Movement from './Movement';
