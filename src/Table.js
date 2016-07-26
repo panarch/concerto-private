@@ -24,7 +24,7 @@ Table.NOTE_TYPES = [
 
 Table.VF_NOTE_TYPES = [
   '128', '128', '128', '128', '64', '32', '16',
-  '8', 'q',' h', 'w', 'w', 'w', 'w',
+  '8', 'q', 'h', 'w', 'w', 'w', 'w',
 ];
 
 // NOTE_TYPES -> VF_NOTE_TYPES
