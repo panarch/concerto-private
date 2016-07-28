@@ -774,18 +774,23 @@ export default class Formatter {
     });
 
     if (data.keys.length === 0) data.keys = Table.VF_DEFAULT_REST_KEYS;
+    if (note.getGrace()) data.slash = note.getGrace().slash;
     if (note.getFull()) data.align_center = true;
     if (note.getStem()) data.stem_direction = note.getStem() === 'up' ?
       Vex.Flow.StaveNote.STEM_UP : Vex.Flow.StaveNote.STEM_DOWN;
 
-    const StaveNoteClass = data.clef === 'tab' ? Vex.Flow.TabNote : Vex.Flow.StaveNote;
-    const staveNote = new StaveNoteClass(data);
+    const VFNote = data.clef === 'tab' ?
+      Vex.Flow.TabNote :
+      (note.grace ? Vex.Flow.GraceNote : Vex.Flow.StaveNote);
+
+    const staveNote = new VFNote(data);
 
     this._formatNoteNotations(staveNote, note);
 
     const lyrics = note.lyrics ? note.lyrics : [];
     const vfLyricNotesMap = new Map();
 
+    if (note.getGrace()) lyricNames = [];
     lyricNames.forEach(lyricName => {
       const lyric = lyrics.filter(_lyric => this.getLyricName(_lyric) === lyricName)[0];
       const vfLyricNotes = [];
@@ -827,6 +832,23 @@ export default class Formatter {
     };
   }
 
+  _formatGraceNotes(vfNote, graceNotes) {
+    if (graceNotes.length === 0) return;
+
+    let beamExists = false;
+    let slurExists = false;
+    graceNotes.forEach(note => {
+      if (note.beam) beamExists = true;
+      if (note.slur) slurExists = true;
+    });
+
+    const vfGraceNotes = graceNotes.map(note => note.getVFNote());
+    const vfGraceNoteGroup = new Vex.Flow.GraceNoteGroup(vfGraceNotes, slurExists);
+    if (beamExists) vfGraceNoteGroup.beamNotes();
+
+    vfNote.addModifier(0, vfGraceNoteGroup);
+  }
+
   _formatNotes(part, pi) {
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
@@ -841,6 +863,7 @@ export default class Formatter {
 
         const vfNotes = [];
         const vfLyricNotesMap = new Map(); // lyricName -> notes
+        let graceNotes = [];
         let staff = 1;
         let clefModifier;
         const lyricNames = lyricNamesMap.has(voice) ? lyricNamesMap.get(voice) : [];
@@ -848,8 +871,6 @@ export default class Formatter {
         notes.forEach(note => {
           switch (note.getTag()) {
             case 'note':
-              if (note.getGrace()) break; // TODO
-
               const clef = measureCache.getClef(note.getStaff());
               const divisions = measureCache.getDivisions();
               const {
@@ -874,7 +895,14 @@ export default class Formatter {
 
               note.setVFLyricNotesMap(_vfLyricNotesMap);
               note.setVFNote(vfNote);
-              vfNotes.push(vfNote);
+              if (note.grace) {
+                graceNotes.push(note);
+              } else {
+                this._formatGraceNotes(vfNote, graceNotes);
+                vfNotes.push(vfNote);
+                graceNotes = [];
+              }
+
               _vfLyricNotesMap.forEach((_vfLyricNotes, lyricName) => {
                 let vfLyricNotes = vfLyricNotesMap.has(lyricName) ?
                   vfLyricNotesMap.get(lyricName) : [];

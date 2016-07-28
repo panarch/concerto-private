@@ -226,7 +226,7 @@ const parseNoteLyrics = (note, lyricNodes) => {
 const parseNote = (data, noteNode, state) => {
   const staffNode = noteNode.getElementsByTagName('staff')[0];
   const voiceNode = noteNode.getElementsByTagName('voice')[0];
-  //const graceNode = noteNode.querySelector('grace');
+  const graceNode = noteNode.getElementsByTagName('grace')[0];
   const pitchNode = noteNode.getElementsByTagName('pitch')[0];
   const restNode = noteNode.getElementsByTagName('rest')[0];
   const typeNode = noteNode.getElementsByTagName('type')[0];
@@ -247,7 +247,7 @@ const parseNote = (data, noteNode, state) => {
   const isNewStaff = data.staffs.indexOf(staff) === -1;
   const isRest = restNode ? true : false;
   const isChord = noteNode.getElementsByTagName('chord')[0] ? true : false;
-  const isGrace = noteNode.getElementsByTagName('grace')[0] ? true : false;
+  const isGrace = graceNode ? true : false;
 
   state.onGrace = isGrace;
   state.onChord = isChord;
@@ -273,15 +273,16 @@ const parseNote = (data, noteNode, state) => {
       hidden: true,
     }));
   } else if (state.duration < notesDuration) {
+    /*
     // TODO: sonata16.xml grace note handling
     console.error(`notesState.duration(${state.duration}) > notesDuration(${notesDuration})`);
+    */
   }
 
   const note = {
     tag: 'note',
     rest: isRest,
     full: isRest && restNode.getAttribute('measure') === 'yes',
-    grace: isGrace,
     heads: [],
     staff: staff,
     voice: voice,
@@ -322,6 +323,7 @@ const parseNote = (data, noteNode, state) => {
     state.duration += duration;
   }
 
+  if (graceNode) note.grace = { slash: graceNode.getAttribute('slash') === 'yes' };
   if (typeNode) note.type = typeNode.textContent;
   if (stemNode) note.stem = stemNode.textContent;
   if (lyricNodes.length > 0) parseNoteLyrics(note, lyricNodes);
