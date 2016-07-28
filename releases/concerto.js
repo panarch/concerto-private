@@ -27927,7 +27927,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var parseNote = function parseNote(data, noteNode, state) {
 	  var staffNode = noteNode.getElementsByTagName('staff')[0];
 	  var voiceNode = noteNode.getElementsByTagName('voice')[0];
-	  //const graceNode = noteNode.querySelector('grace');
+	  var graceNode = noteNode.getElementsByTagName('grace')[0];
 	  var pitchNode = noteNode.getElementsByTagName('pitch')[0];
 	  var restNode = noteNode.getElementsByTagName('rest')[0];
 	  var typeNode = noteNode.getElementsByTagName('type')[0];
@@ -27948,7 +27948,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var isNewStaff = data.staffs.indexOf(staff) === -1;
 	  var isRest = restNode ? true : false;
 	  var isChord = noteNode.getElementsByTagName('chord')[0] ? true : false;
-	  var isGrace = noteNode.getElementsByTagName('grace')[0] ? true : false;
+	  var isGrace = graceNode ? true : false;
 	
 	  state.onGrace = isGrace;
 	  state.onChord = isChord;
@@ -27974,15 +27974,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      hidden: true
 	    }));
 	  } else if (state.duration < notesDuration) {
+	    /*
 	    // TODO: sonata16.xml grace note handling
-	    console.error('notesState.duration(' + state.duration + ') > notesDuration(' + notesDuration + ')');
+	    console.error(`notesState.duration(${state.duration}) > notesDuration(${notesDuration})`);
+	    */
 	  }
 	
 	  var note = {
 	    tag: 'note',
 	    rest: isRest,
 	    full: isRest && restNode.getAttribute('measure') === 'yes',
-	    grace: isGrace,
 	    heads: [],
 	    staff: staff,
 	    voice: voice,
@@ -28022,6 +28023,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    state.duration += duration;
 	  }
 	
+	  if (graceNode) note.grace = { slash: graceNode.getAttribute('slash') === 'yes' };
 	  if (typeNode) note.type = typeNode.textContent;
 	  if (stemNode) note.stem = stemNode.textContent;
 	  if (lyricNodes.length > 0) parseNoteLyrics(note, lyricNodes);
@@ -29562,17 +29564,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	
 	      if (data.keys.length === 0) data.keys = _Table2.default.VF_DEFAULT_REST_KEYS;
+	      if (note.getGrace()) data.slash = note.getGrace().slash;
 	      if (note.getFull()) data.align_center = true;
 	      if (note.getStem()) data.stem_direction = note.getStem() === 'up' ? _allegretto2.default.Flow.StaveNote.STEM_UP : _allegretto2.default.Flow.StaveNote.STEM_DOWN;
 	
-	      var StaveNoteClass = data.clef === 'tab' ? _allegretto2.default.Flow.TabNote : _allegretto2.default.Flow.StaveNote;
-	      var staveNote = new StaveNoteClass(data);
+	      var VFNote = data.clef === 'tab' ? _allegretto2.default.Flow.TabNote : note.grace ? _allegretto2.default.Flow.GraceNote : _allegretto2.default.Flow.StaveNote;
+	
+	      var staveNote = new VFNote(data);
 	
 	      this._formatNoteNotations(staveNote, note);
 	
 	      var lyrics = note.lyrics ? note.lyrics : [];
 	      var vfLyricNotesMap = new Map();
 	
+	      if (note.getGrace()) lyricNames = [];
 	      lyricNames.forEach(function (lyricName) {
 	        var lyric = lyrics.filter(function (_lyric) {
 	          return _this13.getLyricName(_lyric) === lyricName;
@@ -29616,6 +29621,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    }
 	  }, {
+	    key: '_formatGraceNotes',
+	    value: function _formatGraceNotes(vfNote, graceNotes) {
+	      if (graceNotes.length === 0) return;
+	
+	      var beamExists = false;
+	      var slurExists = false;
+	      graceNotes.forEach(function (note) {
+	        if (note.beam) beamExists = true;
+	        if (note.slur) slurExists = true;
+	      });
+	
+	      var vfGraceNotes = graceNotes.map(function (note) {
+	        return note.getVFNote();
+	      });
+	      var vfGraceNoteGroup = new _allegretto2.default.Flow.GraceNoteGroup(vfGraceNotes, slurExists);
+	      if (beamExists) vfGraceNoteGroup.beamNotes();
+	
+	      vfNote.addModifier(0, vfGraceNoteGroup);
+	    }
+	  }, {
 	    key: '_formatNotes',
 	    value: function _formatNotes(part, pi) {
 	      var _this14 = this;
@@ -29633,6 +29658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var vfNotes = [];
 	          var vfLyricNotesMap = new Map(); // lyricName -> notes
+	          var graceNotes = [];
 	          var staff = 1;
 	          var clefModifier = void 0;
 	          var lyricNames = lyricNamesMap.has(voice) ? lyricNamesMap.get(voice) : [];
@@ -29641,8 +29667,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            (function () {
 	              switch (note.getTag()) {
 	                case 'note':
-	                  if (note.getGrace()) break; // TODO
-	
 	                  var clef = measureCache.getClef(note.getStaff());
 	                  var divisions = measureCache.getDivisions();
 	
@@ -29670,7 +29694,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                  note.setVFLyricNotesMap(_vfLyricNotesMap);
 	                  note.setVFNote(vfNote);
-	                  vfNotes.push(vfNote);
+	                  if (note.grace) {
+	                    graceNotes.push(note);
+	                  } else {
+	                    _this14._formatGraceNotes(vfNote, graceNotes);
+	                    vfNotes.push(vfNote);
+	                    graceNotes = [];
+	                  }
+	
 	                  _vfLyricNotesMap.forEach(function (_vfLyricNotes, lyricName) {
 	                    var vfLyricNotes = vfLyricNotesMap.has(lyricName) ? vfLyricNotesMap.get(lyricName) : [];
 	
