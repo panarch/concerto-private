@@ -651,8 +651,7 @@ export default class Formatter {
         else if (mi > 0 && partGroup.groupAbbreviation)
           setText({ staveConnector, text: partGroup.groupAbbreviation });
 
-        // TODO: update vexflow StaveConnector NONE type
-        if (!hasGroupSymbol) staveConnector.setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT);
+        if (!hasGroupSymbol) staveConnector.setType(Vex.Flow.StaveConnector.type.NONE);
 
         connectors.push({ page, staveConnector });
       });
