@@ -8194,9 +8194,146 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  return this.boundingBox;
-	}; /*
-	    * hotfix script
-	    */
+	};
+	
+	// StaveConnector
+	/*
+	 * hotfix script
+	 */
+	
+	function drawBoldDoubleLine(ctx, type, topX, topY, botY) {
+	  if (type !== StaveConnector.type.BOLD_DOUBLE_LEFT && type !== StaveConnector.type.BOLD_DOUBLE_RIGHT) {
+	    throw new _allegretto2.default.RERR('InvalidConnector', 'A REPEAT_BEGIN or REPEAT_END type must be provided.');
+	  }
+	
+	  var x_shift = 3;
+	  var variableWidth = 3.5; // Width for avoiding anti-aliasing width issues
+	  var thickLineOffset = 2; // For aesthetics
+	
+	  if (type === StaveConnector.type.BOLD_DOUBLE_RIGHT) {
+	    x_shift = -5; // Flips the side of the thin line
+	    variableWidth = 3;
+	  }
+	
+	  // Thin line
+	  ctx.fillRect(topX + x_shift, topY, 1, botY - topY);
+	  // Thick line
+	  ctx.fillRect(topX - thickLineOffset, topY, variableWidth, botY - topY);
+	}
+	
+	var Glyph = _allegretto2.default.Flow.Glyph;
+	var StaveConnector = _allegretto2.default.Flow.StaveConnector;
+	_allegretto2.default.Flow.StaveConnector.prototype.draw = function draw() {
+	  if (!this.ctx) {
+	    throw new _allegretto2.default.RERR('NoContext', "Can't draw without a context.");
+	  }
+	
+	  var topY = this.top_stave.getYForLine(0);
+	  var botY = this.bottom_stave.getYForLine(this.bottom_stave.getNumLines() - 1) + this.thickness;
+	  var width = this.width;
+	  var topX = this.top_stave.getX() + this.x_shift;
+	
+	  var isRightSidedConnector = this.type === StaveConnector.type.SINGLE_RIGHT || this.type === StaveConnector.type.BOLD_DOUBLE_RIGHT || this.type === StaveConnector.type.THIN_DOUBLE;
+	
+	  if (isRightSidedConnector) {
+	    topX += this.top_stave.width;
+	  }
+	
+	  var attachment_height = botY - topY;
+	  switch (this.type) {
+	    case StaveConnector.type.SINGLE:
+	      width = 1;
+	      break;
+	    case StaveConnector.type.SINGLE_LEFT:
+	      width = 1;
+	      break;
+	    case StaveConnector.type.SINGLE_RIGHT:
+	      width = 1;
+	      break;
+	    case StaveConnector.type.DOUBLE:
+	      topX -= this.width + 2;
+	      break;
+	    case StaveConnector.type.BRACE:
+	      {
+	        width = 12;
+	        // May need additional code to draw brace
+	        var x1 = this.top_stave.getX() - 2;
+	        var y1 = topY;
+	        var x3 = x1;
+	        var y3 = botY;
+	        var x2 = x1 - width;
+	        var y2 = y1 + attachment_height / 2.0;
+	        var cpx1 = x2 - 0.90 * width;
+	        var cpy1 = y1 + 0.2 * attachment_height;
+	        var cpx2 = x1 + 1.10 * width;
+	        var cpy2 = y2 - 0.135 * attachment_height;
+	        var cpx3 = cpx2;
+	        var cpy3 = y2 + 0.135 * attachment_height;
+	        var cpx4 = cpx1;
+	        var cpy4 = y3 - 0.2 * attachment_height;
+	        var cpx5 = x2 - width;
+	        var cpy5 = cpy4;
+	        var cpx6 = x1 + 0.40 * width;
+	        var cpy6 = y2 + 0.135 * attachment_height;
+	        var cpx7 = cpx6;
+	        var cpy7 = y2 - 0.135 * attachment_height;
+	        var cpx8 = cpx5;
+	        var cpy8 = cpy1;
+	        this.ctx.beginPath();
+	        this.ctx.moveTo(x1, y1);
+	        this.ctx.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, x2, y2);
+	        this.ctx.bezierCurveTo(cpx3, cpy3, cpx4, cpy4, x3, y3);
+	        this.ctx.bezierCurveTo(cpx5, cpy5, cpx6, cpy6, x2, y2);
+	        this.ctx.bezierCurveTo(cpx7, cpy7, cpx8, cpy8, x1, y1);
+	        this.ctx.fill();
+	        this.ctx.stroke();
+	        break;
+	      }case StaveConnector.type.BRACKET:
+	      topY -= 4;
+	      botY += 4;
+	      attachment_height = botY - topY;
+	      Glyph.renderGlyph(this.ctx, topX - 5, topY - 3, 40, 'v1b', true);
+	      Glyph.renderGlyph(this.ctx, topX - 5, botY + 3, 40, 'v10', true);
+	      topX -= this.width + 2;
+	      break;
+	    case StaveConnector.type.BOLD_DOUBLE_LEFT:
+	      drawBoldDoubleLine(this.ctx, this.type, topX, topY, botY);
+	      break;
+	    case StaveConnector.type.BOLD_DOUBLE_RIGHT:
+	      drawBoldDoubleLine(this.ctx, this.type, topX, topY, botY);
+	      break;
+	    case StaveConnector.type.THIN_DOUBLE:
+	      width = 1;
+	      break;
+	    case StaveConnector.type.NONE:
+	      break;
+	    default:
+	      throw new _allegretto2.default.RERR('InvalidType', 'The provided StaveConnector.type (' + this.type + ') is invalid');
+	  }
+	
+	  if (this.type !== StaveConnector.type.BRACE && this.type !== StaveConnector.type.BOLD_DOUBLE_LEFT && this.type !== StaveConnector.type.BOLD_DOUBLE_RIGHT && this.type !== StaveConnector.type.NONE) {
+	    this.ctx.fillRect(topX, topY, width, attachment_height);
+	  }
+	
+	  // If the connector is a thin double barline, draw the paralell line
+	  if (this.type === StaveConnector.type.THIN_DOUBLE) {
+	    this.ctx.fillRect(topX - 3, topY, width, attachment_height);
+	  }
+	
+	  this.ctx.save();
+	  this.ctx.lineWidth = 2;
+	  this.ctx.setFont(this.font.family, this.font.size, this.font.weight);
+	  // Add stave connector text
+	  for (var i = 0; i < this.texts.length; i++) {
+	    var text = this.texts[i];
+	    var text_width = this.ctx.measureText('' + text.content).width;
+	    var x = this.top_stave.getX() - text_width - 24 + text.options.shift_x;
+	    var y = (this.top_stave.getYForLine(0) + this.bottom_stave.getBottomLineY()) / 2 + text.options.shift_y;
+	
+	    this.ctx.fillText('' + text.content, x, y + 4);
+	  }
+	  this.ctx.restore();
+	};
 
 /***/ },
 /* 299 */
@@ -27001,8 +27138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var clefMap = _ref.clefMap;
 	    var print = _ref.print;
 	    var divisions = _ref.divisions;
-	    var leftBarline = _ref.leftBarline;
-	    var rightBarline = _ref.rightBarline;
+	    var barline = _ref.barline;
 	    var staffDetailsMap = _ref.staffDetailsMap;
 	
 	    _classCallCheck(this, Measure);
@@ -27017,8 +27153,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.clefMap = clefMap;
 	    this.print = print;
 	    this.divisions = divisions;
-	    this.leftBarline = leftBarline;
-	    this.rightBarline = rightBarline;
+	    this.barline = barline; // left | right -> barline
 	    this.staffDetailsMap = staffDetailsMap;
 	
 	    // variables
@@ -27262,6 +27397,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "setStave",
 	    value: function setStave(staff, stave) {
 	      this.staveMap.set(staff, stave);
+	    }
+	  }, {
+	    key: "getBarline",
+	    value: function getBarline() {
+	      return this.barline;
 	    }
 	  }, {
 	    key: "getKey",
@@ -27735,9 +27875,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  data.print = print;
 	};
 	
-	var parseBarline = function parseBarline(data, barlineNote, noteBegin) {
-	  var barline = {};
-	  data[(noteBegin ? 'right' : 'left') + 'Barline'] = barline;
+	var parseBarline = function parseBarline(data, barlineNode) {
+	  var barStyleNode = barlineNode.getElementsByTagName('bar-style')[0];
+	  var repeatNode = barlineNode.getElementsByTagName('repeat')[0];
+	  var barline = {
+	    location: barlineNode.hasAttribute('location') ? barlineNode.getAttribute('location') : 'right'
+	  };
+	
+	  if (barStyleNode) barline.barStyle = barStyleNode.textContent;
+	  if (repeatNode) barline.repeat = { direction: repeatNode.getAttribute('direction') };
+	
+	  data.barline[barline.location] = barline;
 	};
 	
 	var parseAttributes = function parseAttributes(data, attrNode, state) {
@@ -28065,7 +28213,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        parsePrint(data, node);
 	        break;
 	      case 'barline':
-	        parseBarline(data, node, state.noteBegin);
+	        parseBarline(data, node);
 	        break;
 	      case 'attributes':
 	        parseAttributes(data, node, state);
@@ -28121,7 +28269,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      clefMap: new Map(), // key is staff number
 	      voices: [],
 	      staffs: [],
-	      staffDetailsMap: new Map() };
+	      staffDetailsMap: new Map(), // key is staff number
+	      barline: {} };
 	
 	    if (node.hasAttribute('width')) data.width = Number(node.getAttribute('width'));
 	
@@ -29144,6 +29293,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	          });
 	        });
 	      });
+	
+	      // format clef width
+	      this.score.getMeasurePacks().forEach(function (measurePack, mi) {
+	        if (mi > 0 && !measurePack.getTopMeasure().isNewLineStarting()) {
+	          return;
+	        }
+	
+	        function _getVFClef(vfStave) {
+	          // TODO: update vexflow
+	          var vfPosition = 5; //Vex.Flow.StaveModifier.Position.BEGIN;
+	          var vfCategory = _allegretto2.default.Flow.Clef.CATEGORY;
+	          return vfStave.getModifiers(vfPosition, vfCategory)[0];
+	        }
+	
+	        var vfStaves = measurePack.getVFStaves();
+	        var maxWidth = -Infinity;
+	
+	        vfStaves.forEach(function (vfStave) {
+	          var vfClef = _getVFClef(vfStave);
+	          if (vfClef && vfClef.width > maxWidth) maxWidth = vfClef.width;
+	        });
+	
+	        if (maxWidth < 0) return;
+	
+	        vfStaves.forEach(function (vfStave) {
+	          var vfClef = _getVFClef(vfStave);
+	          if (vfClef) vfClef.setWidth(maxWidth);
+	        });
+	      });
 	    }
 	  }, {
 	    key: 'formatKeySignature',
@@ -29417,7 +29595,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          if (partGroup.groupBarline) {
+	            topStave.format();
+	
 	            var _staveConnector2 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	            var shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
+	            _staveConnector2.setXShift(shiftX);
 	            _staveConnector2.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
 	            connectors.push({ page: page, staveConnector: _staveConnector2 });
 	          }
@@ -29435,8 +29617,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          if (mi === 0 && partGroup.groupName) setText({ staveConnector: staveConnector, text: partGroup.groupName });else if (mi > 0 && partGroup.groupAbbreviation) setText({ staveConnector: staveConnector, text: partGroup.groupAbbreviation });
 	
-	          // TODO: update vexflow StaveConnector NONE type
-	          if (!hasGroupSymbol) staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
+	          if (!hasGroupSymbol) staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.NONE);
 	
 	          connectors.push({ page: page, staveConnector: staveConnector });
 	        });
@@ -29458,6 +29639,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          if (!topStave || !bottomStave) return;
 	
+	          topStave.format();
+	
 	          if (isNewLineStarting) {
 	            var _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
 	            _staveConnector3.setType(_allegretto2.default.Flow.StaveConnector.type.BRACE);
@@ -29468,10 +29651,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
 	            _staveConnector3.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
 	            connectors.push({ page: page, staveConnector: _staveConnector3 });
+	
+	            var _vfBarlineType = topStave.modifiers[0].getType();
+	            var _connectorType2 = (0, _Util.convertVFBarlineTypeToVFConnectorType)(_vfBarlineType, true);
+	            if (_connectorType2 !== _allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT) {
+	              _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
+	              var _vfBarlineType2 = topStave.modifiers[0].getType();
+	              var _connectorType3 = (0, _Util.convertVFBarlineTypeToVFConnectorType)(_vfBarlineType2, true);
+	              var _shiftX = topStave.modifiers[0].getX() - topStave.getX();
+	              _staveConnector3.setType(_connectorType3);
+	              _staveConnector3.setXShift(_shiftX);
+	              connectors.push({ page: page, staveConnector: _staveConnector3 });
+	            }
 	          }
 	
 	          var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	          staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
+	          var vfBarlineType = topStave.modifiers[1].getType();
+	          var connectorType = (0, _Util.convertVFBarlineTypeToVFConnectorType)(vfBarlineType, false);
+	          var shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
+	          staveConnector.setXShift(shiftX);
+	          staveConnector.setType(connectorType);
 	          connectors.push({ page: page, staveConnector: staveConnector });
 	        });
 	      };
@@ -29479,6 +29678,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var mi = 0; mi < numMeasures; mi++) {
 	        _loop3(mi);
 	      }
+	    }
+	  }, {
+	    key: 'formatBarline',
+	    value: function formatBarline() {
+	      this.parts.forEach(function (part) {
+	        return part.getMeasures().forEach(function (measure) {
+	          var barline = measure.getBarline();
+	          var vfStaves = measure.getStaves();
+	
+	          if (barline.left) {
+	            (function () {
+	              var vfBarlineType = (0, _Util.getVFBarlineType)(barline.left);
+	              vfStaves.forEach(function (vfStave) {
+	                return vfStave.setBegBarType(vfBarlineType);
+	              });
+	            })();
+	          }
+	
+	          if (barline.right) {
+	            (function () {
+	              var vfBarlineType = (0, _Util.getVFBarlineType)(barline.right);
+	              vfStaves.forEach(function (vfStave) {
+	                return vfStave.setEndBarType(vfBarlineType);
+	              });
+	            })();
+	          }
+	        });
+	      });
 	    }
 	
 	    /*
@@ -30215,6 +30442,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatAttributes();
 	      this.formatDivisions();
 	      this.formatCredits();
+	      this.formatBarline();
 	      this.formatPartList();
 	      //this.formatStaves();
 	      this.formatNotes();
@@ -30291,7 +30519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Stack = exports.splitVFDuration = exports.getVFJustification = exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
+	exports.Stack = exports.splitVFDuration = exports.getVFJustification = exports.convertVFBarlineTypeToVFConnectorType = exports.getVFBarlineType = exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -30391,6 +30619,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  return connectorType;
+	};
+	
+	var getVFBarlineType = exports.getVFBarlineType = function getVFBarlineType(barline) {
+	  var Barline = _allegretto2.default.Flow.Barline;
+	
+	  if (barline.repeat) {
+	    return barline.repeat.direction === 'forward' ? Barline.type.REPEAT_BEGIN : Barline.type.REPEAT_END;
+	  }
+	
+	  // regular, dotted, dashed, heavy, light-light, light-heavy, heavy-light, heavy-heavy
+	  switch (barline.barStyle) {
+	    case 'light-light':
+	      return Barline.type.DOUBLE;
+	    case 'heavy':
+	    case 'light-heavy':
+	      return Barline.type.END;
+	  }
+	
+	  return Barline.type.SINGLE;
+	};
+	
+	var convertVFBarlineTypeToVFConnectorType = exports.convertVFBarlineTypeToVFConnectorType = function convertVFBarlineTypeToVFConnectorType(vfBarlineType, isLeft) {
+	  var Barline = _allegretto2.default.Flow.Barline;
+	  var StaveConnector = _allegretto2.default.Flow.StaveConnector;
+	
+	  switch (vfBarlineType) {
+	    case Barline.type.DOUBLE:
+	      return StaveConnector.type.THIN_DOUBLE;
+	    case Barline.type.END:
+	    case Barline.type.REPEAT_END:
+	      return StaveConnector.type.BOLD_DOUBLE_RIGHT;
+	    case Barline.type.REPEAT_BEGIN:
+	      return StaveConnector.type.BOLD_DOUBLE_LEFT;
+	  }
+	
+	  return isLeft ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.SINGLE_RIGHT;
 	};
 	
 	var getVFJustification = exports.getVFJustification = function getVFJustification(justify) {
