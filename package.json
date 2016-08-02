@@ -27,7 +27,7 @@
     "babel-polyfill": "^6.9.1",
     "babel-preset-es2015": "^6.9.0",
     "eslint": "^1.10.3",
-    "slimerjs": "^0.9.6",
+    "slimerjs": "^0.906.2",
     "webpack": "^1.12.9",
     "webpack-dev-server": "^1.14.0"
   },
