@@ -86,6 +86,43 @@ export const getVFConnectorType = groupSymbol => {
   return connectorType;
 };
 
+export const getVFBarlineType = barline => {
+  const Barline = Vex.Flow.Barline;
+
+  if (barline.repeat) {
+    return barline.repeat.direction === 'forward' ?
+      Barline.type.REPEAT_BEGIN : Barline.type.REPEAT_END;
+  }
+
+  // regular, dotted, dashed, heavy, light-light, light-heavy, heavy-light, heavy-heavy
+  switch (barline.barStyle) {
+    case 'light-light':
+      return Barline.type.DOUBLE;
+    case 'heavy':
+    case 'light-heavy':
+      return Barline.type.END;
+  }
+
+  return Barline.type.SINGLE;
+};
+
+export const convertVFBarlineTypeToVFConnectorType = (vfBarlineType, isLeft) => {
+  const Barline = Vex.Flow.Barline;
+  const StaveConnector = Vex.Flow.StaveConnector;
+
+  switch (vfBarlineType) {
+    case Barline.type.DOUBLE:
+      return StaveConnector.type.THIN_DOUBLE;
+    case Barline.type.END:
+    case Barline.type.REPEAT_END:
+      return StaveConnector.type.BOLD_DOUBLE_RIGHT;
+    case Barline.type.REPEAT_BEGIN:
+      return StaveConnector.type.BOLD_DOUBLE_LEFT;
+  }
+
+  return isLeft ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.SINGLE_RIGHT;
+};
+
 export const getVFJustification = justify => {
   const Justification = Vex.Flow.TextNote.Justification;
   switch (justify) {

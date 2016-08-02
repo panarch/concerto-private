@@ -30,9 +30,19 @@ const parsePrint = (data, printNode) => {
   data.print = print;
 };
 
-const parseBarline = (data, barlineNote, noteBegin) => {
-  const barline = {};
-  data[`${noteBegin ? 'right' : 'left'}Barline`] = barline;
+const parseBarline = (data, barlineNode) => {
+  const barStyleNode = barlineNode.getElementsByTagName('bar-style')[0];
+  const repeatNode = barlineNode.getElementsByTagName('repeat')[0];
+  const barline = {
+    location: (
+      barlineNode.hasAttribute('location') ? barlineNode.getAttribute('location') : 'right'
+    ),
+  };
+
+  if (barStyleNode) barline.barStyle = barStyleNode.textContent;
+  if (repeatNode) barline.repeat = { direction: repeatNode.getAttribute('direction') }
+
+  data.barline[barline.location] = barline;
 };
 
 const parseAttributes = (data, attrNode, state) => {
@@ -363,7 +373,7 @@ const parseNotes = (data, noteNodes) => {
         parsePrint(data, node);
         break;
       case 'barline':
-        parseBarline(data, node, state.noteBegin);
+        parseBarline(data, node);
         break;
       case 'attributes':
         parseAttributes(data, node, state);
@@ -422,6 +432,7 @@ export const parsePart = partNode => {
       voices: [],
       staffs: [],
       staffDetailsMap: new Map(), // key is staff number
+      barline: {}, // key is left | right
     };
 
     if (node.hasAttribute('width'))

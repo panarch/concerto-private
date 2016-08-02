@@ -3,7 +3,7 @@
 
 export default class Measure {
   constructor({ number, width, voices, staffs, notesMap, key, time, clefMap, print, divisions,
-      leftBarline, rightBarline, staffDetailsMap } = {}) {
+      barline, staffDetailsMap } = {}) {
     this.number = number;
     this.width = width;
     this.voices = voices;
@@ -14,8 +14,7 @@ export default class Measure {
     this.clefMap = clefMap;
     this.print = print;
     this.divisions = divisions;
-    this.leftBarline = leftBarline;
-    this.rightBarline = rightBarline;
+    this.barline = barline; // left | right -> barline
     this.staffDetailsMap = staffDetailsMap;
 
     // variables
@@ -174,6 +173,7 @@ export default class Measure {
   getStave(staff = 1) { return this.staveMap.get(staff); }
   setStave(staff, stave) { this.staveMap.set(staff, stave); }
 
+  getBarline() { return this.barline; }
   getKey() { return this.key; }
   setKey(key) { this.key = key; }
   hasTime() { return this.time !== undefined; }

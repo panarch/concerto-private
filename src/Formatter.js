@@ -10,7 +10,9 @@ import {
   getVFDuration,
   getVFKeySignature,
   getVFConnectorType,
+  getVFBarlineType,
   getVFJustification,
+  convertVFBarlineTypeToVFConnectorType,
   splitVFDuration,
   Stack,
 } from './Util';
@@ -630,7 +632,11 @@ export default class Formatter {
         }
 
         if (partGroup.groupBarline) {
+          topStave.format();
+
           const staveConnector = new Vex.Flow.StaveConnector(topStave, bottomStave);
+          const shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
+          staveConnector.setXShift(shiftX);
           staveConnector.setType(Vex.Flow.StaveConnector.type.SINGLE_RIGHT);
           connectors.push({ page, staveConnector });
         }
@@ -674,6 +680,8 @@ export default class Formatter {
         const [topStave, bottomStave] = [staves[0], staves[staves.length - 1]];
         if (!topStave || !bottomStave) return;
 
+        topStave.format();
+
         if (isNewLineStarting) {
           let staveConnector = new Vex.Flow.StaveConnector(topStave, bottomStave);
           staveConnector.setType(Vex.Flow.StaveConnector.type.BRACE);
@@ -687,13 +695,47 @@ export default class Formatter {
           staveConnector = new Vex.Flow.StaveConnector(topStave, bottomStave);
           staveConnector.setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT);
           connectors.push({ page, staveConnector });
+
+          const vfBarlineType = topStave.modifiers[0].getType();
+          const connectorType = convertVFBarlineTypeToVFConnectorType(vfBarlineType, true);
+          if (connectorType !== Vex.Flow.StaveConnector.type.SINGLE_LEFT) {
+            staveConnector = new Vex.Flow.StaveConnector(topStave, bottomStave);
+            const vfBarlineType = topStave.modifiers[0].getType();
+            const connectorType = convertVFBarlineTypeToVFConnectorType(vfBarlineType, true);
+            const shiftX = topStave.modifiers[0].getX() - topStave.getX();
+            staveConnector.setType(connectorType);
+            staveConnector.setXShift(shiftX);
+            connectors.push({ page, staveConnector });
+          }
         }
 
         const staveConnector = new Vex.Flow.StaveConnector(topStave, bottomStave);
-        staveConnector.setType(Vex.Flow.StaveConnector.type.SINGLE_RIGHT);
+        const vfBarlineType = topStave.modifiers[1].getType();
+        const connectorType = convertVFBarlineTypeToVFConnectorType(vfBarlineType, false);
+        const shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
+        staveConnector.setXShift(shiftX);
+        staveConnector.setType(connectorType);
         connectors.push({ page, staveConnector });
       });
     }
+  }
+
+  formatBarline() {
+    this.parts.forEach(part => part.getMeasures().forEach(measure => {
+      const barline = measure.getBarline();
+      const vfStaves = measure.getStaves();
+
+      if (barline.left) {
+        const vfBarlineType = getVFBarlineType(barline.left);
+        vfStaves.forEach(vfStave => vfStave.setBegBarType(vfBarlineType));
+      }
+
+      if (barline.right) {
+        const vfBarlineType = getVFBarlineType(barline.right);
+        vfStaves.forEach(vfStave => vfStave.setEndBarType(vfBarlineType));
+      }
+
+    }));
   }
 
   /*
@@ -1341,6 +1383,7 @@ export default class Formatter {
     this.formatAttributes();
     this.formatDivisions();
     this.formatCredits();
+    this.formatBarline();
     this.formatPartList();
     //this.formatStaves();
     this.formatNotes();
