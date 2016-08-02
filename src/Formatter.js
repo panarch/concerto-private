@@ -378,6 +378,35 @@ export default class Formatter {
         });
       });
     });
+
+    // format clef width
+    this.score.getMeasurePacks().forEach((measurePack, mi) => {
+      if (mi > 0 && !measurePack.getTopMeasure().isNewLineStarting()) {
+        return;
+      }
+
+      function _getVFClef(vfStave) {
+        // TODO: update vexflow
+        const vfPosition = 5; //Vex.Flow.StaveModifier.Position.BEGIN;
+        const vfCategory = Vex.Flow.Clef.CATEGORY;
+        return vfStave.getModifiers(vfPosition, vfCategory)[0];
+      }
+
+      const vfStaves = measurePack.getVFStaves();
+      let maxWidth = -Infinity;
+
+      vfStaves.forEach(vfStave => {
+        const vfClef = _getVFClef(vfStave);
+        if (vfClef && vfClef.width > maxWidth) maxWidth = vfClef.width;
+      });
+
+      if (maxWidth < 0) return;
+
+      vfStaves.forEach(vfStave => {
+        const vfClef = _getVFClef(vfStave);
+        if (vfClef) vfClef.setWidth(maxWidth);
+      });
+    });
   }
 
   formatKeySignature() {
