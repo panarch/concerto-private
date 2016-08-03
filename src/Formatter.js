@@ -1125,11 +1125,25 @@ export default class Formatter {
         vfStave.end_x = minEndX;
       });
 
+      const vfTabVoices = vfVoices.filter(vfVoice => {
+        for (const vfNote of vfVoice.getTickables()) {
+          if (vfNote instanceof Vex.Flow.TabNote) return true;
+        }
+
+        return false;
+      });
+
+      // Extra space is required for tab notes, multiply 2.4
+      let minTotalWidth = 2.4 * Math.max(0, ...vfTabVoices.map(vfTabVoice => {
+        const vfTabFormatter = (new Vex.Flow.Formatter()).joinVoices([vfTabVoice]);
+        return vfTabFormatter.preCalculateMinTotalWidth([vfTabVoice]);
+      }));
+
       const width = minEndX - maxStartX - 10;
       const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices);
-      const minTotalWidth = vfFormatter.preCalculateMinTotalWidth(vfVoices);
+      minTotalWidth = Math.max(vfFormatter.preCalculateMinTotalWidth(vfVoices), minTotalWidth);
 
-      //vfFormatter.format(vfVoices, width); -> runFormatterj
+      //vfFormatter.format(vfVoices, width); -> runFormatter
       measurePack.setWidth(width);
       measurePack.setMinTotalWidth(minTotalWidth);
       measurePack.setVFFormatter(vfFormatter);
