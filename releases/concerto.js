@@ -60,6 +60,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(298);
 	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
 	var _Score = __webpack_require__(300);
 	
 	var _Score2 = _interopRequireDefault(_Score);
@@ -101,10 +105,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// use module.exports for node.js compatibility
-	// Copyright (c) Taehoon Moon 2015.
-	// @author Taehoon Moon
-	
 	module.exports = {
+	  Vex: _allegretto2.default,
 	  Score: _Score2.default,
 	  Defaults: _Defaults2.default,
 	  Movement: _Movement2.default,
@@ -115,7 +117,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Renderer: _Renderer2.default,
 	  Util: _Util2.default,
 	  parse: _Parser.parse
-	};
+	}; // Copyright (c) Taehoon Moon 2015.
+	// @author Taehoon Moon
 
 /***/ },
 /* 1 */
