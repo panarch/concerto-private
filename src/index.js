@@ -3,6 +3,7 @@
 
 import 'babel-polyfill';
 import './hotfix';
+import Vex from '@panarch/allegretto';
 import Score from './Score';
 import Defaults from './Defaults';
 import Movement from './Movement';
@@ -16,6 +17,7 @@ import Util from './Util';
 
 // use module.exports for node.js compatibility
 module.exports = {
+  Vex,
   Score,
   Defaults,
   Movement,
