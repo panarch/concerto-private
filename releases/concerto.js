@@ -94,7 +94,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _Renderer = __webpack_require__(317);
+	var _VerticalFormatter = __webpack_require__(317);
+	
+	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
+	
+	var _HorizontalFormatter = __webpack_require__(319);
+	
+	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
+	
+	var _Renderer = __webpack_require__(320);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
@@ -114,6 +122,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Part: _Part2.default,
 	  Measure: _Measure2.default,
 	  Formatter: _Formatter2.default,
+	  VerticalFormatter: _VerticalFormatter2.default,
+	  HorizontalFormatter: _HorizontalFormatter2.default,
 	  Renderer: _Renderer2.default,
 	  Util: _Util2.default,
 	  parse: _Parser.parse
@@ -30766,6 +30776,873 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 317 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	var _AdvancedFormatter2 = __webpack_require__(318);
+	
+	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
+	
+	var _Util = __webpack_require__(316);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var VerticalFormatter = function (_AdvancedFormatter) {
+	  _inherits(VerticalFormatter, _AdvancedFormatter);
+	
+	  function VerticalFormatter(score, _ref) {
+	    var _ref$infinite = _ref.infinite;
+	    var infinite = _ref$infinite === undefined ? true : _ref$infinite;
+	    var _ref$zoomLevel = _ref.zoomLevel;
+	    var zoomLevel = _ref$zoomLevel === undefined ? 100 : _ref$zoomLevel;
+	    var _ref$innerWidth = _ref.innerWidth;
+	    var innerWidth = _ref$innerWidth === undefined ? window.innerWidth : _ref$innerWidth;
+	    var _ref$innerHeight = _ref.innerHeight;
+	    var innerHeight = _ref$innerHeight === undefined ? window.innerHeight : _ref$innerHeight;
+	
+	    _classCallCheck(this, VerticalFormatter);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(VerticalFormatter).call(this, score));
+	
+	    _this.infinite = infinite;
+	    _this.innerWidth = innerWidth;
+	    _this.innerHeight = innerHeight;
+	    _this.ratio = zoomLevel === 'height' ? 1 : 100 / zoomLevel; // based on window.innerWidth;
+	    _this.width = innerWidth * _this.ratio;
+	    _this.height = null;
+	    _this.minRatio = null;
+	
+	    _this._originalPageSize = _this.defaults.getPageSize();
+	    _this._mockStave = new _allegretto2.default.Flow.Stave(0, 0, 100);
+	    return _this;
+	  }
+	
+	  _createClass(VerticalFormatter, [{
+	    key: 'getMinRatio',
+	    value: function getMinRatio() {
+	      return this.minRatio;
+	    }
+	  }, {
+	    key: 'removeTopSystemDistances',
+	    value: function removeTopSystemDistances() {
+	      var startIndex = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+	
+	      this.score.getParts()[0].getMeasures().forEach(function (measure, mi) {
+	        if (startIndex <= mi && measure.hasTopSystemDistance()) {
+	          delete measure.print.systemLayout.topSystemDistance;
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'getMeasureBottomY',
+	    value: function getMeasureBottomY(measure) {
+	      return Math.max.apply(Math, _toConsumableArray(measure.staffYMap.values())) + 120;
+	    }
+	  }, {
+	    key: 'updatePageSize',
+	    value: function updatePageSize() {
+	      var defaults = this.score.getDefaults();
+	      var parts = this.score.getParts();
+	      var measures = parts[parts.length - 1].getMeasures();
+	      var lastMeasure = measures[measures.length - 1];
+	      var height = this.infinite ? this.getMeasureBottomY(lastMeasure) : this.height;
+	
+	      defaults.pageLayout.pageWidth = this.width;
+	      defaults.pageLayout.pageHeight = height;
+	    }
+	
+	    // Merge left margin into page margins
+	
+	  }, {
+	    key: 'updateLeftMargins',
+	    value: function updateLeftMargins() {
+	      var defaults = this.score.getDefaults();
+	      var topPart = this.score.getParts()[0];
+	      var firstMeasure = topPart.getMeasures()[0];
+	
+	      var maxLeftMargin = 0;
+	      topPart.getMeasures().forEach(function (measure, i) {
+	        if (i === 0) return;
+	
+	        var systemLayout = measure.getSystemLayout();
+	        if (!systemLayout || !systemLayout.systemMargins) return;
+	
+	        var leftMargin = systemLayout.systemMargins.leftMargin;
+	
+	        if (maxLeftMargin < leftMargin) maxLeftMargin = leftMargin;
+	      });
+	
+	      // Update page margins
+	      var pageMarginsMap = defaults.getPageMarginsMap();
+	      if (pageMarginsMap) {
+	        ['both', 'even', 'odd'].forEach(function (type) {
+	          if (!pageMarginsMap.has(type)) return;
+	
+	          pageMarginsMap.get(type)['leftMargin'] += maxLeftMargin;
+	        });
+	      }
+	
+	      // Update firstMeasure left margin
+	      var systemLayout = firstMeasure.getSystemLayout();
+	      if (systemLayout && systemLayout.systemMargins) {
+	        systemLayout.systemMargins.leftMargin -= maxLeftMargin;
+	      }
+	
+	      // Remove all system left margins except the top first measure
+	      topPart.getMeasures().forEach(function (measure, i) {
+	        if (i === 0) return;
+	
+	        var systemLayout = measure.getSystemLayout();
+	        if (!systemLayout || !systemLayout.systemMargins) return;
+	
+	        systemLayout.systemMargins.leftMargin = 0;
+	      });
+	
+	      // Remove defaults system-layout left margin value
+	      var systemMargins = this.score.getDefaults().getSystemMargins();
+	      if (systemMargins) systemMargins.leftMargin = 0;
+	    }
+	  }, {
+	    key: 'resetStaveModifiers',
+	    value: function resetStaveModifiers() {
+	      this.score.getParts().forEach(function (part) {
+	        part.getMeasures().forEach(function (measure) {
+	          measure.getStaves().forEach(function (stave) {
+	            // remove all stave modifiers except beg & end barlines
+	            stave.modifiers.splice(2);
+	            stave.format();
+	          });
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'calculateMinZoomLevel',
+	    value: function calculateMinZoomLevel() {
+	      var _this2 = this;
+	
+	      var measurePacks = this.score.getMeasurePacks();
+	
+	      var minWidth = 0;
+	      measurePacks.forEach(function (measurePack, mi) {
+	        var minTotalWidth = measurePack.getMinTotalWidth() + _this2.getBeginAttributesWidth(measurePack, mi, true);
+	
+	        if (minWidth < minTotalWidth) minWidth = minTotalWidth;
+	      });
+	
+	      minWidth += 200;
+	
+	      var measure = measurePacks[0].getBottomMeasure();
+	      var minHeight = this.getMeasureBottomY(measure);
+	
+	      var widthRatio = minWidth / this.innerWidth;
+	      var heightRatio = minHeight / this.innerHeight;
+	      this.minRatio = !this.infinite ? Math.max(widthRatio, heightRatio) : widthRatio;
+	
+	      if (this.width > minWidth && this.innerHeight * this.ratio > minHeight) {
+	        this.height = this.innerHeight * this.ratio;
+	      } else {
+	        this.ratio = this.minRatio;
+	        this.width = this.innerWidth * this.ratio;
+	        this.height = this.innerHeight * this.ratio;
+	      }
+	    }
+	  }, {
+	    key: 'getPageSideMargin',
+	    value: function getPageSideMargin() {
+	      var defaults = this.score.getDefaults();
+	      return defaults.getPageLeftMargin(0) + defaults.getPageRightMargin(0);
+	    }
+	  }, {
+	    key: 'getBeginAttributesWidth',
+	    value: function getBeginAttributesWidth(measurePack, mi) {
+	      var _this3 = this;
+	
+	      var useCache = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+	
+	      var maxWidth = 0;
+	      measurePack.measures.forEach(function (measure, pi) {
+	        var measureCache = _this3.getMeasureCache(pi, mi);
+	        var _measure = useCache ? measureCache : measure;
+	        var width = 0;
+	
+	        if (_measure.hasTime()) {
+	          var time = _measure.getTime();
+	          var vfTimeSig = new _allegretto2.default.Flow.TimeSignature(time.beats + '/' + time.beatType);
+	          width += vfTimeSig.getWidth() + vfTimeSig.getPadding();
+	        }
+	
+	        if (_measure.getKey()) {
+	          var vfKeySig = new _allegretto2.default.Flow.KeySignature((0, _Util.getVFKeySignature)(_measure.getKey()));
+	          vfKeySig.setStave(_this3._mockStave);
+	          width += vfKeySig.getWidth() + vfKeySig.getPadding();
+	        }
+	
+	        // find max width... although it should be same
+	        var maxClefWidth = 0;
+	        measure.staffs.forEach(function (staff) {
+	          var clef = _measure.getClef(staff);
+	          if (!clef) return;
+	
+	          var vfClef = new _allegretto2.default.Flow.Clef((0, _Util.getVFClef)(clef));
+	          vfClef.setStave(_this3._mockStave);
+	          var clefWidth = vfClef.getWidth() + vfClef.getPadding();
+	          if (clefWidth > maxClefWidth) maxClefWidth = clefWidth;
+	        });
+	
+	        width += maxClefWidth;
+	
+	        if (width > maxWidth) maxWidth = width;
+	      });
+	
+	      return maxWidth;
+	    }
+	  }, {
+	    key: 'updateMeasureLine',
+	    value: function updateMeasureLine(_ref2) {
+	      var measurePacks = _ref2.measurePacks;
+	      var packIndices = _ref2.packIndices;
+	      var packWidths = _ref2.packWidths;
+	
+	      packIndices.forEach(function (mi, i) {
+	        var w = packWidths[i];
+	        measurePacks[mi].measures.forEach(function (measure) {
+	          return measure.width = w;
+	        });
+	      });
+	
+	      // no newSystem for the first measure
+	      if (packIndices[0] === 0) return;
+	
+	      // add print.newSystem
+	      measurePacks[packIndices[0]].measures.forEach(function (measure) {
+	        if (!measure.hasPrint()) measure.print = {};
+	
+	        measure.print.newSystem = true;
+	      });
+	    }
+	  }, {
+	    key: 'reflow',
+	    value: function reflow() {
+	      var _this4 = this;
+	
+	      var PADDING = 40;
+	      var pageSideMargin = this.getPageSideMargin();
+	      var measurePacks = this.score.getMeasurePacks();
+	
+	      var packWidths = void 0;
+	      var packIndices = void 0;
+	      var fullWidth = void 0;
+	      var width = void 0;
+	      var started = false; // whether new line started or not
+	      measurePacks.forEach(function (measurePack, i) {
+	        var packWidth = measurePack.getMinTotalWidth();
+	        packWidth += PADDING; // default margin including noteStartX & noteEndX
+	        packWidth += _this4.getBeginAttributesWidth(measurePack, i, !started);
+	
+	        if (!started) {
+	          packWidths = [];
+	          packIndices = [];
+	          fullWidth = _this4.width - pageSideMargin - measurePack.measures[0].getLeftMargin(0);
+	
+	          width = fullWidth;
+	          started = true;
+	        }
+	
+	        packWidths.push(packWidth);
+	        packIndices.push(i);
+	
+	        width -= packWidth;
+	
+	        /*
+	          nWidth: nextWidth
+	          nPack: nextMeasurePack
+	          nnPack: nextNextMeasurePack
+	        */
+	        var nextWidth = void 0;
+	        var remainingWidth = void 0;
+	        var nPack = measurePacks[i + 1];
+	        var nnPack = measurePacks[i + 2];
+	        if (!nPack) {
+	          remainingWidth = Math.min(width / packWidths.length, 50);
+	        } else {
+	          nextWidth = nPack.getMinTotalWidth();
+	          nextWidth += PADDING;
+	          nextWidth += _this4.getBeginAttributesWidth(nPack, i);
+	          if (nnPack) nextWidth += _this4.getBeginAttributesWidth(nnPack, i);
+	
+	          if (nextWidth < width) return; // it's ok to go next!
+	
+	          remainingWidth = Math.max(width / packWidths.length, 0);
+	        }
+	
+	        // Finish the current line
+	        packWidths = packWidths.map(function (w) {
+	          return w + remainingWidth;
+	        });
+	        _this4.updateMeasureLine({ measurePacks: measurePacks, packIndices: packIndices, packWidths: packWidths });
+	
+	        started = false;
+	      });
+	    }
+	
+	    /*
+	    @after
+	      - reflow
+	      - formatY
+	    */
+	
+	  }, {
+	    key: 'split',
+	    value: function split() {
+	      var _this5 = this;
+	
+	      var offset = 0;
+	      var pageTopMargin = this.defaults.getPageTopMargin(1);
+	      var topSystemDistance = 60 - pageTopMargin;
+	
+	      var measurePacks = this.score.getMeasurePacks();
+	      measurePacks.forEach(function (measurePack) {
+	        var topMeasure = measurePack.getTopMeasure();
+	        if (!topMeasure.isNewLineStarting()) return;
+	
+	        var y = _this5.getMeasureBottomY(measurePack.getBottomMeasure()) - 40;
+	        if (y - offset > _this5.height) {
+	          offset = topMeasure.getY() - 60;
+	          topMeasure.print.systemLayout = { topSystemDistance: topSystemDistance };
+	
+	          measurePack.measures.forEach(function (measure) {
+	            measure.print.newSystem = false;
+	            measure.print.newPage = true;
+	          });
+	        }
+	      });
+	    }
+	
+	    // not used
+	
+	  }, {
+	    key: 'updateStaveWidths',
+	    value: function updateStaveWidths() {
+	      this.score.getParts().forEach(function (part) {
+	        part.getMeasures().forEach(function (measure) {
+	          measure.getStaves().forEach(function (stave) {
+	            return stave.setWidth(measure.getWidth());
+	          });
+	        });
+	      });
+	    }
+	
+	    // not used
+	
+	  }, {
+	    key: 'updateStaveXYs',
+	    value: function updateStaveXYs() {
+	      this.score.getParts().forEach(function (part) {
+	        part.getMeasures().forEach(function (measure) {
+	          measure.staffs.forEach(function (staff) {
+	            var stave = measure.getStave(staff);
+	            stave.setX(measure.getX());
+	            stave.setY(measure.getStaffY(staff));
+	          });
+	        });
+	      });
+	    }
+	
+	    /*
+	    @after
+	      - updatePageSize
+	    */
+	
+	  }, {
+	    key: 'formatCredits',
+	    value: function formatCredits() {
+	      var pageSize = this.score.getDefaults().getPageSize();
+	      var _originalPageSize = this._originalPageSize;
+	      var width = _originalPageSize.width;
+	      var height = _originalPageSize.height;
+	
+	      var midStartX = width / 2 - 100;
+	      var midEndX = width / 2 + 100;
+	      var measureTopY = this.measurePacks[0].getTopMeasure().getY();
+	
+	      this.credits = this.credits.filter(function (credit) {
+	        if (credit.getPage() !== 1) return false;
+	
+	        var words = credit.getWordsList()[0];
+	        return words && words.defaultX && words.defaultY && height - words.defaultY + 30 < measureTopY;
+	      });
+	
+	      this.credits.forEach(function (credit) {
+	        var words = credit.getWordsList()[0];
+	
+	        if (words.defaultX > midStartX && words.defaultX < midEndX) {
+	          words.defaultX = pageSize.width / 2;
+	        } else if (words.defaultX >= midEndX) {
+	          words.defaultX = pageSize.width - (width - words.defaultX);
+	        }
+	      });
+	
+	      this.defaults.pageLayout.pageWidth = width;
+	      this.defaults.pageLayout.pageHeight = height;
+	
+	      _get(Object.getPrototypeOf(VerticalFormatter.prototype), 'formatCredits', this).call(this);
+	
+	      this.defaults.pageLayout.pageWidth = pageSize.width;
+	      this.defaults.pageLayout.pageHeight = pageSize.height;
+	    }
+	  }, {
+	    key: 'format',
+	    value: function format() {
+	      this.removeNewLineTags();
+	      this.showAllMeasures();
+	      this.updateLeftMargins();
+	      this.applyMaxVerticalDistances();
+	      this.removeTopSystemDistances(1);
+	
+	      // BEGIN: parents
+	      this.resetState();
+	      this.formatX();
+	      this.formatY();
+	      this.createStaves();
+	      this.formatAttributes();
+	      this.formatDivisions();
+	      this.formatNotes();
+	      this.formatBeam();
+	      this.formatVoices();
+	      this.formatLyric();
+	      this.runFormatter();
+	      // END
+	
+	      this.calculateMinZoomLevel();
+	      this.resetStaveModifiers();
+	
+	      this.reflow();
+	      //this.updateStaveWidths();
+	
+	      // BEGIN: parents
+	      this.resetState();
+	      this.formatX();
+	      this.formatY();
+	      if (!this.infinite) {
+	        this.split();
+	        this.formatY();
+	      }
+	
+	      this.createStaves();
+	
+	      //this.updateStaveXYs();
+	      this.formatMeasureNumber();
+	      this.formatAttributes();
+	      this.formatBarline();
+	      this.formatPartList();
+	      this.formatNotes(); // added
+	      this.formatBeam();
+	      this.formatVoices();
+	      this.formatLyric();
+	      this.runFormatter();
+	      this.formatTie();
+	      this.formatSlur();
+	      // END
+	
+	      this.updatePageSize();
+	      this.formatCredits();
+	    }
+	  }]);
+	
+	  return VerticalFormatter;
+	}(_AdvancedFormatter3.default);
+	
+	exports.default = VerticalFormatter;
+
+/***/ },
+/* 318 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _Formatter2 = __webpack_require__(314);
+	
+	var _Formatter3 = _interopRequireDefault(_Formatter2);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var AdvancedFormatter = function (_Formatter) {
+	  _inherits(AdvancedFormatter, _Formatter);
+	
+	  function AdvancedFormatter() {
+	    _classCallCheck(this, AdvancedFormatter);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(AdvancedFormatter).apply(this, arguments));
+	  }
+	
+	  _createClass(AdvancedFormatter, [{
+	    key: 'getMeasures',
+	    value: function getMeasures() {
+	      var parts = this.score.getParts();
+	      var measures = [];
+	      for (var p = 0; p < parts.length; p++) {
+	        measures.push.apply(measures, _toConsumableArray(parts[p].getMeasures()));
+	      }
+	
+	      return measures;
+	    }
+	
+	    // set all measures visible and update width values
+	
+	  }, {
+	    key: 'showAllMeasures',
+	    value: function showAllMeasures() {
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+	
+	      try {
+	        var _loop2 = function _loop2() {
+	          var measure = _step.value;
+	
+	          measure.staffs.forEach(function (staff) {
+	            return measure.setStaffDisplayed(staff, true);
+	          });
+	        };
+	
+	        for (var _iterator = this.getMeasures()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          _loop2();
+	        }
+	
+	        // fill empty widths
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	
+	      var parts = this.score.getParts();
+	      var numMeasures = parts[0].getMeasures().length;
+	
+	      var _loop = function _loop(i) {
+	        var maxWidth = 0;
+	        var measures = [];
+	        parts.forEach(function (part) {
+	          return measures.push(part.getMeasures()[i]);
+	        });
+	        measures.forEach(function (measure) {
+	          var width = measure.getWidth();
+	          if (width > maxWidth) maxWidth = width;
+	        });
+	
+	        measures.forEach(function (measure) {
+	          measure.width = maxWidth;
+	        });
+	      };
+	
+	      for (var i = 0; i < numMeasures; i++) {
+	        _loop(i);
+	      }
+	    }
+	
+	    // remove print newPage & newSystem
+	
+	  }, {
+	    key: 'removeNewLineTags',
+	    value: function removeNewLineTags() {
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+	
+	      try {
+	        for (var _iterator2 = this.getMeasures()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var _measure = _step2.value;
+	
+	          if (!_measure.isNewLineStarting()) continue;
+	
+	          _measure.print.newPage = false;
+	          _measure.print.newSystem = false;
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	            _iterator2.return();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: '_applyMaxVerticalDistances',
+	    value: function _applyMaxVerticalDistances(part) {
+	      var measures = part.getMeasures();
+	      var systemDistance = this.score.getDefaults().getSystemDistance();
+	      var staffDistanceMap = new Map();
+	
+	      measures.forEach(function (measure) {
+	        if (measure.hasSystemDistance()) {
+	          var _systemDistance = measure.getSystemDistance();
+	          if (!systemDistance || systemDistance < _systemDistance) {
+	            systemDistance = _systemDistance;
+	          }
+	        }
+	
+	        var staffLayoutMap = measure.getStaffLayoutMap();
+	        measure.staffs.forEach(function (staff) {
+	          if (!measure.hasStaffDistances() || !staffLayoutMap.has(staff)) return;
+	
+	          var _staffDistance = staffLayoutMap.get(staff).staffDistance;
+	          if (!staffDistanceMap.has(staff) || staffDistanceMap.get(staff) < _staffDistance) {
+	            staffDistanceMap.set(staff, _staffDistance);
+	          }
+	        });
+	      });
+	
+	      // TODO: should be calculated in the future, not simply choosing maximum
+	      systemDistance = Math.max(Math.min(systemDistance, 100), 80);
+	
+	      var measure = measures[0];
+	      if (!measure.print) measure.print = {};
+	      var print = measure.print;
+	
+	      if (systemDistance) {
+	        if (!print.systemLayout) print.systemLayout = {};
+	
+	        print.systemLayout.systemDistance = systemDistance;
+	      }
+	
+	      if (staffDistanceMap.size > 0) {
+	        if (!print.staffLayoutMap) print.staffLayoutMap = new Map();
+	
+	        var _iteratorNormalCompletion3 = true;
+	        var _didIteratorError3 = false;
+	        var _iteratorError3 = undefined;
+	
+	        try {
+	          for (var _iterator3 = staffDistanceMap.entries()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	            var _step3$value = _slicedToArray(_step3.value, 2);
+	
+	            var staff = _step3$value[0];
+	            var staffDistance = _step3$value[1];
+	
+	            var staffLayout = print.staffLayoutMap.get(staff);
+	
+	            if (!staffLayout) {
+	              staffLayout = {};
+	              print.staffLayoutMap.set(staff, staffLayout);
+	            }
+	
+	            staffLayout.staffDistance = staffDistance;
+	          }
+	        } catch (err) {
+	          _didIteratorError3 = true;
+	          _iteratorError3 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	              _iterator3.return();
+	            }
+	          } finally {
+	            if (_didIteratorError3) {
+	              throw _iteratorError3;
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'applyMaxVerticalDistances',
+	    value: function applyMaxVerticalDistances() {
+	      var _this2 = this;
+	
+	      // Update first measure print's system-distance and staff-distance values.
+	      this.score.getParts().forEach(function (part) {
+	        return _this2._applyMaxVerticalDistances(part);
+	      });
+	
+	      // remove all system distance and staff distances after the first
+	      this.score.getMeasurePacks().forEach(function (measurePack, mi) {
+	        if (mi === 0) return;
+	
+	        measurePack.measures.forEach(function (measure) {
+	          if (!measure.hasPrint()) return;
+	
+	          if (measure.print.systemLayout) delete measure.print.systemLayout.systemDistance;
+	          if (measure.print.staffLayoutMap) measure.print.staffLayoutMap.clear();
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'removeCredits',
+	    value: function removeCredits() {
+	      this.score.credits = [];
+	    }
+	  }]);
+	
+	  return AdvancedFormatter;
+	}(_Formatter3.default);
+	
+	exports.default = AdvancedFormatter;
+
+/***/ },
+/* 319 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	
+	var _AdvancedFormatter2 = __webpack_require__(318);
+	
+	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var TOP_SYSTEM_DISTANCE = 80;
+	
+	var HorizontalFormatter = function (_AdvancedFormatter) {
+	  _inherits(HorizontalFormatter, _AdvancedFormatter);
+	
+	  function HorizontalFormatter() {
+	    _classCallCheck(this, HorizontalFormatter);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(HorizontalFormatter).apply(this, arguments));
+	  }
+	
+	  _createClass(HorizontalFormatter, [{
+	    key: 'updatePageSize',
+	    value: function updatePageSize() {
+	      var defaults = this.score.getDefaults();
+	      var parts = this.score.getParts();
+	      var measures = parts[parts.length - 1].getMeasures();
+	      var lastMeasure = measures[measures.length - 1];
+	      var width = lastMeasure.getX() + lastMeasure.getWidth() + 100;
+	      var height = Math.max.apply(Math, _toConsumableArray(lastMeasure.staffYMap.values())) + 120;
+	
+	      defaults.pageLayout.pageWidth = width;
+	      defaults.pageLayout.pageHeight = height;
+	    }
+	  }, {
+	    key: 'updateTopMargins',
+	    value: function updateTopMargins() {
+	      var defaults = this.score.getDefaults();
+	      var firstMeasure = this.score.getParts()[0].getMeasures()[0];
+	
+	      // Update top-system-distance
+	      if (firstMeasure.hasTopSystemDistance()) {
+	        firstMeasure.print.systemLayout.topSystemDistance = TOP_SYSTEM_DISTANCE;
+	      } else {
+	        var systemLayout = defaults.getSystemLayout();
+	        if (!systemLayout) {
+	          systemLayout = {};
+	          defaults.systemLayout = systemLayout;
+	        }
+	
+	        systemLayout.topSystemDistance = TOP_SYSTEM_DISTANCE;
+	      }
+	
+	      // Remove page top margins
+	      var pageMarginsMap = defaults.getPageMarginsMap();
+	      if (pageMarginsMap) {
+	        ['both', 'even', 'odd'].forEach(function (type) {
+	          if (!pageMarginsMap.has(type)) return;
+	
+	          pageMarginsMap.get(type)['topMargin'] = 0;
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'updateMeasureNumbering',
+	    value: function updateMeasureNumbering() {
+	      var measure = this.score.getParts()[0].getMeasures()[0];
+	      if (!measure.print) measure.print = {};
+	
+	      measure.print.measureNumbering = 'measure';
+	    }
+	  }, {
+	    key: 'format',
+	    value: function format() {
+	      this.removeNewLineTags();
+	      this.showAllMeasures();
+	      this.updateTopMargins();
+	      this.applyMaxVerticalDistances();
+	      this.updateMeasureNumbering();
+	
+	      _get(Object.getPrototypeOf(HorizontalFormatter.prototype), 'format', this).call(this);
+	
+	      this.removeCredits();
+	      this.updatePageSize();
+	    }
+	  }]);
+	
+	  return HorizontalFormatter;
+	}(_AdvancedFormatter3.default);
+	
+	exports.default = HorizontalFormatter;
+
+/***/ },
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
