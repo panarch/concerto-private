@@ -1,6 +1,6 @@
 import Concerto from '../src/index';
 
-const urls = [
+const URLS = [
   './tests/SchbAvMaSample.xml',
   './tests/BrookeWestSample.xml',
   './tests/Tuplets.Basic.xml',
@@ -17,7 +17,28 @@ const urls = [
   './tests/blank_a7.xml',
 ];
 
-function load(url) {
+const TYPES = [
+  'original',
+  'horizontal',
+  'vertical',
+  'responsive',
+];
+
+function getFormatter(score, type) {
+  switch (type) {
+  case 'horizontal':
+    return new Concerto.HorizontalFormatter(score);
+  case 'vertical':
+    return new Concerto.VerticalFormatter(score, { infinite: true, zoomLevel: 110 });
+  case 'responsive':
+    return new Concerto.VerticalFormatter(score, { infinite: false, zoomLevel: 110 });
+  }
+
+  // original
+  return new Concerto.Formatter(score);
+}
+
+function load(url, type) {
   const element = document.getElementById('page');
   while (element.firstChild) {
     element.removeChild(element.firstChild);
@@ -36,9 +57,9 @@ function load(url) {
       const domParser = new DOMParser();
       const doc = domParser.parseFromString(data, 'application/xml');
       const score = Concerto.parse(doc);
+      const formatter = getFormatter(score, type);
+      console.log('formatter created');
 
-      const formatter = new Concerto.Formatter(score);
-      console.log('formatter created')
       formatter.format();
       console.log(score);
 
@@ -51,18 +72,32 @@ function load(url) {
   req.send(null);
 }
 
-const selectNode = document.getElementById('select');
+const scoreSelectNode = document.getElementById('score-select');
+const typeSelectNode = document.getElementById('type-select');
 
-urls.forEach(url => {
+URLS.forEach(url => {
   const optionNode = document.createElement('option');
   optionNode.textContent = url.split('/')[2];
   optionNode.value = url;
 
-  selectNode.appendChild(optionNode);
+  scoreSelectNode.appendChild(optionNode);
 });
 
-selectNode.addEventListener('change', () => load(selectNode.value));
+TYPES.forEach(type => {
+  const optionNode = document.createElement('option');
+  optionNode.textContent = type;
+  optionNode.value = type;
 
-const url = urls[0];
-selectNode.value = url;
-load(url);
+  typeSelectNode.appendChild(optionNode);
+});
+
+const onChange = () => load(scoreSelectNode.value, typeSelectNode.value);
+scoreSelectNode.addEventListener('change', onChange);
+typeSelectNode.addEventListener('change', onChange);
+
+const url = URLS[8];
+const type = TYPES[0];
+
+scoreSelectNode.value = url;
+typeSelectNode.value = type;
+load(url, type);

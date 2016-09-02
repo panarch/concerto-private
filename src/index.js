@@ -12,6 +12,8 @@ import Part from './Part';
 import Measure from './Measure';
 import { parse } from './Parser';
 import Formatter from './Formatter';
+import VerticalFormatter from './VerticalFormatter';
+import HorizontalFormatter from './HorizontalFormatter';
 import Renderer from './Renderer';
 import Util from './Util';
 
@@ -25,6 +27,8 @@ module.exports = {
   Part,
   Measure,
   Formatter,
+  VerticalFormatter,
+  HorizontalFormatter,
   Renderer,
   Util,
   parse,

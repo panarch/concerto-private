@@ -17,12 +17,20 @@
             margin: 0 5px 5px 5px;
           }
 
-          select {
+          .select {
             position: absolute;
-            left: 5px;
             top: 3px;
             height: 30px;
             z-index: 9;
+          }
+
+          #score-select {
+            left: 5px;
+
+          }
+
+          #type-select {
+            left: 240px;
           }
 
           #page {
@@ -36,7 +44,8 @@
         </style>
     </head>
     <body>
-    <select id="select"></select>
+    <select id="score-select" class="select"></select>
+    <select id="type-select" class="select"></select>
     <div id="page"></div>
     <script src="./bundle.js"></script>
     </body>

@@ -15,19 +15,27 @@ filenames.forEach(function(filename) {
   const domParser = new DOMParser();
   const doc = domParser.parseFromString(data, 'application/xml');
   const score = Concerto.parse(doc);
-  const formatter = new Concerto.Formatter(score);
-  formatter.format();
+  const formatters = [
+    ['original', new Concerto.Formatter(score)],
+    ['horizontal', new Concerto.HorizontalFormatter(score)],
+    ['vertical', new Concerto.VerticalFormatter(score, { infinite: true, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
+    ['responsive', new Concerto.VerticalFormatter(score, { infinite: false, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
+  ];
 
-  const renderer = new Concerto.Renderer(score, { element });
-  renderer.render();
+  formatters.forEach(function([type, formatter]) {
+    formatter.format();
+    const renderer = new Concerto.Renderer(score, { element });
+    renderer.render();
 
-  filename = filename.split(/.xml$/)[0];
-  console.log(filename);
+    filename = filename.split(/.xml$/)[0];
+    console.log(filename + '_' + type);
 
-  renderer.getContexts().forEach(function(context, i) {
-    const svgData = new XMLSerializer().serializeToString(context.svg);
-    fs.write(path + '/' + filename + '_' + i + '.svg', svgData, 'w');
+    renderer.getContexts().forEach(function(context, i) {
+      const svgData = new XMLSerializer().serializeToString(context.svg);
+      fs.write(path + '/' + filename + '_' + type + '_' + i + '.svg', svgData, 'w');
+    });
   });
+
 });
 
 slimer.exit();
