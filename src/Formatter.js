@@ -1223,11 +1223,12 @@ export default class Formatter {
               tuplet.normal.number : note.timeModification.normalNotes),
             location: (tuplet.placement === 'below' ?
               Vex.Flow.Tuplet.LOCATION_BOTTOM : Vex.Flow.Tuplet.LOCATION_TOP),
+            bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam,
           });
 
           break;
         case 'stop':
-          const { index, numActual, numNormal, location } = tupletStack.pop();
+          const { index, numActual, numNormal, location, bracket } = tupletStack.pop();
           const vfNotes = [];
           const vfLyricNotesMap = new Map();
 
@@ -1246,6 +1247,7 @@ export default class Formatter {
           const tupletOptions = {
             num_notes: numActual,
             notes_occupied: numNormal,
+            bracketed: bracket,
           };
 
           const vfTuplet = new Vex.Flow.Tuplet(vfNotes, tupletOptions);

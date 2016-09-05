@@ -156,6 +156,7 @@ const parseNoteTuplets = (notations, tupletNodes) => {
 
     if (node.hasAttribute('number')) tuplet.number = Number(node.getAttribute('number'));
     if (node.hasAttribute('placement')) tuplet.placement = node.getAttribute('placement');
+    if (node.hasAttribute('bracket')) tuplet.bracket = node.getAttribute('bracket') === 'yes';
 
     function getTupletNumber(_node) {
       return Number(_node.getElementsByTagName('tuplet-number')[0].textContent);
