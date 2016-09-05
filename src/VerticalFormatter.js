@@ -244,12 +244,17 @@ export default class VerticalFormatter extends AdvancedFormatter {
       if (!nPack) {
         remainingWidth = Math.min(width / packWidths.length, 50);
       } else {
+        const nBeginAttributesWidth = this.getBeginAttributesWidth(nPack, i + 1);
         nextWidth = nPack.getMinTotalWidth();
         nextWidth += PADDING;
-        nextWidth += this.getBeginAttributesWidth(nPack, i);
-        if (nnPack) nextWidth += this.getBeginAttributesWidth(nnPack, i);
+        nextWidth += nBeginAttributesWidth;
+        if (nnPack) nextWidth += this.getBeginAttributesWidth(nnPack, i + 2);
 
         if (nextWidth < width) return; // it's ok to go next!
+
+        // Flush the line, apply attributes width to the last measure of the current line!
+        width -= nBeginAttributesWidth;
+        packWidths[packWidths.length - 1] += nBeginAttributesWidth;
 
         remainingWidth = Math.max(width / packWidths.length, 0);
       }
