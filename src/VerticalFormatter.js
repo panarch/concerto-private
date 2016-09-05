@@ -131,12 +131,17 @@ export default class VerticalFormatter extends AdvancedFormatter {
     const heightRatio = minHeight / this.innerHeight;
     this.minRatio = !this.infinite ? Math.max(widthRatio, heightRatio) : widthRatio;
 
-    if (this.width > minWidth && this.innerHeight * this.ratio > minHeight) {
-      this.height = this.innerHeight * this.ratio;
-    } else {
+    if (this.infinite && this.width < minWidth) {
       this.ratio = this.minRatio;
       this.width = this.innerWidth * this.ratio;
+    } else if (!this.infinite) {
       this.height = this.innerHeight * this.ratio;
+
+      if (this.width < minWidth || this.height < minHeight) {
+        this.ratio = this.minRatio;
+        this.width = this.innerWidth * this.ratio;
+        this.height = this.innerHeight * this.ratio;
+      }
     }
   }
 
