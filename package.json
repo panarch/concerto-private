@@ -1,6 +1,6 @@
 {
   "name": "@panarch/concerto",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "scripts": {
     "start": "webpack-dev-server --colors --progress",
     "build": "webpack --entry ./src/index.js --output-filename ./build/concerto.js --output-library Concerto --output-library-target umd",

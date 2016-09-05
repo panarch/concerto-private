@@ -28313,6 +28313,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    if (node.hasAttribute('number')) tuplet.number = Number(node.getAttribute('number'));
 	    if (node.hasAttribute('placement')) tuplet.placement = node.getAttribute('placement');
+	    if (node.hasAttribute('bracket')) tuplet.bracket = node.getAttribute('bracket') === 'yes';
 	
 	    function getTupletNumber(_node) {
 	      return Number(_node.getElementsByTagName('tuplet-number')[0].textContent);
@@ -30571,7 +30572,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  index: i,
 	                  numActual: tuplet.actual ? tuplet.actual.number : note.timeModification.actualNotes,
 	                  numNormal: tuplet.normal ? tuplet.normal.number : note.timeModification.normalNotes,
-	                  location: tuplet.placement === 'below' ? _allegretto2.default.Flow.Tuplet.LOCATION_BOTTOM : _allegretto2.default.Flow.Tuplet.LOCATION_TOP
+	                  location: tuplet.placement === 'below' ? _allegretto2.default.Flow.Tuplet.LOCATION_BOTTOM : _allegretto2.default.Flow.Tuplet.LOCATION_TOP,
+	                  bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam
 	                });
 	
 	                break;
@@ -30582,6 +30584,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var numActual = _tupletStack$pop.numActual;
 	                var numNormal = _tupletStack$pop.numNormal;
 	                var location = _tupletStack$pop.location;
+	                var bracket = _tupletStack$pop.bracket;
 	
 	                var vfNotes = [];
 	                var vfLyricNotesMap = new Map();
@@ -30601,7 +30604,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                var tupletOptions = {
 	                  num_notes: numActual,
-	                  notes_occupied: numNormal
+	                  notes_occupied: numNormal,
+	                  bracketed: bracket
 	                };
 	
 	                var vfTuplet = new _allegretto2.default.Flow.Tuplet(vfNotes, tupletOptions);
@@ -31265,12 +31269,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var heightRatio = minHeight / this.innerHeight;
 	      this.minRatio = !this.infinite ? Math.max(widthRatio, heightRatio) : widthRatio;
 	
-	      if (this.width > minWidth && this.innerHeight * this.ratio > minHeight) {
-	        this.height = this.innerHeight * this.ratio;
-	      } else {
+	      if (this.infinite && this.width < minWidth) {
 	        this.ratio = this.minRatio;
 	        this.width = this.innerWidth * this.ratio;
+	      } else if (!this.infinite) {
 	        this.height = this.innerHeight * this.ratio;
+	
+	        if (this.width < minWidth || this.height < minHeight) {
+	          this.ratio = this.minRatio;
+	          this.width = this.innerWidth * this.ratio;
+	          this.height = this.innerHeight * this.ratio;
+	        }
 	      }
 	    }
 	  }, {
