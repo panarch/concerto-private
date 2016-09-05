@@ -8353,7 +8353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * VexFlow 1.2.53.2 built on 2016-07-11.
+	 * VexFlow 1.2.63 built on 2016-07-11.
 	 * Copyright (c) 2010 Mohit Muthanna Cheppudira <mohit@muthanna.com>
 	 *
 	 * http://www.vexflow.com  http://github.com/0xfe/vexflow
@@ -8497,16 +8497,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // This file implements utility methods used by the rest of the VexFlow
 	  // codebase.
 	  //
-	  // ## JSHint Settings
-	  //
-	  /* global window: false */
-	  /* global document: false */
-	  /* global Vex: true */
 	
-	  var Vex$1 = function Vex() {};
+	  var Vex = function Vex() {};
 	
 	  // Default log function sends all arguments to console.
-	  Vex$1.L = function (block, args) {
+	  Vex.L = function (block, args) {
 	    if (!args) return;
 	    var line = Array.prototype.slice.call(args).join(' ');
 	    window.console.log(block + ': ' + line);
@@ -8534,12 +8529,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // Shortcut method for `RuntimeError`.
 	
 	
-	  Vex$1.RuntimeError = RuntimeError;
-	  Vex$1.RERR = Vex$1.RuntimeError;
+	  Vex.RuntimeError = RuntimeError;
+	  Vex.RERR = Vex.RuntimeError;
 	
 	  // Merge `destination` hash with `source` hash, overwriting like keys
 	  // in `source` if necessary.
-	  Vex$1.Merge = function (destination, source) {
+	  Vex.Merge = function (destination, source) {
 	    for (var property in source) {
 	      // eslint-disable-line guard-for-in
 	      destination[property] = source[property];
@@ -8548,31 +8543,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  // DEPRECATED. Use `Math.*`.
-	  Vex$1.Min = Math.min;
-	  Vex$1.Max = Math.max;
-	  Vex$1.forEach = function (a, fn) {
+	  Vex.Min = Math.min;
+	  Vex.Max = Math.max;
+	  Vex.forEach = function (a, fn) {
 	    for (var i = 0; i < a.length; i++) {
 	      fn(a[i], i);
 	    }
 	  };
 	
 	  // Round number to nearest fractional value (`.5`, `.25`, etc.)
-	  Vex$1.RoundN = function (x, n) {
+	  Vex.RoundN = function (x, n) {
 	    return x % n >= n / 2 ? parseInt(x / n, 10) * n + n : parseInt(x / n, 10) * n;
 	  };
 	
 	  // Locate the mid point between stave lines. Returns a fractional line if a space.
-	  Vex$1.MidLine = function (a, b) {
+	  Vex.MidLine = function (a, b) {
 	    var mid_line = b + (a - b) / 2;
 	    if (mid_line % 2 > 0) {
-	      mid_line = Vex$1.RoundN(mid_line * 10, 5) / 10;
+	      mid_line = Vex.RoundN(mid_line * 10, 5) / 10;
 	    }
 	    return mid_line;
 	  };
 	
 	  // Take `arr` and return a new list consisting of the sorted, unique,
 	  // contents of arr. Does not modify `arr`.
-	  Vex$1.SortAndUnique = function (arr, cmp, eq) {
+	  Vex.SortAndUnique = function (arr, cmp, eq) {
 	    if (arr.length > 1) {
 	      var newArr = [];
 	      var last = void 0;
@@ -8592,7 +8587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  // Check if array `a` contains `obj`.
-	  Vex$1.Contains = function (a, obj) {
+	  Vex.Contains = function (a, obj) {
 	    var i = a.length;
 	    while (i--) {
 	      if (a[i] === obj) {
@@ -8603,14 +8598,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  // Get the 2D Canvas context from DOM element `canvas_sel`.
-	  Vex$1.getCanvasContext = function (canvas_sel) {
+	  Vex.getCanvasContext = function (canvas_sel) {
 	    if (!canvas_sel) {
-	      throw new Vex$1.RERR('BadArgument', 'Invalid canvas selector: ' + canvas_sel);
+	      throw new Vex.RERR('BadArgument', 'Invalid canvas selector: ' + canvas_sel);
 	    }
 	
 	    var canvas = document.getElementById(canvas_sel);
 	    if (!(canvas && canvas.getContext)) {
-	      throw new Vex$1.RERR('UnsupportedBrowserError', 'This browser does not support HTML5 Canvas');
+	      throw new Vex.RERR('UnsupportedBrowserError', 'This browser does not support HTML5 Canvas');
 	    }
 	
 	    return canvas.getContext('2d');
@@ -8620,7 +8615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  //
 	  // `ctx`: Canvas context.
 	  // `x`, `y`: Dot coordinates.
-	  Vex$1.drawDot = function (ctx, x, y) {
+	  Vex.drawDot = function (ctx, x, y) {
 	    var color = arguments.length <= 3 || arguments[3] === undefined ? '#55' : arguments[3];
 	
 	    ctx.save();
@@ -8635,35 +8630,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  // Benchmark. Run function `f` once and report time elapsed shifted by `s` milliseconds.
-	  Vex$1.BM = function (s, f) {
+	  Vex.BM = function (s, f) {
 	    var start_time = new Date().getTime();
 	    f();
 	    var elapsed = new Date().getTime() - start_time;
-	    Vex$1.L(s + elapsed + 'ms');
+	    Vex.L(s + elapsed + 'ms');
 	  };
 	
 	  // Get stack trace.
-	  Vex$1.StackTrace = function () {
+	  Vex.StackTrace = function () {
 	    var err = new Error();
 	    return err.stack;
 	  };
 	
 	  // Dump warning to console.
-	  Vex$1.W = function () {
+	  Vex.W = function () {
 	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	      args[_key] = arguments[_key];
 	    }
 	
 	    var line = Array.prototype.slice.call(args).join(' ');
-	    window.console.log('Warning: ', line, Vex$1.StackTrace());
+	    window.console.log('Warning: ', line, Vex.StackTrace());
 	  };
 	
 	  // Used by various classes (e.g., SVGContext) to provide a
 	  // unique prefix to element names (or other keys in shared namespaces).
-	  Vex$1.Prefix = function (text) {
-	    return Vex$1.Prefix.prefix + text;
+	  Vex.Prefix = function (text) {
+	    return Vex.Prefix.prefix + text;
 	  };
-	  Vex$1.Prefix.prefix = 'vf-';
+	  Vex.Prefix.prefix = 'vf-';
 	
 	  var Fraction = function () {
 	    createClass(Fraction, null, [{
@@ -8675,7 +8670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	       */
 	      value: function GCD(a, b) {
 	        if (typeof a !== 'number' || typeof b !== 'number') {
-	          throw new Vex$1.RERR('BadArgument', 'Invalid numbers: ' + a + ', ' + b);
+	          throw new Vex.RERR('BadArgument', 'Invalid numbers: ' + a + ', ' + b);
 	        }
 	
 	        var t = void 0;
@@ -8708,9 +8703,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      value: function LCMM(args) {
 	        if (args.length === 0) {
 	          return 0;
-	        } else if (args.length == 1) {
+	        } else if (args.length === 1) {
 	          return args[0];
-	        } else if (args.length == 2) {
+	        } else if (args.length === 2) {
 	          return Fraction.LCM(args[0], args[1]);
 	        } else {
 	          var arg0 = args[0];
@@ -9021,20 +9016,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Fraction.__compareB = new Fraction();
 	  Fraction.__tmp = new Fraction();
 	
-	  var Flow = {};
-	  Flow.STEM_WIDTH = 1.5;
-	  Flow.STEM_HEIGHT = 32;
-	  Flow.STAVE_LINE_THICKNESS = 2;
-	  Flow.RESOLUTION = 16384;
+	  var Flow = {
+	    STEM_WIDTH: 1.5,
+	    STEM_HEIGHT: 32,
+	    STAVE_LINE_THICKNESS: 2,
+	    RESOLUTION: 16384,
 	
-	  /* Kerning (DEPRECATED) */
-	  Flow.IsKerned = true;
+	    /* Kerning (DEPRECATED) */
+	    IsKerned: true
+	  };
 	
 	  Flow.clefProperties = function (clef) {
-	    if (!clef) throw new Vex$1.RERR('BadArgument', 'Invalid clef: ' + clef);
+	    if (!clef) throw new Vex.RERR('BadArgument', 'Invalid clef: ' + clef);
 	
 	    var props = Flow.clefProperties.values[clef];
-	    if (!props) throw new Vex$1.RERR('BadArgument', 'Invalid clef: ' + clef);
+	    if (!props) throw new Vex.RERR('BadArgument', 'Invalid clef: ' + clef);
 	
 	    return props;
 	  };
@@ -9063,30 +9059,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (clef === undefined) {
 	      clef = 'treble';
 	    }
-	    var options = {
-	      octave_shift: 0
-	    };
-	    if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) == 'object') {
-	      Vex$1.Merge(options, params);
+	
+	    var options = { octave_shift: 0 };
+	
+	    if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) === 'object') {
+	      Vex.Merge(options, params);
 	    }
 	
 	    var pieces = key.split('/');
 	
 	    if (pieces.length < 2) {
-	      throw new Vex$1.RERR('BadArguments', 'Key must have note + octave and an optional glyph: ' + key);
+	      throw new Vex.RERR('BadArguments', 'Key must have note + octave and an optional glyph: ' + key);
 	    }
 	
 	    var k = pieces[0].toUpperCase();
 	    var value = Flow.keyProperties.note_values[k];
-	    if (!value) throw new Vex$1.RERR('BadArguments', 'Invalid key name: ' + k);
+	    if (!value) throw new Vex.RERR('BadArguments', 'Invalid key name: ' + k);
 	    if (value.octave) pieces[1] = value.octave;
 	
-	    var o = parseInt(pieces[1]);
+	    var octave = parseInt(pieces[1], 10);
 	
 	    // Octave_shift is the shift to compensate for clef 8va/8vb.
-	    o += -1 * options.octave_shift;
+	    octave += -1 * options.octave_shift;
 	
-	    var base_index = o * 7 - 4 * 7;
+	    var base_index = octave * 7 - 4 * 7;
 	    var line = (base_index + value.index) / 2;
 	    line += Flow.clefProperties(clef).line_shift;
 	
@@ -9096,7 +9092,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (line >= 6 && line * 2 % 2 === 0) stroke = -1; // stroke down
 	
 	    // Integer value for note arithmetic.
-	    var int_value = typeof value.int_val != 'undefined' ? o * 12 + value.int_val : null;
+	    var int_value = typeof value.int_val !== 'undefined' ? octave * 12 + value.int_val : null;
 	
 	    /* Check if the user specified a glyph. */
 	    var code = value.code;
@@ -9112,7 +9108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    return {
 	      key: k,
-	      octave: o,
+	      octave: octave,
 	      line: line,
 	      int_value: int_value,
 	      accidental: value.accidental,
@@ -9197,12 +9193,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  Flow.integerToNote = function (integer) {
-	    if (typeof integer == 'undefined') throw new Vex$1.RERR('BadArguments', 'Undefined integer for integerToNote');
+	    if (typeof integer === 'undefined') {
+	      throw new Vex.RERR('BadArguments', 'Undefined integer for integerToNote');
+	    }
 	
-	    if (integer < -2) throw new Vex$1.RERR('BadArguments', 'integerToNote requires integer > -2: ' + integer);
+	    if (integer < -2) {
+	      throw new Vex.RERR('BadArguments', 'integerToNote requires integer > -2: ' + integer);
+	    }
 	
 	    var noteValue = Flow.integerToNote.table[integer];
-	    if (!noteValue) throw new Vex$1.RERR('BadArguments', 'Unknown note value for integer: ' + integer);
+	    if (!noteValue) {
+	      throw new Vex.RERR('BadArguments', 'Unknown note value for integer: ' + integer);
+	    }
 	
 	    return noteValue;
 	  };
@@ -9227,7 +9229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var width = 0;
 	    var shift_y = 0;
 	
-	    if (fret.toString().toUpperCase() == 'X') {
+	    if (fret.toString().toUpperCase() === 'X') {
 	      glyph = 'v7f';
 	      width = 7;
 	      shift_y = -4.5;
@@ -9581,7 +9583,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var keySpec = Flow.keySignature.keySpecs[spec];
 	
 	    if (!keySpec) {
-	      throw new Vex$1.RERR('BadKeySignature', "Bad key signature spec: '" + spec + "'");
+	      throw new Vex.RERR('BadKeySignature', "Bad key signature spec: '" + spec + "'");
 	    }
 	
 	    if (!keySpec.acc) {
@@ -9647,11 +9649,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  Flow.keySignature.accidentalList = function (acc) {
-	    if (acc == 'b') {
-	      return [2, 0.5, 2.5, 1, 3, 1.5, 3.5];
-	    } else if (acc == '#') {
-	      return [0, 1.5, -0.5, 1, 2.5, 0.5, 2];
-	    }
+	    var patterns = {
+	      'b': [2, 0.5, 2.5, 1, 3, 1.5, 3.5],
+	      '#': [0, 1.5, -0.5, 1, 2.5, 0.5, 2]
+	    };
+	
+	    return patterns[acc];
 	  };
 	
 	  Flow.parseNoteDurationString = function (durationString) {
@@ -9708,12 +9711,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	
-	    var dots = 0;
-	    if (noteData.dots) {
-	      dots = noteData.dots;
-	    } else {
-	      dots = durationStringData.dots;
-	    }
+	    var dots = noteData.dots ? noteData.dots : durationStringData.dots;
 	
 	    if (typeof dots !== 'number') {
 	      return null;
@@ -9722,9 +9720,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var currentTicks = ticks;
 	
 	    for (var i = 0; i < dots; i++) {
-	      if (currentTicks <= 1) {
-	        return null;
-	      }
+	      if (currentTicks <= 1) return null;
 	
 	      currentTicks = currentTicks / 2;
 	      ticks += currentTicks;
@@ -9749,7 +9745,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    if (Flow.durationToTicks.durations[duration] === undefined) {
-	      throw new Vex$1.RERR('BadArguments', 'The provided duration is not valid: ' + duration);
+	      throw new Vex.RERR('BadArguments', 'The provided duration is not valid: ' + duration);
 	    }
 	
 	    return duration;
@@ -9819,7 +9815,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return null;
 	    }
 	
-	    return Vex$1.Merge(Vex$1.Merge({}, code.common), glyphTypeProperties);
+	    return Vex.Merge(Vex.Merge({}, code.common), glyphTypeProperties);
 	  };
 	
 	  Flow.durationToGlyph.duration_codes = {
@@ -10281,13 +10277,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    }, {
 	      key: 'openGroup',
-	      value: function openGroup(cls, id, attrs) {}
+	      value: function openGroup() {}
 	    }, {
 	      key: 'closeGroup',
 	      value: function closeGroup() {}
 	    }, {
 	      key: 'add',
-	      value: function add(elem) {}
+	      value: function add() {}
 	    }, {
 	      key: 'setFont',
 	      value: function setFont(family, size, weight) {
@@ -10476,7 +10472,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      classCallCheck(this, RaphaelContext);
 	
 	      this.element = element;
-	      this.paper = Raphael(element);
+	      this.paper = Raphael(element); // eslint-disable-line
 	      this.path = '';
 	      this.pen = { x: 0, y: 0 };
 	      this.lineWidth = 1.0;
@@ -10514,13 +10510,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    createClass(RaphaelContext, [{
 	      key: 'openGroup',
-	      value: function openGroup(cls, id, attrs) {}
+	      value: function openGroup() {}
 	    }, {
 	      key: 'closeGroup',
 	      value: function closeGroup() {}
 	    }, {
 	      key: 'add',
-	      value: function add(elem) {}
+	      value: function add() {}
 	    }, {
 	      key: 'setFont',
 	      value: function setFont(family, size, weight) {
@@ -10749,12 +10745,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var sweepFlag = 0;
 	        if (antiClockwise) {
 	          sweepFlag = 1;
-	          if (endAngle - startAngle < Math.PI) largeArcFlag = 1;
+	          if (endAngle - startAngle < Math.PI) {
+	            largeArcFlag = 1;
+	          }
 	        } else if (endAngle - startAngle > Math.PI) {
 	          largeArcFlag = 1;
 	        }
 	
-	        this.path += 'M' + x1 + ',' + y1 + ',' + 'A' + radius + ',' + radius + ',' + '0,' + largeArcFlag + ',' + sweepFlag + ',' + x2 + ',' + y2 + 'M' + this.pen.x + ',' + this.pen.y;
+	        this.path += 'M' + x1 + ',' + y1 + ',A' + radius + ',' + radius + ',0,' + largeArcFlag + ',' + sweepFlag + ',' + x2 + ',' + y2 + 'M' + this.pen.x + ',' + this.pen.y;
 	      }
 	
 	      // Adapted from the source for Raphael's Element.glow
@@ -10839,6 +10837,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'fillText',
 	      value: function fillText(text, x, y) {
 	        this.paper.text(x + this.measureText(text).width / 2, y - this.state.font_size / (2.25 * this.state.scale.y), text).attr(this.attributes);
+	
 	        return this;
 	      }
 	    }, {
@@ -10955,8 +10954,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.groups.push(group);
 	        this.parent.appendChild(group);
 	        this.parent = group;
-	        if (cls) group.setAttribute('class', Vex$1.Prefix(cls));
-	        if (id) group.setAttribute('id', Vex$1.Prefix(id));
+	        if (cls) group.setAttribute('class', Vex.Prefix(cls));
+	        if (id) group.setAttribute('id', Vex.Prefix(id));
 	
 	        if (attrs && attrs.pointerBBox) {
 	          group.setAttribute('pointer-events', 'bounding-box');
@@ -10966,7 +10965,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'closeGroup',
 	      value: function closeGroup() {
-	        var group = this.groups.pop();
+	        this.groups.pop();
 	        this.parent = this.groups[this.groups.length - 1];
 	      }
 	    }, {
@@ -11000,7 +10999,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var style = 'normal';
 	        // Weight might also be a number (200, 400, etc...) so we
 	        // test its type to be sure we have access to String methods.
-	        if (typeof weight == 'string') {
+	        if (typeof weight === 'string') {
 	          // look for "italic" in the weight:
 	          if (weight.indexOf('italic') !== -1) {
 	            weight = weight.replace(/italic/g, '');
@@ -11030,8 +11029,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Explorer we can fix its calculations of text width.
 	        this.fontSize = Number(size);
 	
-	        Vex$1.Merge(this.attributes, fontAttributes);
-	        Vex$1.Merge(this.state, fontAttributes);
+	        Vex.Merge(this.attributes, fontAttributes);
+	        Vex.Merge(this.state, fontAttributes);
 	
 	        return this;
 	      }
@@ -11101,7 +11100,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          this.attributes['stroke-dasharray'] = lineDash;
 	          return this;
 	        } else {
-	          throw new Vex$1.RERR('ArgumentError', 'lineDash must be an array of integers.');
+	          throw new Vex.RERR('ArgumentError', 'lineDash must be an array of integers.');
 	        }
 	      }
 	    }, {
@@ -11155,9 +11154,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }, {
 	      key: 'setViewBox',
-	      value: function setViewBox(xMin, yMin, width, height) {
+	      value: function setViewBox() {
+	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	          args[_key] = arguments[_key];
+	        }
+	
 	        // Override for "x y w h" style:
-	        if (arguments.length == 1) this.svg.setAttribute('viewBox', viewBox);else {
+	        if (args.length === 1) {
+	          var viewBox = args[0];
+	
+	          this.svg.setAttribute('viewBox', viewBox);
+	        } else {
+	          var xMin = args[0];
+	          var yMin = args[1];
+	          var width = args[2];
+	          var height = args[3];
+	
 	          var viewBoxString = xMin + ' ' + yMin + ' ' + width + ' ' + height;
 	          this.svg.setAttribute('viewBox', viewBoxString);
 	        }
@@ -11168,9 +11180,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'applyAttributes',
 	      value: function applyAttributes(element, attributes) {
-	        for (var propertyName in attributes) {
-	          element.setAttributeNS(null, propertyName, attributes[propertyName]);
-	        }
+	        Object.keys(attributes).forEach(function (propertyName) {
+	          return element.setAttributeNS(null, propertyName, attributes[propertyName]);
+	        });
+	
 	        return element;
 	      }
 	
@@ -11211,12 +11224,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // Create the rect & style it:
 	        var rectangle = this.create('rect');
-	        if (typeof attributes === 'undefined') attributes = {
-	          fill: 'none',
-	          'stroke-width': this.lineWidth,
-	          stroke: 'black'
-	        };
-	        Vex$1.Merge(attributes, {
+	        if (typeof attributes === 'undefined') {
+	          attributes = {
+	            fill: 'none',
+	            'stroke-width': this.lineWidth,
+	            stroke: 'black'
+	          };
+	        }
+	
+	        Vex.Merge(attributes, {
 	          x: x,
 	          y: y,
 	          width: width,
@@ -11256,8 +11272,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // it may be worth creating a seperate tabStave that would
 	        // draw lines around locations of tablature fingering.
 	        //
-	
-	        if (height < 0) this.flipRectangle(arguments);
 	
 	        this.rect(x, y, width - 0.5, height - 0.5, this.background_attributes);
 	        return this;
@@ -11356,12 +11370,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var sweepFlag = 0;
 	        if (antiClockwise) {
 	          sweepFlag = 1;
-	          if (endAngle - startAngle < Math.PI) largeArcFlag = 1;
+	          if (endAngle - startAngle < Math.PI) {
+	            largeArcFlag = 1;
+	          }
 	        } else if (endAngle - startAngle > Math.PI) {
 	          largeArcFlag = 1;
 	        }
 	
-	        this.path += 'M' + x1 + ' ' + y1 + ' ' + 'A' + radius + ' ' + radius + ' ' + '0 ' + largeArcFlag + ' ' + sweepFlag + ' ' + x2 + ' ' + y2 + 'M' + this.pen.x + ' ' + this.pen.y;
+	        this.path += 'M' + x1 + ' ' + y1 + ' A' + radius + ' ' + radius + ' 0 ' + largeArcFlag + ' ' + sweepFlag + ' ' + x2 + ' ' + y2 + 'M' + this.pen.x + ' ' + this.pen.y;
 	      }
 	    }, {
 	      key: 'closePath',
@@ -11407,7 +11423,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var path = this.create('path');
 	        if (typeof attributes === 'undefined') {
 	          attributes = {};
-	          Vex$1.Merge(attributes, this.attributes);
+	          Vex.Merge(attributes, this.attributes);
 	          attributes.stroke = 'none';
 	        }
 	
@@ -11425,7 +11441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var path = this.create('path');
 	        var attributes = {};
-	        Vex$1.Merge(attributes, this.attributes);
+	        Vex.Merge(attributes, this.attributes);
 	        attributes.fill = 'none';
 	        attributes['stroke-width'] = this.lineWidth;
 	        attributes.d = this.path;
@@ -11440,7 +11456,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'measureText',
 	      value: function measureText(text) {
 	        var txt = this.create('text');
-	        if (typeof txt.getBBox !== 'function') return { x: 0, y: 0, width: 0, height: 0 };
+	        if (typeof txt.getBBox !== 'function') {
+	          return { x: 0, y: 0, width: 0, height: 0 };
+	        }
 	
 	        txt.textContent = text;
 	        this.applyAttributes(txt, this.attributes);
@@ -11449,14 +11467,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.svg.appendChild(txt);
 	
 	        var bbox = txt.getBBox();
-	        if (this.ie && text !== '' && this.attributes['font-style'] == 'italic') bbox = this.ieMeasureTextFix(bbox, text);
+	        if (this.ie && text !== '' && this.attributes['font-style'] === 'italic') {
+	          bbox = this.ieMeasureTextFix(bbox, text);
+	        }
 	
 	        this.svg.removeChild(txt);
 	        return bbox;
 	      }
 	    }, {
 	      key: 'ieMeasureTextFix',
-	      value: function ieMeasureTextFix(bbox, text) {
+	      value: function ieMeasureTextFix(bbox) {
 	        // Internet Explorer over-pads text in italics,
 	        // resulting in giant width estimates for measureText.
 	        // To fix this, we use this formula, tested against
@@ -11485,7 +11505,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'fillText',
 	      value: function fillText(text, x, y) {
 	        var attributes = {};
-	        Vex$1.Merge(attributes, this.attributes);
+	        Vex.Merge(attributes, this.attributes);
 	        attributes.stroke = 'none';
 	        attributes.x = x;
 	        attributes.y = y;
@@ -11551,7 +11571,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return SVGContext;
 	  }();
 	
-	  var _lastContext = null;
+	  var lastContext = null;
 	
 	  var Renderer = function () {
 	    createClass(Renderer, null, [{
@@ -11590,13 +11610,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return new CanvasContext(ctx);
 	        }
 	
-	        var methods = ['clear', 'setFont', 'setRawFont', 'setFillStyle', 'setBackgroundFillStyle', 'setStrokeStyle', 'setShadowColor', 'setShadowBlur', 'setLineWidth', 'setLineCap', 'setLineDash', 'openGroup', 'closeGroup', 'getGroup'];
+	        var methodNames = ['clear', 'setFont', 'setRawFont', 'setFillStyle', 'setBackgroundFillStyle', 'setStrokeStyle', 'setShadowColor', 'setShadowBlur', 'setLineWidth', 'setLineCap', 'setLineDash', 'openGroup', 'closeGroup', 'getGroup'];
+	
 	        ctx.vexFlowCanvasContext = ctx;
 	
-	        for (var i in methods) {
-	          var method = methods[i];
-	          ctx[method] = ctx[method] || CanvasContext.prototype[method];
-	        }
+	        methodNames.forEach(function (methodName) {
+	          ctx[methodName] = ctx[methodName] || CanvasContext.prototype[methodName];
+	        });
 	
 	        return ctx;
 	      }
@@ -11669,10 +11689,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'lastContext',
 	      get: function get() {
-	        return _lastContext;
+	        return lastContext;
 	      },
 	      set: function set(ctx) {
-	        _lastContext = ctx;
+	        lastContext = ctx;
 	      }
 	    }]);
 	
@@ -11681,7 +11701,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // Verify selector
 	      this.sel = sel;
-	      if (!this.sel) throw new Vex.RERR('BadArgument', 'Invalid selector for renderer.');
+	      if (!this.sel) {
+	        throw new Vex.RERR('BadArgument', 'Invalid selector for renderer.');
+	      }
 	
 	      // Get element from selector
 	      this.element = document.getElementById(sel);
@@ -11691,13 +11713,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.ctx = null;
 	      this.paper = null;
 	      this.backend = backend;
-	      if (this.backend == Renderer.Backends.CANVAS) {
+	      if (this.backend === Renderer.Backends.CANVAS) {
 	        // Create context.
-	        if (!this.element.getContext) throw new Vex.RERR('BadElement', "Can't get canvas context from element: " + sel);
+	        if (!this.element.getContext) {
+	          throw new Vex.RERR('BadElement', 'Can\'t get canvas context from element: ' + sel);
+	        }
 	        this.ctx = Renderer.bolsterCanvasContext(this.element.getContext('2d'));
-	      } else if (this.backend == Renderer.Backends.RAPHAEL) {
+	      } else if (this.backend === Renderer.Backends.RAPHAEL) {
 	        this.ctx = new RaphaelContext(this.element);
-	      } else if (this.backend == Renderer.Backends.SVG) {
+	      } else if (this.backend === Renderer.Backends.SVG) {
 	        this.ctx = new SVGContext(this.element);
 	      } else {
 	        throw new Vex.RERR('InvalidBackend', 'No support for backend: ' + this.backend);
@@ -11707,8 +11731,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    createClass(Renderer, [{
 	      key: 'resize',
 	      value: function resize(width, height) {
-	        if (this.backend == Renderer.Backends.CANVAS) {
-	          if (!this.element.getContext) throw new Vex.RERR('BadElement', "Can't get canvas context from element: " + this.sel);
+	        if (this.backend === Renderer.Backends.CANVAS) {
+	          if (!this.element.getContext) {
+	            throw new Vex.RERR('BadElement', 'Can\'t get canvas context from element: ' + this.sel);
+	          }
 	          this.element.width = width;
 	          this.element.height = height;
 	          this.ctx = Renderer.bolsterCanvasContext(this.element.getContext('2d'));
@@ -11749,7 +11775,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function Voice(time) {
 	      classCallCheck(this, Voice);
 	
-	      this.time = Vex$1.Merge({
+	      this.time = Vex.Merge({
 	        num_beats: 4,
 	        beat_value: 4,
 	        resolution: Flow.RESOLUTION
@@ -11865,7 +11891,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var i = void 0;
 	
 	        if (!this.boundingBox) {
-	          if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't get bounding box without stave.");
+	          if (!this.stave) throw new Vex.RERR('NoStave', "Can't get bounding box without stave.");
 	          stave = this.stave;
 	          boundingBox = null;
 	
@@ -11890,7 +11916,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getVoiceGroup',
 	      value: function getVoiceGroup() {
 	        if (!this.voiceGroup) {
-	          throw new Vex$1.RERR('NoVoiceGroup', 'No voice group for voice.');
+	          throw new Vex.RERR('NoVoiceGroup', 'No voice group for voice.');
 	        }
 	
 	        return this.voiceGroup;
@@ -11938,7 +11964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          if ((this.mode === Voice.Mode.STRICT || this.mode === Voice.Mode.FULL) && this.ticksUsed.greaterThan(this.totalTicks)) {
 	            this.totalTicks.subtract(ticks);
-	            throw new Vex$1.RERR('BadArgument', 'Too many ticks.');
+	            throw new Vex.RERR('BadArgument', 'Too many ticks.');
 	          }
 	
 	          // Track the smallest tickable for formatting.
@@ -12004,7 +12030,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (stave) tickable.setStave(stave);
 	
 	          if (!tickable.getStave()) {
-	            throw new Vex$1.RuntimeError('MissingStave', 'The voice cannot draw tickables without staves.');
+	            throw new Vex.RuntimeError('MissingStave', 'The voice cannot draw tickables without staves.');
 	          }
 	
 	          if (i === 0) boundingBox = tickable.getBoundingBox();
@@ -12032,7 +12058,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // Warning: This file is merely a crutch to get bounding box information without
 	  // explicit metadata. This is likely to get deprecated following SMuFL support.
 	  //
-	  // taken from: https://github.com/gabelerner/canvg/blob/860e418aca67b9a41e858a223d74d375793ec364/canvg.js#L449
+	  // taken from: https://github.com/gabelerner/canvg/blob/860e418aca67b9a41e858a223d74d375793ec364/ca
+	  // nvg.js#L449
 	
 	  var BoundingBoxComputation = function () {
 	    function BoundingBoxComputation(x1, y1, x2, y2) {
@@ -12226,8 +12253,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var new_x = this.x < that.x ? this.x : that.x;
 	        var new_y = this.y < that.y ? this.y : that.y;
-	        var new_w = this.x + this.w < that.x + that.w ? that.x + that.w - this.x : this.x + this.w - Vex$1.Min(this.x, that.x);
-	        var new_h = this.y + this.h < that.y + that.h ? that.y + that.h - this.y : this.y + this.h - Vex$1.Min(this.y, that.y);
+	        var new_w = this.x + this.w < that.x + that.w ? that.x + that.w - this.x : this.x + this.w - Vex.Min(this.x, that.x);
+	        var new_h = this.y + this.h < that.y + that.h ? that.y + that.h - this.y : this.y + this.h - Vex.Min(this.y, that.y);
 	
 	        this.x = new_x;
 	        this.y = new_y;
@@ -12281,6 +12308,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          y = nextY();
 	          outlineFns.b(nextX(), nextY(), nextX(), nextY(), x, y);
 	          break;
+	        default:
+	          break;
 	      }
 	    }
 	  }
@@ -12292,7 +12321,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      /* Static methods used to implement loading / unloading of glyphs */
 	      value: function loadMetrics(font, code, cache) {
 	        var glyph = font.glyphs[code];
-	        if (!glyph) throw new Vex$1.RuntimeError('BadGlyph', 'Glyph ' + code + ' does not exist in font.');
+	        if (!glyph) {
+	          throw new Vex.RERR('BadGlyph', 'Glyph ' + code + ' does not exist in font.');
+	        }
 	
 	        var x_min = glyph.x_min;
 	        var x_max = glyph.x_max;
@@ -12320,7 +12351,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            outline: outline
 	          };
 	        } else {
-	          throw new Vex$1.RuntimeError('BadGlyph', 'Glyph ' + code + ' has no outline defined.');
+	          throw new Vex.RERR('BadGlyph', 'Glyph ' + code + ' has no outline defined.');
 	        }
 	      }
 	
@@ -12402,7 +12433,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    createClass(Glyph, [{
 	      key: 'setOptions',
 	      value: function setOptions(options) {
-	        Vex$1.Merge(this.options, options);
+	        Vex.Merge(this.options, options);
 	        this.reset();
 	      }
 	    }, {
@@ -12445,7 +12476,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getMetrics',
 	      value: function getMetrics() {
-	        if (!this.metrics) throw new Vex$1.RuntimeError('BadGlyph', 'Glyph ' + this.code + ' is not initialized.');
+	        if (!this.metrics) {
+	          throw new Vex.RuntimeError('BadGlyph', 'Glyph ' + this.code + ' is not initialized.');
+	        }
 	
 	        return {
 	          x_min: this.metrics.x_min * this.scale,
@@ -12457,7 +12490,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'render',
 	      value: function render(ctx, x_pos, y_pos) {
-	        if (!this.metrics) throw new Vex$1.RuntimeError('BadGlyph', 'Glyph ' + this.code + ' is not initialized.');
+	        if (!this.metrics) {
+	          throw new Vex.RuntimeError('BadGlyph', 'Glyph ' + this.code + ' is not initialized.');
+	        }
 	
 	        var outline = this.metrics.outline;
 	        var scale = this.scale;
@@ -12467,9 +12502,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'renderToStave',
 	      value: function renderToStave(x) {
-	        if (!this.metrics) throw new Vex$1.RuntimeError('BadGlyph', 'Glyph ' + this.code + ' is not initialized.');
-	        if (!this.stave) throw new Vex$1.RuntimeError('GlyphError', 'No valid stave');
-	        if (!this.context) throw new Vex$1.RERR('GlyphError', 'No valid context');
+	        if (!this.metrics) {
+	          throw new Vex.RuntimeError('BadGlyph', 'Glyph ' + this.code + ' is not initialized.');
+	        }
+	
+	        if (!this.stave) {
+	          throw new Vex.RuntimeError('GlyphError', 'No valid stave');
+	        }
+	
+	        if (!this.context) {
+	          throw new Vex.RERR('GlyphError', 'No valid context');
+	        }
 	
 	        var outline = this.metrics.outline;
 	        var scale = this.scale;
@@ -12482,7 +12525,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.Stem.DEBUG` to `true`.
 	  function L$1() {
-	    if (Stem.DEBUG) Vex$1.L('Vex.Flow.Stem', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (Stem.DEBUG) Vex.L('Vex.Flow.Stem', args);
 	  }
 	
 	  var Stem = function () {
@@ -12608,7 +12655,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getBoundingBox',
 	      value: function getBoundingBox() {
-	        throw new Vex$1.RERR('NotImplemented', 'getBoundingBox() not implemented.');
+	        throw new Vex.RERR('NotImplemented', 'getBoundingBox() not implemented.');
 	      }
 	
 	      // Get the y coordinates for the very base of the stem to the top of
@@ -12626,7 +12673,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var i = 0; i < ys.length; ++i) {
 	          var stem_top = ys[i] + stem_height * -this.stem_direction;
 	
-	          if (this.stem_direction == Stem.DOWN) {
+	          if (this.stem_direction === Stem.DOWN) {
 	            top_pixel = Math.max(top_pixel, stem_top);
 	            base_pixel = Math.min(base_pixel, ys[i]);
 	          } else {
@@ -12669,16 +12716,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
 	
 	        if (this.hide) return;
 	
 	        var ctx = this.context;
-	        var stem_x = void 0,
-	            stem_y = void 0;
+	        var stem_x = void 0;
+	        var stem_y = void 0;
 	        var stem_direction = this.stem_direction;
 	
-	        if (stem_direction == Stem.DOWN) {
+	        if (stem_direction === Stem.DOWN) {
 	          // Down stems are rendered to the left of the head.
 	          stem_x = this.x_begin + Stem.WIDTH / 2;
 	          stem_y = this.y_top + 2;
@@ -12728,14 +12777,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      classCallCheck(this, Tuplet);
 	
 	      if (!notes || !notes.length) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'No notes provided for tuplet.');
+	        throw new Vex.RuntimeError('BadArguments', 'No notes provided for tuplet.');
 	      }
 	
-	      if (notes.length == 1) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Too few notes for tuplet.');
+	      if (notes.length === 1) {
+	        throw new Vex.RuntimeError('BadArguments', 'Too few notes for tuplet.');
 	      }
 	
-	      this.options = Vex$1.Merge({}, options);
+	      this.options = Vex.Merge({}, options);
 	      this.notes = notes;
 	      this.num_notes = 'num_notes' in this.options ? this.options.num_notes : notes.length;
 	
@@ -12795,7 +12844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setBracketed',
 	      value: function setBracketed(bracketed) {
-	        this.bracketed = bracketed ? true : false;
+	        this.bracketed = !!bracketed;
 	        return this;
 	      }
 	
@@ -12806,7 +12855,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setRatioed',
 	      value: function setRatioed(ratioed) {
-	        this.ratioed = ratioed ? true : false;
+	        this.ratioed = !!ratioed;
 	        return this;
 	      }
 	
@@ -12817,8 +12866,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setTupletLocation',
 	      value: function setTupletLocation(location) {
-	        if (!location) location = Tuplet.LOCATION_TOP;else if (location != Tuplet.LOCATION_TOP && location != Tuplet.LOCATION_BOTTOM) {
-	          throw new Vex$1.RERR('BadArgument', 'Invalid tuplet location: ' + location);
+	        if (!location) {
+	          location = Tuplet.LOCATION_TOP;
+	        } else if (location !== Tuplet.LOCATION_TOP && location !== Tuplet.LOCATION_BOTTOM) {
+	          throw new Vex.RERR('BadArgument', 'Invalid tuplet location: ' + location);
 	        }
 	
 	        this.location = location;
@@ -12837,8 +12888,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'beatsOccupiedDeprecationWarning',
 	      value: function beatsOccupiedDeprecationWarning() {
-	        var msg = 'beats_occupied has been deprecated as an ' + 'option for tuplets. Please use notes_occupied ' + 'instead. Calls to getBeatsOccupied and ' + 'setBeatsOccupied should now be routed to ' + 'getNotesOccupied and setNotesOccupied instead.';
-	        if (console && console.warn) console.warn(msg);else if (console) console.log(msg);
+	        var msg = ['beats_occupied has been deprecated as an ', 'option for tuplets. Please use notes_occupied ', 'instead. Calls to getBeatsOccupied and ', 'setBeatsOccupied should now be routed to ', 'getNotesOccupied and setNotesOccupied instead'].join('');
+	
+	        if (console && console.warn) {
+	          // eslint-disable-line no-console
+	          console.warn(msg); // eslint-disable-line no-console
+	        } else if (console) {
+	          console.log(msg); // eslint-disable-line no-console
+	        }
 	      }
 	    }, {
 	      key: 'getBeatsOccupied',
@@ -12915,9 +12972,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getYPosition',
 	      value: function getYPosition() {
-	        var i = void 0,
-	            y_pos = void 0;
-	
 	        // offset the tuplet for any nested tuplets between
 	        // it and the notes:
 	        var nested_tuplet_y_offset = this.getNestedTupletCount() * Tuplet.NESTING_OFFSET * -this.location;
@@ -12928,20 +12982,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // now iterate through the notes and find our highest
 	        // or lowest locations, to form a base y_pos
 	        var first_note = this.notes[0];
-	        if (this.location == Tuplet.LOCATION_TOP) {
+	        var y_pos = void 0;
+	        if (this.location === Tuplet.LOCATION_TOP) {
 	          y_pos = first_note.getStave().getYForLine(0) - 15;
 	          // y_pos = first_note.getStemExtents().topY - 10;
 	
-	          for (i = 0; i < this.notes.length; ++i) {
+	          for (var i = 0; i < this.notes.length; ++i) {
 	            var top_y = this.notes[i].getStemDirection() === Stem.UP ? this.notes[i].getStemExtents().topY - 10 : this.notes[i].getStemExtents().baseY - 20;
-	            if (top_y < y_pos) y_pos = top_y;
+	
+	            if (top_y < y_pos) {
+	              y_pos = top_y;
+	            }
 	          }
 	        } else {
 	          y_pos = first_note.getStave().getYForLine(4) + 20;
 	
-	          for (i = 0; i < this.notes.length; ++i) {
-	            var bottom_y = this.notes[i].getStemDirection() === Stem.UP ? this.notes[i].getStemExtents().baseY + 20 : this.notes[i].getStemExtents().topY + 10;
-	            if (bottom_y > y_pos) y_pos = bottom_y;
+	          for (var _i = 0; _i < this.notes.length; ++_i) {
+	            var bottom_y = this.notes[_i].getStemDirection() === Stem.UP ? this.notes[_i].getStemExtents().baseY + 20 : this.notes[_i].getStemExtents().topY + 10;
+	            if (bottom_y > y_pos) {
+	              y_pos = bottom_y;
+	            }
 	          }
 	        }
 	
@@ -12950,7 +13010,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        var _this = this;
+	
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
 	
 	        // determine x value of left bound of tuplet
 	        var first_note = this.notes[0];
@@ -12967,16 +13031,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // determine y value for tuplet
 	        this.y_pos = this.getYPosition();
 	
+	        var addGlyphWidth = function addGlyphWidth(width, glyph) {
+	          return width + glyph.getMetrics().width;
+	        };
+	
 	        // calculate total width of tuplet notation
-	        var width = 0;
-	        var glyph = void 0;
-	        for (glyph in this.num_glyphs) {
-	          width += this.num_glyphs[glyph].getMetrics().width;
-	        }
+	        var width = this.num_glyphs.reduce(addGlyphWidth, 0);
 	        if (this.ratioed) {
-	          for (glyph in this.denom_glyphs) {
-	            width += this.denom_glyphs[glyph].getMetrics().width;
-	          }
+	          width = this.denom_glyphs.reduce(addGlyphWidth, width);
 	          width += this.point * 0.32;
 	        }
 	
@@ -12991,18 +13053,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (line_width > 0) {
 	            this.context.fillRect(this.x_pos, this.y_pos, line_width, 1);
 	            this.context.fillRect(this.x_pos + this.width / 2 + width / 2 + 5, this.y_pos, line_width, 1);
-	            this.context.fillRect(this.x_pos, this.y_pos + (this.location == Tuplet.LOCATION_BOTTOM), 1, this.location * 10);
-	            this.context.fillRect(this.x_pos + this.width, this.y_pos + (this.location == Tuplet.LOCATION_BOTTOM), 1, this.location * 10);
+	            this.context.fillRect(this.x_pos, this.y_pos + (this.location === Tuplet.LOCATION_BOTTOM), 1, this.location * 10);
+	            this.context.fillRect(this.x_pos + this.width, this.y_pos + (this.location === Tuplet.LOCATION_BOTTOM), 1, this.location * 10);
 	          }
 	        }
 	
 	        // draw numerator glyphs
 	        var x_offset = 0;
-	        var size = this.num_glyphs.length;
-	        for (glyph in this.num_glyphs) {
-	          this.num_glyphs[size - glyph - 1].render(this.context, notation_start_x + x_offset, this.y_pos + this.point / 3 - 2);
-	          x_offset += this.num_glyphs[size - glyph - 1].getMetrics().width;
-	        }
+	        this.num_glyphs.forEach(function (glyph) {
+	          glyph.render(_this.context, notation_start_x + x_offset, _this.y_pos + _this.point / 3 - 2);
+	          x_offset += glyph.getMetrics().width;
+	        });
 	
 	        // display colon and denominator if the ratio is to be shown
 	        if (this.ratioed) {
@@ -13017,11 +13078,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	          this.context.closePath();
 	          this.context.fill();
 	          x_offset += this.point * 0.32;
-	          size = this.denom_glyphs.length;
-	          for (glyph in this.denom_glyphs) {
-	            this.denom_glyphs[size - glyph - 1].render(this.context, notation_start_x + x_offset, this.y_pos + this.point / 3 - 2);
-	            x_offset += this.denom_glyphs[size - glyph - 1].getMetrics().width;
-	          }
+	          this.denom_glyphs.forEach(function (glyph) {
+	            glyph.render(_this.context, notation_start_x + x_offset, _this.y_pos + _this.point / 3 - 2);
+	            x_offset += glyph.getMetrics().width;
+	          });
 	        }
 	      }
 	    }]);
@@ -13080,7 +13140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var groups = defaults[time_sig];
 	
-	        if (!groups) {
+	        if (groups === undefined) {
 	          // If no beam groups found, naively determine
 	          // the beam groupings from the time signature
 	          var beatTotal = parseInt(time_sig.split('/')[0], 10);
@@ -13095,10 +13155,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          } else if (beatValue <= 4) {
 	            return [new Fraction(1, beatValue)];
 	          }
+	        } else {
+	          return groups.map(function (group) {
+	            return new Fraction().parse(group);
+	          });
 	        }
-	        return groups.map(function (group) {
-	          return new Fraction().parse(group);
-	        });
+	
+	        return [new Fraction(1, 4)];
 	      }
 	
 	      // A helper function to automatically build basic beams for a voice. For more
@@ -13156,7 +13219,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Convert beam groups to tick amounts
 	        var tickGroups = config.groups.map(function (group) {
 	          if (!group.multiply) {
-	            throw new Vex$1.RuntimeError('InvalidBeamGroups', 'The beam groups must be an array of Vex.Flow.Fractions');
+	            throw new Vex.RuntimeError('InvalidBeamGroups', 'The beam groups must be an array of Vex.Flow.Fractions');
 	          }
 	          return group.clone().multiply(Flow.RESOLUTION, 1);
 	        });
@@ -13292,8 +13355,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          noteGroups.forEach(function (group) {
 	            var stemDirection = void 0;
 	            if (config.maintain_stem_directions) {
-	              var note = findFirstNote(group);
-	              stemDirection = note ? note.getStemDirection() : Stem.UP;
+	              var _note = findFirstNote(group);
+	              stemDirection = _note ? _note.getStemDirection() : Stem.UP;
 	            } else {
 	              if (config.stem_direction) {
 	                stemDirection = config.stem_direction;
@@ -13306,10 +13369,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        function findFirstNote(group) {
-	          for (var i = 0; i < group.length; i++) {
-	            var note = group[i];
-	            if (!note.isRest()) {
-	              return note;
+	          for (var _i = 0; _i < group.length; _i++) {
+	            var _note2 = group[_i];
+	            if (!_note2.isRest()) {
+	              return _note2;
 	            }
 	          }
 	
@@ -13365,9 +13428,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Reformat tuplets
 	        tupletGroups.forEach(function (group) {
 	          var firstNote = group[0];
-	          for (var i = 0; i < group.length; ++i) {
-	            if (group[i].hasStem()) {
-	              firstNote = group[i];
+	          for (var _i2 = 0; _i2 < group.length; ++_i2) {
+	            if (group[_i2].hasStem()) {
+	              firstNote = group[_i2];
 	              break;
 	            }
 	          }
@@ -13388,18 +13451,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      classCallCheck(this, Beam);
 	
 	      if (!notes || notes === []) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'No notes provided for beam.');
+	        throw new Vex.RuntimeError('BadArguments', 'No notes provided for beam.');
 	      }
 	
 	      if (notes.length === 1) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Too few notes for beam.');
+	        throw new Vex.RuntimeError('BadArguments', 'Too few notes for beam.');
 	      }
 	
 	      // Validate beam line, direction and ticks.
 	      this.ticks = notes[0].getIntrinsicTicks();
 	
 	      if (this.ticks >= Flow.durationToTicks('4')) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Beams can only be applied to notes shorter than a quarter note.');
+	        throw new Vex.RuntimeError('BadArguments', 'Beams can only be applied to notes shorter than a quarter note.');
 	      }
 	
 	      var i = void 0; // shared iterator
@@ -13526,18 +13589,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var y_shift_tmp = 0;
 	
 	          // iterate through notes, calculating y shift and stem extension
-	          for (var i = 1; i < this.notes.length; ++i) {
-	            var note = this.notes[i];
+	          for (var _i3 = 1; _i3 < this.notes.length; ++_i3) {
+	            var _note3 = this.notes[_i3];
 	
-	            var x_px = note.getStemX();
-	            var y_px = note.getStemExtents().topY;
+	            var x_px = _note3.getStemX();
+	            var y_px = _note3.getStemExtents().topY;
 	            var slope_y_px = this.getSlopeY(x_px, first_x_px, first_y_px, slope) + y_shift_tmp;
 	
 	            // beam needs to be shifted up to accommodate note
 	            if (y_px * this.stem_direction < slope_y_px * this.stem_direction) {
 	              var diff = Math.abs(y_px - slope_y_px);
 	              y_shift_tmp += diff * -this.stem_direction;
-	              total_stem_extension += diff * i;
+	              total_stem_extension += diff * _i3;
 	            } else {
 	              // beam overshoots note, account for the difference
 	              total_stem_extension += (y_px - slope_y_px) * this.stem_direction;
@@ -13578,22 +13641,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var extreme_y = 0; // Store the highest or lowest note here
 	        var extreme_beam_count = 0; // The beam count of the extreme note
 	        var current_extreme = 0;
-	        for (var i = 0; i < this.notes.length; i++) {
+	        for (var _i4 = 0; _i4 < this.notes.length; _i4++) {
 	          // Total up all of the offsets so we can average them out later
-	          var note = this.notes[i];
-	          var top_y = note.getStemExtents().topY;
+	          var _note4 = this.notes[_i4];
+	          var top_y = _note4.getStemExtents().topY;
 	          total += top_y;
 	
 	          // Store the highest (stems-up) or lowest (stems-down) note so the
 	          //  offset can be adjusted in case the average isn't enough
 	          if (this.stem_direction === Stem.DOWN && current_extreme < top_y) {
 	            current_extreme = top_y;
-	            extreme_y = note.getNoteHeadBounds().y_bottom;
-	            extreme_beam_count = note.getBeamCount();
+	            extreme_y = _note4.getNoteHeadBounds().y_bottom;
+	            extreme_beam_count = _note4.getBeamCount();
 	          } else if (this.stem_direction === Stem.UP && (current_extreme === 0 || current_extreme > top_y)) {
 	            current_extreme = top_y;
-	            extreme_y = note.getNoteHeadBounds().y_top;
-	            extreme_beam_count = note.getBeamCount();
+	            extreme_y = _note4.getNoteHeadBounds().y_top;
+	            extreme_beam_count = _note4.getBeamCount();
 	          }
 	        }
 	
@@ -13643,11 +13706,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        var first_x_px = first_note.getStemX();
 	
-	        for (var i = 0; i < this.notes.length; ++i) {
-	          var note = this.notes[i];
+	        for (var _i5 = 0; _i5 < this.notes.length; ++_i5) {
+	          var _note5 = this.notes[_i5];
 	
-	          var x_px = note.getStemX();
-	          var y_extents = note.getStemExtents();
+	          var x_px = _note5.getStemX();
+	          var y_extents = _note5.getStemExtents();
 	          var base_y_px = y_extents.baseY;
 	          var top_y_px = y_extents.topY;
 	
@@ -13658,14 +13721,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          // For harmonic note heads, shorten stem length by 3 pixels
-	          base_y_px += this.stem_direction * note.glyph.stem_offset;
+	          base_y_px += this.stem_direction * _note5.glyph.stem_offset;
 	
 	          // Don't go all the way to the top (for thicker stems)
 	          var y_displacement = Flow.STEM_WIDTH;
 	
-	          if (!note.hasStem()) {
-	            if (note.isRest() && this.render_options.show_stemlets) {
-	              var centerGlyphX = note.getCenterGlyphX();
+	          if (!_note5.hasStem()) {
+	            if (_note5.isRest() && this.render_options.show_stemlets) {
+	              var centerGlyphX = _note5.getCenterGlyphX();
 	
 	              var width = this.render_options.beam_width;
 	              var total_width = (this.beam_count - 1) * width * 1.5 + width;
@@ -13677,7 +13740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var end_y = beam_y + stemlet_height * this.stem_direction;
 	
 	              // Draw Stemlet
-	              note.setStem(new Stem({
+	              _note5.setStem(new Stem({
 	                x_begin: centerGlyphX,
 	                x_end: centerGlyphX,
 	                y_bottom: this.stem_direction === Stem.UP ? end_y : start_y,
@@ -13693,7 +13756,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var slope_y = this.getSlopeY(x_px, first_x_px, first_y_px, this.slope) + this.y_shift;
 	
-	          note.setStem(new Stem({
+	          _note5.setStem(new Stem({
 	            x_begin: x_px - Flow.STEM_WIDTH / 2,
 	            x_end: x_px,
 	            y_top: this.stem_direction === Stem.UP ? top_y_px : base_y_px,
@@ -13716,18 +13779,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var partial_beam_length = this.render_options.partial_beam_length;
 	        var previous_should_break = false;
 	        var tick_tally = 0;
-	        for (var i = 0; i < this.notes.length; ++i) {
-	          var note = this.notes[i];
+	        for (var _i6 = 0; _i6 < this.notes.length; ++_i6) {
+	          var _note6 = this.notes[_i6];
 	
 	          // See if we need to break secondary beams on this note.
-	          var ticks = note.getIntrinsicTicks();
+	          var ticks = _note6.getIntrinsicTicks();
 	          tick_tally += ticks;
 	          var should_break = false;
 	
 	          // 8th note beams are always drawn.
 	          if (parseInt(duration, 10) >= 8) {
 	            // First, check to see if any indices were set up through breakSecondaryAt()
-	            should_break = this.break_on_indices.indexOf(i) !== -1;
+	            should_break = this.break_on_indices.indexOf(_i6) !== -1;
 	
 	            // If the secondary breaks were auto-configured in the render options,
 	            //  handle that as well.
@@ -13737,11 +13800,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	          }
 	          var note_gets_beam = ticks < Flow.durationToTicks(duration);
-	          var stem_x = note.isRest() ? note.getCenterGlyphX() : note.getStemX();
+	          var stem_x = _note6.isRest() ? _note6.getCenterGlyphX() : _note6.getStemX();
 	
 	          // Check to see if the next note in the group will get a beam at this
 	          //  level. This will help to inform the partial beam logic below.
-	          var next_note = this.notes[i + 1];
+	          var next_note = this.notes[_i6 + 1];
 	          var beam_next = next_note && next_note.getIntrinsicTicks() < Flow.durationToTicks(duration);
 	          if (note_gets_beam) {
 	            // This note gets a beam at the current level
@@ -13766,7 +13829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              beam_started = true;
 	              if (!beam_next) {
 	                // The next note doesn't get a beam. Draw a partial.
-	                if ((previous_should_break || i === 0) && next_note) {
+	                if ((previous_should_break || _i6 === 0) && next_note) {
 	                  // This is the first note (but not the last one), or it is
 	                  //  following a secondary break. Draw a partial to the right.
 	                  current_beam.end = current_beam.start + partial_beam_length;
@@ -13820,22 +13883,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'drawBeamLines',
 	      value: function drawBeamLines() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	
 	        var valid_beam_durations = ['4', '8', '16', '32', '64'];
 	
 	        var first_note = this.notes[0];
-	        var last_note = this.notes[this.notes.length - 1];
 	
 	        var first_y_px = first_note.getStemExtents().topY;
-	        var last_y_px = last_note.getStemExtents().topY;
 	
 	        // For flat beams, set the first and last Y to the offset, rather than
 	        //  using the note's stem extents.
 	        if (this.render_options.flat_beams && this.render_options.flat_beam_offset) {
 	          first_y_px = this.render_options.flat_beam_offset;
-	          last_y_px = this.render_options.flat_beam_offset;
 	        }
 	
 	        var first_x_px = first_note.getStemX();
@@ -13843,8 +13903,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var beam_width = this.render_options.beam_width * this.stem_direction;
 	
 	        // Draw the beams.
-	        for (var i = 0; i < valid_beam_durations.length; ++i) {
-	          var duration = valid_beam_durations[i];
+	        for (var _i7 = 0; _i7 < valid_beam_durations.length; ++_i7) {
+	          var duration = valid_beam_durations[_i7];
 	          var beam_lines = this.getBeamLines(duration);
 	
 	          for (var j = 0; j < beam_lines.length; ++j) {
@@ -13865,7 +13925,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          first_y_px += beam_width * 1.5;
-	          last_y_px += beam_width * 1.5;
 	        }
 	      }
 	
@@ -13903,7 +13962,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	
 	        if (this.unbeamable) return;
@@ -13921,7 +13980,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  function drawBoldDoubleLine(ctx, type, topX, topY, botY) {
 	    if (type !== StaveConnector.type.BOLD_DOUBLE_LEFT && type !== StaveConnector.type.BOLD_DOUBLE_RIGHT) {
-	      throw new Vex$1.RERR('InvalidConnector', 'A REPEAT_BEGIN or REPEAT_END type must be provided.');
+	      throw new Vex.RERR('InvalidConnector', 'A REPEAT_BEGIN or REPEAT_END type must be provided.');
 	    }
 	
 	    var x_shift = 3;
@@ -14000,20 +14059,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      value: function setText(text, options) {
 	        this.texts.push({
 	          content: text,
-	          options: Vex$1.Merge({ shift_x: 0, shift_y: 0 }, options)
+	          options: Vex.Merge({ shift_x: 0, shift_y: 0 }, options)
 	        });
 	        return this;
 	      }
 	    }, {
 	      key: 'setFont',
 	      value: function setFont(font) {
-	        Vex$1.Merge(this.font, font);
+	        Vex.Merge(this.font, font);
 	      }
 	    }, {
 	      key: 'setXShift',
 	      value: function setXShift(x_shift) {
 	        if (typeof x_shift !== 'number') {
-	          throw Vex$1.RERR('InvalidType', 'x_shift must be a Number');
+	          throw Vex.RERR('InvalidType', 'x_shift must be a Number');
 	        }
 	
 	        this.x_shift = x_shift;
@@ -14023,7 +14082,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.ctx) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw without a context.");
 	        }
 	
 	        var topY = this.top_stave.getYForLine(0);
@@ -14106,7 +14165,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          case StaveConnector.type.NONE:
 	            break;
 	          default:
-	            throw new Vex$1.RERR('InvalidType', 'The provided StaveConnector.type (' + this.type + ') is invalid');
+	            throw new Vex.RERR('InvalidType', 'The provided StaveConnector.type (' + this.type + ') is invalid');
 	        }
 	
 	        if (this.type !== StaveConnector.type.BRACE && this.type !== StaveConnector.type.BOLD_DOUBLE_LEFT && this.type !== StaveConnector.type.BOLD_DOUBLE_RIGHT && this.type !== StaveConnector.type.NONE) {
@@ -14243,7 +14302,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getVoice',
 	      value: function getVoice() {
-	        if (!this.voice) throw new Vex$1.RERR('NoVoice', 'Tickable has no voice.');
+	        if (!this.voice) throw new Vex.RERR('NoVoice', 'Tickable has no voice.');
 	        return this.voice;
 	      }
 	    }, {
@@ -14270,8 +14329,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'resetTuplet',
 	      value: function resetTuplet(tuplet) {
-	        var noteCount = void 0,
-	            notesOccupied = void 0;
+	        var noteCount = void 0;
+	        var notesOccupied = void 0;
 	        if (tuplet) {
 	          var i = this.tupletStack.indexOf(tuplet);
 	          if (i !== -1) {
@@ -14353,7 +14412,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'postFormat',
 	      value: function postFormat() {
-	        if (this.postFormatted) return;
+	        if (this.postFormatted) return this;
 	        this.postFormatted = true;
 	        return this;
 	      }
@@ -14400,7 +14459,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // note.
 	      value: function plotMetrics(ctx, note, yPos) {
 	        var metrics = note.getMetrics();
-	        var w = metrics.width;
 	        var xStart = note.getAbsoluteX() - metrics.modLeftPx - metrics.extraLeftPx;
 	        var xPre1 = note.getAbsoluteX() - metrics.extraLeftPx;
 	        var xAbs = note.getAbsoluteX();
@@ -14430,7 +14488,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        stroke(xPost1, xPost2, '#999');
 	        stroke(xPost2, xEnd, 'red');
 	        stroke(xStart - note.getXShift(), xStart, '#DDD'); // Shift
-	        Vex$1.drawDot(ctx, xAbs + note.getXShift(), y, 'blue');
+	        Vex.drawDot(ctx, xAbs + note.getXShift(), y, 'blue');
 	        ctx.restore();
 	      }
 	
@@ -14458,13 +14516,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _this = possibleConstructorReturn(this, Object.getPrototypeOf(Note).call(this));
 	
 	      if (!note_struct) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Note must have valid initialization data to identify ' + 'duration and type.');
+	        throw new Vex.RuntimeError('BadArguments', 'Note must have valid initialization data to identify duration and type.');
 	      }
 	
 	      // Parse `note_struct` and get note properties.
 	      var initData = Flow.parseNoteData(note_struct);
 	      if (!initData) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Invalid note initialization object: ' + JSON.stringify(note_struct));
+	        throw new Vex.RuntimeError('BadArguments', 'Invalid note initialization object: ' + JSON.stringify(note_struct));
 	      }
 	
 	      // Set note properties from parameters.
@@ -14485,8 +14543,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // Get the glyph code for this note from the font.
 	      _this.glyph = Flow.durationToGlyph(_this.duration, _this.noteType);
 	
-	      if (_this.positions && (_typeof(_this.positions) != 'object' || !_this.positions.length)) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Note keys must be array type.');
+	      if (_this.positions && (_typeof(_this.positions) !== 'object' || !_this.positions.length)) {
+	        throw new Vex.RuntimeError('BadArguments', 'Note keys must be array type.');
 	      }
 	
 	      // Note to play for audio players.
@@ -14658,7 +14716,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getYs',
 	      value: function getYs() {
-	        if (this.ys.length === 0) throw new Vex$1.RERR('NoYValues', 'No Y-values calculated for this note.');
+	        if (this.ys.length === 0) {
+	          throw new Vex.RERR('NoYValues', 'No Y-values calculated for this note.');
+	        }
+	
 	        return this.ys;
 	      }
 	
@@ -14668,7 +14729,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getYForTopText',
 	      value: function getYForTopText(text_line) {
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', 'No stave attached to this note.');
+	        if (!this.stave) {
+	          throw new Vex.RERR('NoStave', 'No stave attached to this note.');
+	        }
+	
 	        return this.stave.getYForTopText(text_line);
 	      }
 	
@@ -14685,7 +14749,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getVoice',
 	      value: function getVoice() {
-	        if (!this.voice) throw new Vex$1.RERR('NoVoice', 'Note has no voice.');
+	        if (!this.voice) throw new Vex.RERR('NoVoice', 'Note has no voice.');
 	        return this.voice;
 	      }
 	
@@ -14774,8 +14838,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getModifierStartXY',
 	      value: function getModifierStartXY() {
-	        if (!this.preFormatted) throw new Vex$1.RERR('UnformattedNote', "Can't call GetModifierStartXY on an unformatted note");
-	        return { x: this.getAbsoluteX(), y: this.ys[0] };
+	        if (!this.preFormatted) {
+	          throw new Vex.RERR('UnformattedNote', "Can't call GetModifierStartXY on an unformatted note");
+	        }
+	
+	        return {
+	          x: this.getAbsoluteX(),
+	          y: this.ys[0]
+	        };
 	      }
 	
 	      // Get bounds and metrics for this note.
@@ -14792,7 +14862,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getMetrics',
 	      value: function getMetrics() {
-	        if (!this.preFormatted) throw new Vex$1.RERR('UnformattedNote', "Can't call getMetrics on an unformatted note.");
+	        if (!this.preFormatted) {
+	          throw new Vex.RERR('UnformattedNote', "Can't call getMetrics on an unformatted note.");
+	        }
+	
 	        var modLeftPx = 0;
 	        var modRightPx = 0;
 	        if (this.modifierContext != null) {
@@ -14801,7 +14874,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        var width = this.getWidth();
-	        return { width: width,
+	        return {
+	          width: width,
 	          noteWidth: width - modLeftPx - modRightPx - this.extraLeftPx - this.extraRightPx,
 	          left_shift: this.x_shift, // TODO(0xfe): Make style consistent
 	
@@ -14811,7 +14885,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          // Displaced note head on left or right.
 	          extraLeftPx: this.extraLeftPx,
-	          extraRightPx: this.extraRightPx };
+	          extraRightPx: this.extraRightPx
+	        };
 	      }
 	
 	      // Get and set width of note. Used by the formatter for positioning.
@@ -14824,7 +14899,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getWidth',
 	      value: function getWidth() {
-	        if (!this.preFormatted) throw new Vex$1.RERR('UnformattedNote', "Can't call GetWidth on an unformatted note.");
+	        if (!this.preFormatted) {
+	          throw new Vex.RERR('UnformattedNote', "Can't call GetWidth on an unformatted note.");
+	        }
+	
 	        return this.width + (this.modifierContext ? this.modifierContext.getWidth() : 0);
 	      }
 	
@@ -14846,7 +14924,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getX',
 	      value: function getX() {
-	        if (!this.tickContext) throw new Vex$1.RERR('NoTickContext', 'Note needs a TickContext assigned for an X-Value');
+	        if (!this.tickContext) {
+	          throw new Vex.RERR('NoTickContext', 'Note needs a TickContext assigned for an X-Value');
+	        }
+	
 	        return this.tickContext.getX() + this.x_shift;
 	      }
 	
@@ -14857,7 +14938,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getAbsoluteX',
 	      value: function getAbsoluteX() {
-	        if (!this.tickContext) throw new Vex$1.RERR('NoTickContext', 'Note needs a TickContext assigned for an X-Value');
+	        if (!this.tickContext) {
+	          throw new Vex.RERR('NoTickContext', 'Note needs a TickContext assigned for an X-Value');
+	        }
 	
 	        // Position note to left edge of tick context.
 	        var x = this.tickContext.getX();
@@ -14889,7 +14972,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.NoteHead.DEBUG` to `true`.
 	  function L$3() {
-	    if (NoteHead.DEBUG) Vex$1.L('Vex.Flow.NoteHead', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (NoteHead.DEBUG) Vex.L('Vex.Flow.NoteHead', args);
 	  }
 	
 	  // Draw slashnote head manually. No glyph exists for this.
@@ -14967,7 +15054,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // regular notes, rests, or other custom codes.
 	      _this.glyph = Flow.durationToGlyph(_this.duration, _this.note_type);
 	      if (!_this.glyph) {
-	        throw new Vex$1.RuntimeError('BadArguments', "No glyph found for duration '" + _this.duration + "' and type '" + _this.note_type + "'");
+	        throw new Vex.RuntimeError('BadArguments', 'No glyph found for duration \'' + _this.duration + '\' and type \'' + _this.note_type + '\'');
 	      }
 	
 	      _this.glyph_code = _this.glyph.code_head;
@@ -14981,7 +15068,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.style = head_options.style;
 	      _this.slashed = head_options.slashed;
 	
-	      Vex$1.Merge(_this.render_options, {
+	      Vex.Merge(_this.render_options, {
 	        glyph_font_scale: 35, // font size for note heads
 	        stroke_px: 3 });
 	
@@ -15099,7 +15186,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getBoundingBox',
 	      value: function getBoundingBox() {
-	        if (!this.preFormatted) throw new Vex$1.RERR('UnformattedNote', "Can't call getBoundingBox on an unformatted note.");
+	        if (!this.preFormatted) {
+	          throw new Vex.RERR('UnformattedNote', "Can't call getBoundingBox on an unformatted note.");
+	        }
 	
 	        var spacing = this.stave.getSpacingBetweenLines();
 	        var half_spacing = spacing / 2;
@@ -15154,7 +15243,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
 	
 	        var ctx = this.context;
 	        var head_x = this.getAbsoluteX();
@@ -15165,20 +15256,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Begin and end positions for head.
 	        var stem_direction = this.stem_direction;
 	        var glyph_font_scale = this.render_options.glyph_font_scale;
-	
 	        var line = this.line;
 	
 	        // If note above/below the staff, draw the small staff
 	        if (line <= 0 || line >= 6) {
 	          var line_y = y;
 	          var floor = Math.floor(line);
-	          if (line < 0 && floor - line == -0.5) line_y -= 5;else if (line > 6 && floor - line == -0.5) line_y += 5;
-	          if (this.note_type != 'r') {
+	          if (line < 0 && floor - line === -0.5) {
+	            line_y -= 5;
+	          } else if (line > 6 && floor - line === -0.5) {
+	            line_y += 5;
+	          }
+	
+	          if (this.note_type !== 'r') {
 	            ctx.fillRect(head_x - this.render_options.stroke_px, line_y, this.getGlyph().head_width + this.render_options.stroke_px * 2, 1);
 	          }
 	        }
 	
-	        if (this.note_type == 's') {
+	        if (this.note_type === 's') {
 	          drawSlashNoteHead(ctx, this.duration, head_x, y, stem_direction);
 	        } else {
 	          if (this.style) {
@@ -15197,7 +15292,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.StemmableNote.DEBUG` to `true`.
 	  function L$4() {
-	    if (StemmableNote.DEBUG) Vex$1.L('Vex.Flow.StemmableNote', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (StemmableNote.DEBUG) Vex.L('Vex.Flow.StemmableNote', args);
 	  }
 	
 	  var StemmableNote = function (_Note) {
@@ -15209,7 +15308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _this = possibleConstructorReturn(this, Object.getPrototypeOf(StemmableNote).call(this, note_struct));
 	
 	      _this.stem = null;
-	      _this.stem_extension_override = null;
+	      _this.stemExtensionOverride = null;
 	      _this.beam = null;
 	      return _this;
 	    }
@@ -15273,16 +15372,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (this.beam == null) length = 35;
 	            break;
 	          case '16':
-	            if (this.beam == null) length = 35;else length = 25;
+	            length = this.beam == null ? 35 : 25;
 	            break;
 	          case '32':
-	            if (this.beam == null) length = 45;else length = 35;
+	            length = this.beam == null ? 45 : 35;
 	            break;
 	          case '64':
-	            if (this.beam == null) length = 50;else length = 40;
+	            length = this.beam == null ? 50 : 40;
 	            break;
 	          case '128':
-	            if (this.beam == null) length = 55;else length = 45;
+	            length = this.beam == null ? 55 : 45;
+	            break;
+	          default:
+	            break;
 	        }
 	        return length;
 	      }
@@ -15298,8 +15400,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'setStemDirection',
 	      value: function setStemDirection(direction) {
 	        if (!direction) direction = Stem.UP;
-	        if (direction != Stem.UP && direction != Stem.DOWN) {
-	          throw new Vex$1.RERR('BadArgument', 'Invalid stem direction: ' + direction);
+	        if (direction !== Stem.UP && direction !== Stem.DOWN) {
+	          throw new Vex.RERR('BadArgument', 'Invalid stem direction: ' + direction);
 	        }
 	
 	        this.stem_direction = direction;
@@ -15323,8 +15425,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var x_begin = this.getAbsoluteX() + this.x_shift;
 	        var x_end = this.getAbsoluteX() + this.x_shift + this.glyph.head_width;
 	
-	        var stem_x = this.stem_direction == Stem.DOWN ? x_begin : x_end;
-	
+	        var stem_x = this.stem_direction === Stem.DOWN ? x_begin : x_end;
 	        stem_x -= Stem.WIDTH / 2 * this.stem_direction;
 	
 	        return stem_x;
@@ -15346,8 +15447,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      value: function getStemExtension() {
 	        var glyph = this.getGlyph();
 	
-	        if (this.stem_extension_override != null) {
-	          return this.stem_extension_override;
+	        if (this.stemExtensionOverride != null) {
+	          return this.stemExtensionOverride;
 	        }
 	
 	        if (glyph) {
@@ -15362,7 +15463,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setStemLength',
 	      value: function setStemLength(height) {
-	        this.stem_extension_override = height - Stem.HEIGHT;
+	        this.stemExtensionOverride = height - Stem.HEIGHT;
 	        return this;
 	      }
 	
@@ -15371,31 +15472,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getStemExtents',
 	      value: function getStemExtents() {
-	        if (!this.ys || this.ys.length === 0) throw new Vex$1.RERR('NoYValues', "Can't get top stem Y when note has no Y values.");
+	        if (!this.ys || this.ys.length === 0) {
+	          throw new Vex.RERR('NoYValues', "Can't get top stem Y when note has no Y values.");
+	        }
 	
-	        var top_pixel = this.ys[0];
-	        var base_pixel = this.ys[0];
-	        var stem_height = Stem.HEIGHT + this.getStemExtension();
+	        var topY = this.ys[0];
+	        var baseY = this.ys[0];
+	        var stemHeight = Stem.HEIGHT + this.getStemExtension();
 	
 	        for (var i = 0; i < this.ys.length; ++i) {
-	          var stem_top = this.ys[i] + stem_height * -this.stem_direction;
+	          var stemTop = this.ys[i] + stemHeight * -this.stem_direction;
 	
-	          if (this.stem_direction == Stem.DOWN) {
-	            top_pixel = Math.max(top_pixel, stem_top);
-	            base_pixel = Math.min(base_pixel, this.ys[i]);
+	          if (this.stem_direction === Stem.DOWN) {
+	            topY = Math.max(topY, stemTop);
+	            baseY = Math.min(baseY, this.ys[i]);
 	          } else {
-	            top_pixel = Math.min(top_pixel, stem_top);
-	            base_pixel = Math.max(base_pixel, this.ys[i]);
+	            topY = Math.min(topY, stemTop);
+	            baseY = Math.max(baseY, this.ys[i]);
 	          }
 	
-	          if (this.noteType == 's' || this.noteType == 'x') {
-	            top_pixel -= this.stem_direction * 7;
-	            base_pixel -= this.stem_direction * 7;
+	          if (this.noteType === 's' || this.noteType === 'x') {
+	            topY -= this.stem_direction * 7;
+	            baseY -= this.stem_direction * 7;
 	          }
 	        }
 	
-	        L$4('Stem extents: ', top_pixel, base_pixel);
-	        return { topY: top_pixel, baseY: base_pixel };
+	        L$4('Stem extents: ', topY, baseY);
+	        return { topY: topY, baseY: baseY };
 	      }
 	
 	      // Sets the current note's beam
@@ -15406,26 +15509,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.beam = beam;return this;
 	      }
 	
-	      // Get the `y` value for the top/bottom modifiers at a specific `text_line`
+	      // Get the `y` value for the top/bottom modifiers at a specific `textLine`
 	
 	    }, {
 	      key: 'getYForTopText',
-	      value: function getYForTopText(text_line) {
+	      value: function getYForTopText(textLine) {
 	        var extents = this.getStemExtents();
 	        if (this.hasStem()) {
-	          return Vex$1.Min(this.stave.getYForTopText(text_line), extents.topY - this.render_options.annotation_spacing * (text_line + 1));
+	          return Math.min(this.stave.getYForTopText(textLine), extents.topY - this.render_options.annotation_spacing * (textLine + 1));
 	        } else {
-	          return this.stave.getYForTopText(text_line);
+	          return this.stave.getYForTopText(textLine);
 	        }
 	      }
 	    }, {
 	      key: 'getYForBottomText',
-	      value: function getYForBottomText(text_line) {
+	      value: function getYForBottomText(textLine) {
 	        var extents = this.getStemExtents();
 	        if (this.hasStem()) {
-	          return Vex$1.Max(this.stave.getYForTopText(text_line), extents.baseY + this.render_options.annotation_spacing * text_line);
+	          return Math.max(this.stave.getYForTopText(textLine), extents.baseY + this.render_options.annotation_spacing * textLine);
 	        } else {
-	          return this.stave.getYForBottomText(text_line);
+	          return this.stave.getYForBottomText(textLine);
 	        }
 	      }
 	    }, {
@@ -15439,10 +15542,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'postFormat',
 	      value: function postFormat() {
-	        if (this.beam) {
-	          this.beam.postFormat();
-	        }
+	        if (this.beam) this.beam.postFormat();
+	
 	        this.postFormatted = true;
+	
 	        return this;
 	      }
 	
@@ -15451,7 +15554,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawStem',
 	      value: function drawStem(stem_struct) {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
 	
 	        this.setStem(new Stem(stem_struct));
 	        this.stem.setContext(this.context).draw();
@@ -15462,7 +15567,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.Modifier.DEBUG` to `true`.
 	  function L$5() {
-	    if (Modifier.DEBUG) Vex$1.L('Vex.Flow.Modifier', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (Modifier.DEBUG) Vex.L('Vex.Flow.Modifier', args);
 	  }
 	
 	  var Modifier = function () {
@@ -15628,7 +15737,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'setXShift',
 	      value: function setXShift(x) {
 	        this.x_shift = 0;
-	        if (this.position == Modifier.Position.LEFT) {
+	        if (this.position === Modifier.Position.LEFT) {
 	          this.x_shift -= x;
 	        } else {
 	          this.x_shift += x;
@@ -15645,8 +15754,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
-	        throw new Vex$1.RERR('MethodNotImplemented', 'Draw() not implemented for this modifier.');
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
+	
+	        throw new Vex.RERR('MethodNotImplemented', 'draw() not implemented for this modifier.');
 	      }
 	    }]);
 	    return Modifier;
@@ -15665,16 +15777,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        if (!dots || dots.length === 0) return false;
 	
-	        var i = void 0,
-	            dot = void 0,
-	            note = void 0,
-	            shift = void 0;
 	        var dot_list = [];
-	        for (i = 0; i < dots.length; ++i) {
-	          dot = dots[i];
-	          note = dot.getNote();
+	        for (var i = 0; i < dots.length; ++i) {
+	          var dot = dots[i];
+	          var note = dot.getNote();
 	
 	          var props = void 0;
+	          var shift = void 0;
 	          // Only StaveNote has .getKeyProps()
 	          if (typeof note.getKeyProps === 'function') {
 	            props = note.getKeyProps()[dot.getIndex()];
@@ -15700,28 +15809,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var prev_dotted_space = null;
 	        var half_shiftY = 0;
 	
-	        for (i = 0; i < dot_list.length; ++i) {
-	          dot = dot_list[i].dot;
-	          note = dot_list[i].note;
-	          shift = dot_list[i].shift;
-	          var line = dot_list[i].line;
+	        for (var _i = 0; _i < dot_list.length; ++_i) {
+	          var _dot_list$_i = dot_list[_i];
+	          var _dot = _dot_list$_i.dot;
+	          var _note = _dot_list$_i.note;
+	          var _shift = _dot_list$_i.shift;
+	          var line = _dot_list$_i.line;
 	
 	          // Reset the position of the dot every line.
-	          if (line != last_line || note != last_note) {
-	            dot_shift = shift;
+	
+	          if (line !== last_line || _note !== last_note) {
+	            dot_shift = _shift;
 	          }
 	
-	          if (!note.isRest() && line != last_line) {
-	            if (Math.abs(line % 1) == 0.5) {
+	          if (!_note.isRest() && line !== last_line) {
+	            if (Math.abs(line % 1) === 0.5) {
 	              // note is on a space, so no dot shift
 	              half_shiftY = 0;
-	            } else if (!note.isRest()) {
+	            } else if (!_note.isRest()) {
 	              // note is on a line, so shift dot to space above the line
 	              half_shiftY = 0.5;
-	              if (last_note != null && !last_note.isRest() && last_line - line == 0.5) {
+	              if (last_note != null && !last_note.isRest() && last_line - line === 0.5) {
 	                // previous note on a space, so shift dot to space below the line
 	                half_shiftY = -0.5;
-	              } else if (line + half_shiftY == prev_dotted_space) {
+	              } else if (line + half_shiftY === prev_dotted_space) {
 	                // previous space is dotted, so shift dot to space below the line
 	                half_shiftY = -0.5;
 	              }
@@ -15729,18 +15840,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          // convert half_shiftY to a multiplier for dots.draw()
-	          dot.dot_shiftY = -half_shiftY;
+	          _dot.dot_shiftY = -half_shiftY;
 	          prev_dotted_space = line + half_shiftY;
 	
-	          dot.setXShift(dot_shift);
-	          dot_shift += dot.getWidth() + dot_spacing; // spacing
+	          _dot.setXShift(dot_shift);
+	          dot_shift += _dot.getWidth() + dot_spacing; // spacing
 	          x_width = dot_shift > x_width ? dot_shift : x_width;
 	          last_line = line;
-	          last_note = note;
+	          last_note = _note;
 	        }
 	
 	        // Update state.
 	        state.right_shift += x_width;
+	        return true;
 	      }
 	
 	      /**
@@ -15792,10 +15904,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw dot without a context.");
-	        if (!(this.note && this.index != null)) throw new Vex$1.RERR('NoAttachedNote', "Can't draw dot without a note and index.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw dot without a context.");
+	        }
 	
-	        var line_space = this.note.stave.options.spacing_between_lines_px;
+	        if (!this.note || this.index === null) {
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw dot without a note and index.");
+	        }
+	
+	        var lineSpace = this.note.stave.options.spacing_between_lines_px;
 	
 	        var start = this.note.getModifierStartXY(this.position, this.index);
 	
@@ -15804,12 +15921,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	          start.y = this.note.getStemExtents().baseY;
 	        }
 	
-	        var dot_x = start.x + this.x_shift + this.width - this.radius;
-	        var dot_y = start.y + this.y_shift + this.dot_shiftY * line_space;
+	        var x = start.x + this.x_shift + this.width - this.radius;
+	        var y = start.y + this.y_shift + this.dot_shiftY * lineSpace;
 	        var ctx = this.context;
 	
 	        ctx.beginPath();
-	        ctx.arc(dot_x, dot_y, this.radius, 0, Math.PI * 2, false);
+	        ctx.arc(x, y, this.radius, 0, Math.PI * 2, false);
 	        ctx.fill();
 	      }
 	    }]);
@@ -15822,7 +15939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (StaveNote.DEBUG) Vex$1.L('Vex.Flow.StaveNote', args);
+	    if (StaveNote.DEBUG) Vex.L('Vex.Flow.StaveNote', args);
 	  }
 	
 	  // Helper methods for rest positioning in ModifierContext.
@@ -15837,7 +15954,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // Called from formatNotes :: center a rest between two notes
 	  function centerRest(rest, noteU, noteL) {
-	    var delta = rest.line - Vex$1.MidLine(noteU.minLine, noteL.maxLine);
+	    var delta = rest.line - Vex.MidLine(noteU.minLine, noteL.maxLine);
 	    rest.note.setKeyLine(0, rest.note.getKeyLine(0) - delta);
 	    rest.line -= delta;
 	    rest.maxLine -= delta;
@@ -16022,7 +16139,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (!hasStave) {
-	          throw new Vex$1.RERR('Stave Missing', 'All notes must have a stave - Vex.Flow.ModifierContext.formatMultiVoice!');
+	          throw new Vex.RERR('Stave Missing', 'All notes must have a stave - Vex.Flow.ModifierContext.formatMultiVoice!');
 	        }
 	
 	        var xShift = 0;
@@ -16093,7 +16210,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.glyph = Flow.durationToGlyph(_this.duration, _this.noteType);
 	
 	      if (!_this.glyph) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Invalid note initialization data (No glyph found): ' + JSON.stringify(noteStruct));
+	        throw new Vex.RuntimeError('BadArguments', 'Invalid note initialization data (No glyph found): ' + JSON.stringify(noteStruct));
 	      }
 	
 	      // if true, displace note to right
@@ -16108,7 +16225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.note_heads = [];
 	      _this.modifiers = [];
 	
-	      Vex$1.Merge(_this.render_options, {
+	      Vex.Merge(_this.render_options, {
 	        // font size for note heads and rests
 	        glyph_font_scale: 35,
 	        // number of stroke px to the left and right of head
@@ -16250,7 +16367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var props = Flow.keyProperties(key, this.clef, options);
 	
 	          if (!props) {
-	            throw new Vex$1.RuntimeError('BadArguments', 'Invalid key for note properties: ' + key);
+	            throw new Vex.RuntimeError('BadArguments', 'Invalid key for note properties: ' + key);
 	          }
 	
 	          // Override line placement for default rests
@@ -16287,7 +16404,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        lastLine = -1000;
 	        this.keyProps.forEach(function (key) {
 	          if (key.line < lastLine) {
-	            Vex$1.W('Unsorted keys in note will be sorted. ' + 'See https://github.com/0xfe/vexflow/issues/104 for details.');
+	            Vex.W('Unsorted keys in note will be sorted. ' + 'See https://github.com/0xfe/vexflow/issues/104 for details.');
 	          }
 	          lastLine = key.line;
 	        });
@@ -16302,7 +16419,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getBoundingBox',
 	      value: function getBoundingBox() {
 	        if (!this.preFormatted) {
-	          throw new Vex$1.RERR('UnformattedNote', "Can't call getBoundingBox on an unformatted note.");
+	          throw new Vex.RERR('UnformattedNote', "Can't call getBoundingBox on an unformatted note.");
 	        }
 	
 	        var _getMetrics = this.getMetrics();
@@ -16331,8 +16448,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else if (this.glyph.stem) {
 	          var ys = this.getStemExtents();
 	          ys.baseY += halfLineSpacing * this.stem_direction;
-	          minY = Vex$1.Min(ys.topY, ys.baseY);
-	          maxY = Vex$1.Max(ys.topY, ys.baseY);
+	          minY = Vex.Min(ys.topY, ys.baseY);
+	          maxY = Vex.Max(ys.topY, ys.baseY);
 	        } else {
 	          minY = null;
 	          maxY = null;
@@ -16343,8 +16460,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              minY = yy;
 	              maxY = yy;
 	            } else {
-	              minY = Vex$1.Min(yy, minY);
-	              maxY = Vex$1.Max(yy, maxY);
+	              minY = Vex.Min(yy, minY);
+	              maxY = Vex.Max(yy, maxY);
 	            }
 	          }
 	          minY -= halfLineSpacing;
@@ -16361,7 +16478,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getLineNumber',
 	      value: function getLineNumber(isTopNote) {
 	        if (!this.keyProps.length) {
-	          throw new Vex$1.RERR('NoKeyProps', "Can't get bottom note line, because note is not initialized properly.");
+	          throw new Vex.RERR('NoKeyProps', "Can't get bottom note line, because note is not initialized properly.");
 	        }
 	
 	        var resultLine = this.keyProps[0].line;
@@ -16510,7 +16627,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var lastLine = this.keyProps[this.keyProps.length - 1].line;
 	          var top = Math.max(restLine, lastLine);
 	          var bot = Math.min(restLine, lastLine);
-	          restLine = Vex$1.MidLine(top, bot);
+	          restLine = Vex.MidLine(top, bot);
 	        }
 	
 	        return restLine;
@@ -16523,11 +16640,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getModifierStartXY',
 	      value: function getModifierStartXY(position, index) {
 	        if (!this.preFormatted) {
-	          throw new Vex$1.RERR('UnformattedNote', "Can't call GetModifierStartXY on an unformatted note");
+	          throw new Vex.RERR('UnformattedNote', "Can't call GetModifierStartXY on an unformatted note");
 	        }
 	
 	        if (this.ys.length === 0) {
-	          throw new Vex$1.RERR('NoYValues', 'No Y-Values calculated for this note.');
+	          throw new Vex.RERR('NoYValues', 'No Y-Values calculated for this note.');
 	        }
 	
 	        var x = 0;
@@ -16786,7 +16903,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        if (this.isRest()) return;
 	        if (!ctx) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	
 	        var _getNoteHeadBounds2 = this.getNoteHeadBounds();
@@ -16821,7 +16938,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'drawModifiers',
 	      value: function drawModifiers() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	
 	        var ctx = this.context;
@@ -16855,7 +16972,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        if (!ctx) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	
 	        var shouldRenderFlag = beam === null;
@@ -16914,7 +17031,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'drawStem',
 	      value: function drawStem(stemStruct) {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	
 	        if (stemStruct) {
@@ -16932,13 +17049,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
 	        }
 	        if (!this.stave) {
-	          throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
+	          throw new Vex.RERR('NoStave', "Can't draw without a stave.");
 	        }
 	        if (this.ys.length === 0) {
-	          throw new Vex$1.RERR('NoYValues', "Can't draw note without Y values.");
+	          throw new Vex.RERR('NoYValues', "Can't draw note without Y values.");
 	        }
 	
 	        var xBegin = this.getNoteHeadBeginX();
@@ -16984,35 +17101,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	      value: function format(nums, state) {
 	        var left_shift = state.left_shift;
 	        var right_shift = state.right_shift;
+	
 	        var num_spacing = 1;
 	
 	        if (!nums || nums.length === 0) return false;
 	
 	        var nums_list = [];
 	        var prev_note = null;
-	        var shift_left = 0;
-	        var shift_right = 0;
+	        var shiftLeft = 0;
+	        var shiftRight = 0;
 	
-	        var i = void 0,
-	            num = void 0,
-	            note = void 0,
-	            pos = void 0,
-	            props_tmp = void 0;
-	        for (i = 0; i < nums.length; ++i) {
-	          num = nums[i];
-	          note = num.getNote();
-	          pos = num.getPosition();
+	        for (var i = 0; i < nums.length; ++i) {
+	          var num = nums[i];
+	          var note = num.getNote();
+	          var pos = num.getPosition();
 	          var props = note.getKeyProps()[num.getIndex()];
-	          if (note != prev_note) {
+	          if (note !== prev_note) {
 	            for (var n = 0; n < note.keys.length; ++n) {
-	              props_tmp = note.getKeyProps()[n];
-	              if (left_shift === 0) shift_left = props_tmp.displaced ? note.getExtraLeftPx() : shift_left;
-	              if (right_shift === 0) shift_right = props_tmp.displaced ? note.getExtraRightPx() : shift_right;
+	              var props_tmp = note.getKeyProps()[n];
+	              if (left_shift === 0) {
+	                shiftLeft = props_tmp.displaced ? note.getExtraLeftPx() : shiftLeft;
+	              }
+	              if (right_shift === 0) {
+	                shiftRight = props_tmp.displaced ? note.getExtraRightPx() : shiftRight;
+	              }
 	            }
 	            prev_note = note;
 	          }
 	
-	          nums_list.push({ line: props.line, pos: pos, shiftL: shift_left, shiftR: shift_right, note: note, num: num });
+	          nums_list.push({
+	            note: note,
+	            num: num,
+	            pos: pos,
+	            line: props.line,
+	            shiftL: shiftLeft,
+	            shiftR: shiftRight
+	          });
 	        }
 	
 	        // Sort fingernumbers by line number.
@@ -17020,44 +17144,48 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return b.line - a.line;
 	        });
 	
-	        var num_shiftL = 0;
-	        var num_shiftR = 0;
-	        var x_widthL = 0;
-	        var x_widthR = 0;
-	        var last_line = null;
-	        var last_note = null;
+	        var numShiftL = 0;
+	        var numShiftR = 0;
+	        var xWidthL = 0;
+	        var xWidthR = 0;
+	        var lastLine = null;
+	        var lastNote = null;
 	
-	        for (i = 0; i < nums_list.length; ++i) {
+	        for (var _i = 0; _i < nums_list.length; ++_i) {
 	          var num_shift = 0;
-	          note = nums_list[i].note;
-	          pos = nums_list[i].pos;
-	          num = nums_list[i].num;
-	          var line = nums_list[i].line;
-	          var shiftL = nums_list[i].shiftL;
-	          var shiftR = nums_list[i].shiftR;
+	          var _nums_list$_i = nums_list[_i];
+	          var _note = _nums_list$_i.note;
+	          var _pos = _nums_list$_i.pos;
+	          var _num = _nums_list$_i.num;
+	          var line = _nums_list$_i.line;
+	          var shiftL = _nums_list$_i.shiftL;
+	          var shiftR = _nums_list$_i.shiftR;
 	
 	          // Reset the position of the string number every line.
-	          if (line != last_line || note != last_note) {
-	            num_shiftL = left_shift + shiftL;
-	            num_shiftR = right_shift + shiftR;
+	
+	          if (line !== lastLine || _note !== lastNote) {
+	            numShiftL = left_shift + shiftL;
+	            numShiftR = right_shift + shiftR;
 	          }
 	
-	          var num_width = num.getWidth() + num_spacing;
-	          if (pos == Modifier.Position.LEFT) {
-	            num.setXShift(left_shift + num_shiftL);
-	            num_shift = left_shift + num_width; // spacing
-	            x_widthL = num_shift > x_widthL ? num_shift : x_widthL;
-	          } else if (pos == Modifier.Position.RIGHT) {
-	            num.setXShift(num_shiftR);
-	            num_shift = shift_right + num_width; // spacing
-	            x_widthR = num_shift > x_widthR ? num_shift : x_widthR;
+	          var numWidth = _num.getWidth() + num_spacing;
+	          if (_pos === Modifier.Position.LEFT) {
+	            _num.setXShift(left_shift + numShiftL);
+	            num_shift = left_shift + numWidth; // spacing
+	            xWidthL = num_shift > xWidthL ? num_shift : xWidthL;
+	          } else if (_pos === Modifier.Position.RIGHT) {
+	            _num.setXShift(numShiftR);
+	            num_shift = shiftRight + numWidth; // spacing
+	            xWidthR = num_shift > xWidthR ? num_shift : xWidthR;
 	          }
-	          last_line = line;
-	          last_note = note;
+	          lastLine = line;
+	          lastNote = _note;
 	        }
 	
-	        state.left_shift += x_widthL;
-	        state.right_shift += x_widthR;
+	        state.left_shift += xWidthL;
+	        state.right_shift += xWidthR;
+	
+	        return true;
 	      }
 	    }, {
 	      key: 'CATEGORY',
@@ -17121,7 +17249,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setPosition',
 	      value: function setPosition(position) {
-	        if (position >= Modifier.Position.LEFT && position <= Modifier.Position.BELOW) this.position = position;
+	        if (position >= Modifier.Position.LEFT && position <= Modifier.Position.BELOW) {
+	          this.position = position;
+	        }
 	        return this;
 	      }
 	    }, {
@@ -17142,8 +17272,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw string number without a context.");
-	        if (!(this.note && this.index != null)) throw new Vex$1.RERR('NoAttachedNote', "Can't draw string number without a note and index.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw string number without a context.");
+	        }
+	
+	        if (!this.note || this.index == null) {
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw string number without a note and index.");
+	        }
 	
 	        var ctx = this.context;
 	        var start = this.note.getModifierStartXY(this.position, this.index);
@@ -17165,12 +17300,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          case Modifier.Position.RIGHT:
 	            dot_x += 1;
 	            break;
+	          default:
+	            throw new Vex.RERR('InvalidPostion', 'The position ' + this.position + ' does not exist');
 	        }
 	
 	        ctx.save();
 	        ctx.setFont(this.font.family, this.font.size, this.font.weight);
 	        ctx.fillText('' + this.finger, dot_x, dot_y);
-	
 	        ctx.restore();
 	      }
 	    }]);
@@ -17185,7 +17321,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    createClass(Music, [{
 	      key: 'isValidNoteValue',
 	      value: function isValidNoteValue(note) {
-	        if (note == null || note < 0 || note >= Music.NUM_TONES) return false;
+	        if (note == null || note < 0 || note >= Music.NUM_TONES) {
+	          return false;
+	        }
 	        return true;
 	      }
 	    }, {
@@ -17196,9 +17334,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getNoteParts',
 	      value: function getNoteParts(noteString) {
-	        if (!noteString || noteString.length < 1) throw new Vex$1.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	        if (!noteString || noteString.length < 1) {
+	          throw new Vex.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	        }
 	
-	        if (noteString.length > 3) throw new Vex$1.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	        if (noteString.length > 3) {
+	          throw new Vex.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	        }
 	
 	        var note = noteString.toLowerCase();
 	
@@ -17214,13 +17356,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            accidental: accidental
 	          };
 	        } else {
-	          throw new Vex$1.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	          throw new Vex.RERR('BadArguments', 'Invalid note name: ' + noteString);
 	        }
 	      }
 	    }, {
 	      key: 'getKeyParts',
 	      value: function getKeyParts(keyString) {
-	        if (!keyString || keyString.length < 1) throw new Vex$1.RERR('BadArguments', 'Invalid key: ' + keyString);
+	        if (!keyString || keyString.length < 1) {
+	          throw new Vex.RERR('BadArguments', 'Invalid key: ' + keyString);
+	        }
 	
 	        var key = keyString.toLowerCase();
 	
@@ -17242,14 +17386,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            type: type
 	          };
 	        } else {
-	          throw new Vex$1.RERR('BadArguments', 'Invalid key: ' + keyString);
+	          throw new Vex.RERR('BadArguments', 'Invalid key: ' + keyString);
 	        }
 	      }
 	    }, {
 	      key: 'getNoteValue',
 	      value: function getNoteValue(noteString) {
 	        var value = Music.noteValues[noteString];
-	        if (value == null) throw new Vex$1.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	        if (value == null) {
+	          throw new Vex.RERR('BadArguments', 'Invalid note name: ' + noteString);
+	        }
 	
 	        return value.int_val;
 	      }
@@ -17257,21 +17403,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getIntervalValue',
 	      value: function getIntervalValue(intervalString) {
 	        var value = Music.intervals[intervalString];
-	        if (value == null) throw new Vex$1.RERR('BadArguments', 'Invalid interval name: ' + intervalString);
+	        if (value == null) {
+	          throw new Vex.RERR('BadArguments', 'Invalid interval name: ${intervalString}');
+	        }
 	
 	        return value;
 	      }
 	    }, {
 	      key: 'getCanonicalNoteName',
 	      value: function getCanonicalNoteName(noteValue) {
-	        if (!this.isValidNoteValue(noteValue)) throw new Vex$1.RERR('BadArguments', 'Invalid note value: ' + noteValue);
+	        if (!this.isValidNoteValue(noteValue)) {
+	          throw new Vex.RERR('BadArguments', 'Invalid note value: ' + noteValue);
+	        }
 	
 	        return Music.canonical_notes[noteValue];
 	      }
 	    }, {
 	      key: 'getCanonicalIntervalName',
 	      value: function getCanonicalIntervalName(intervalValue) {
-	        if (!this.isValidIntervalValue(intervalValue)) throw new Vex$1.RERR('BadArguments', 'Invalid interval value: ' + intervalValue);
+	        if (!this.isValidIntervalValue(intervalValue)) {
+	          throw new Vex.RERR('BadArguments', 'Invalid interval value: ' + intervalValue);
+	        }
 	
 	        return Music.diatonic_intervals[intervalValue];
 	      }
@@ -17284,7 +17436,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getRelativeNoteValue',
 	      value: function getRelativeNoteValue(noteValue, intervalValue, direction) {
 	        if (direction == null) direction = 1;
-	        if (direction != 1 && direction != -1) throw new Vex$1.RERR('BadArguments', 'Invalid direction: ' + direction);
+	
+	        if (direction !== 1 && direction !== -1) {
+	          throw new Vex.RERR('BadArguments', 'Invalid direction: ' + direction);
+	        }
 	
 	        var sum = (noteValue + direction * intervalValue) % Music.NUM_TONES;
 	        if (sum < 0) sum += Music.NUM_TONES;
@@ -17306,22 +17461,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var reverse_interval = (noteValue + 1 + (rootValue + 1)) % Music.NUM_TONES * multiplier;
 	
 	          if (Math.abs(reverse_interval) > 2) {
-	            throw new Vex$1.RERR('BadArguments', 'Notes not related: ' + root + ', ' + noteValue);
+	            throw new Vex.RERR('BadArguments', 'Notes not related: ' + root + ', ' + noteValue + ')');
 	          } else {
 	            interval = reverse_interval;
 	          }
 	        }
 	
-	        if (Math.abs(interval) > 2) throw new Vex$1.RERR('BadArguments', 'Notes not related: ' + root + ', ' + noteValue);
+	        if (Math.abs(interval) > 2) {
+	          throw new Vex.RERR('BadArguments', 'Notes not related: ' + root + ', ' + noteValue + ')');
+	        }
 	
 	        var relativeNoteName = parts.root;
-	        var i = void 0;
 	        if (interval > 0) {
-	          for (i = 1; i <= interval; ++i) {
+	          for (var i = 1; i <= interval; ++i) {
 	            relativeNoteName += '#';
 	          }
 	        } else if (interval < 0) {
-	          for (i = -1; i >= interval; --i) {
+	          for (var _i = -1; _i >= interval; --_i) {
 	            relativeNoteName += 'b';
 	          }
 	        }
@@ -17341,13 +17497,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getScaleTones',
 	      value: function getScaleTones(key, intervals) {
-	        var tones = [];
-	        tones.push(key);
+	        var tones = [key];
 	
 	        var nextNote = key;
-	        for (var i = 0; i < intervals.length; ++i) {
+	        for (var i = 0; i < intervals.length; i += 1) {
 	          nextNote = this.getRelativeNoteValue(nextNote, intervals[i]);
-	          if (nextNote != key) tones.push(nextNote);
+	          if (nextNote !== key) tones.push(nextNote);
 	        }
 	
 	        return tones;
@@ -17362,13 +17517,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getIntervalBetween',
 	      value: function getIntervalBetween(note1, note2, direction) {
 	        if (direction == null) direction = 1;
-	        if (direction != 1 && direction != -1) throw new Vex$1.RERR('BadArguments', 'Invalid direction: ' + direction);
-	        if (!this.isValidNoteValue(note1) || !this.isValidNoteValue(note2)) throw new Vex$1.RERR('BadArguments', 'Invalid notes: ' + note1 + ', ' + note2);
 	
-	        var difference = void 0;
-	        if (direction == 1) difference = note2 - note1;else difference = note1 - note2;
+	        if (direction !== 1 && direction !== -1) {
+	          throw new Vex.RERR('BadArguments', 'Invalid direction: ' + direction);
+	        }
+	
+	        if (!this.isValidNoteValue(note1) || !this.isValidNoteValue(note2)) {
+	          throw new Vex.RERR('BadArguments', 'Invalid notes: ' + note1 + ', ' + note2);
+	        }
+	
+	        var difference = direction === 1 ? note2 - note1 : note1 - note2;
 	
 	        if (difference < 0) difference += Music.NUM_TONES;
+	
 	        return difference;
 	      }
 	
@@ -17386,7 +17547,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var keySigString = keySigParts.root;
 	        if (keySigParts.accidental) keySigString += keySigParts.accidental;
 	
-	        if (!scaleName) throw new Vex$1.RERR('BadArguments', 'Unsupported key type: ' + keySignature);
+	        if (!scaleName) throw new Vex.RERR('BadArguments', 'Unsupported key type: ' + keySignature);
 	
 	        var scale = this.getScaleTones(this.getNoteValue(keySigString), scaleName);
 	        var noteLocation = Music.root_indices[keySigParts.root];
@@ -17563,7 +17724,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (Accidental.DEBUG) Vex$1.L('Vex.Flow.Accidental', args);
+	    if (Accidental.DEBUG) Vex.L('Vex.Flow.Accidental', args);
 	  }
 	
 	  // An `Accidental` inherits from `Modifier`, and is formatted within a
@@ -18011,7 +18172,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      _this.accidental = Flow.accidentalCodes(_this.type);
 	      if (!_this.accidental) {
-	        throw new Vex$1.RERR('ArgumentError', 'Unknown accidental type: ' + type);
+	        throw new Vex.RERR('ArgumentError', 'Unknown accidental type: ' + type);
 	      }
 	
 	      // Cautionary accidentals have parentheses around them
@@ -18036,7 +18197,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'setNote',
 	      value: function setNote(note) {
 	        if (!note) {
-	          throw new Vex$1.RERR('ArgumentError', 'Bad note value: ' + note);
+	          throw new Vex.RERR('ArgumentError', 'Bad note value: ' + note);
 	        }
 	
 	        this.note = note;
@@ -18086,11 +18247,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        if (!context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw accidental without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw accidental without a context.");
 	        }
 	
 	        if (!(note && index != null)) {
-	          throw new Vex$1.RERR('NoAttachedNote', "Can't draw accidental without a note and index.");
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw accidental without a note and index.");
 	        }
 	
 	        // Figure out the start `x` and `y` coordinates for note and index.
@@ -18210,13 +18371,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this2 = this;
 	
 	        if (!this.context) {
-	          throw new Vex$1.RuntimeError('NoContext', "Can't draw notes without a context.");
+	          throw new Vex.RuntimeError('NoContext', "Can't draw notes without a context.");
 	        }
 	
 	        var note = this.getNote();
 	
 	        if (!(note && this.index !== null)) {
-	          throw new Vex$1.RuntimeError('NoAttachedNote', "Can't draw notes without a parent note and parent note index.");
+	          throw new Vex.RuntimeError('NoAttachedNote', "Can't draw notes without a parent note and parent note index.");
 	        }
 	
 	        var alignSubNotesWithNote = function alignSubNotesWithNote(subNotes, note) {
@@ -18304,12 +18465,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setNotes',
 	      value: function setNotes(notes) {
-	        if (!notes.first_note && !notes.last_note) throw new Vex$1.RuntimeError('BadArguments', 'Tie needs to have either first_note or last_note set.');
+	        if (!notes.first_note && !notes.last_note) {
+	          throw new Vex.RuntimeError('BadArguments', 'Tie needs to have either first_note or last_note set.');
+	        }
 	
 	        if (!notes.first_indices) notes.first_indices = [0];
 	        if (!notes.last_indices) notes.last_indices = [0];
 	
-	        if (notes.first_indices.length != notes.last_indices.length) throw new Vex$1.RuntimeError('BadArguments', 'Tied notes must have similar' + ' index sizes');
+	        if (notes.first_indices.length !== notes.last_indices.length) {
+	          throw new Vex.RuntimeError('BadArguments', 'Tied notes must have similar index sizes');
+	        }
 	
 	        // Success. Lets grab 'em notes.
 	        this.first_note = notes.first_note;
@@ -18331,7 +18496,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'renderTie',
 	      value: function renderTie(params) {
-	        if (params.first_ys.length === 0 || params.last_ys.length === 0) throw new Vex$1.RERR('BadArguments', 'No Y-values to render');
+	        if (params.first_ys.length === 0 || params.last_ys.length === 0) {
+	          throw new Vex.RERR('BadArguments', 'No Y-values to render');
+	        }
 	
 	        var ctx = this.context;
 	        var cp1 = this.render_options.cp1;
@@ -18350,7 +18517,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var first_y_px = params.first_ys[this.first_indices[i]] + y_shift;
 	          var last_y_px = params.last_ys[this.last_indices[i]] + y_shift;
 	
-	          if (isNaN(first_y_px) || isNaN(last_y_px)) throw new Vex$1.RERR('BadArguments', 'Bad indices for tie rendering.');
+	          if (isNaN(first_y_px) || isNaN(last_y_px)) {
+	            throw new Vex.RERR('BadArguments', 'Bad indices for tie rendering.');
+	          }
 	
 	          var top_cp_y = (first_y_px + last_y_px) / 2 + cp1 * params.direction;
 	          var bottom_cp_y = (first_y_px + last_y_px) / 2 + cp2 * params.direction;
@@ -18359,7 +18528,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          ctx.moveTo(params.first_x_px + first_x_shift, first_y_px);
 	          ctx.quadraticCurveTo(cp_x, top_cp_y, params.last_x_px + last_x_shift, last_y_px);
 	          ctx.quadraticCurveTo(cp_x, bottom_cp_y, params.first_x_px + first_x_shift, first_y_px);
-	
 	          ctx.closePath();
 	          ctx.fill();
 	        }
@@ -18379,15 +18547,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', 'No context to render tie.');
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', 'No context to render tie.');
+	        }
 	        var first_note = this.first_note;
 	        var last_note = this.last_note;
-	        var first_x_px = void 0,
-	            last_x_px = void 0,
-	            first_ys = void 0,
-	            last_ys = void 0,
-	            stem_direction = void 0;
 	
+	        var first_x_px = void 0;
+	        var last_x_px = void 0;
+	        var first_ys = void 0;
+	        var last_ys = void 0;
+	        var stem_direction = void 0;
 	        if (first_note) {
 	          first_x_px = first_note.getTieRightX() + this.render_options.tie_spacing;
 	          stem_direction = first_note.getStemDirection();
@@ -18427,6 +18597,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return StaveTie;
 	  }();
 	
+	  // To enable logging for this class. Set `Vex.Flow.GraceNoteGroup.DEBUG` to `true`.
+	  function L$8() {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (GraceNoteGroup.DEBUG) Vex.L('Vex.Flow.GraceNoteGroup', args);
+	  }
+	
 	  var GraceNoteGroup = function (_Modifier) {
 	    inherits(GraceNoteGroup, _Modifier);
 	    createClass(GraceNoteGroup, null, [{
@@ -18440,27 +18619,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!gracenote_groups || gracenote_groups.length === 0) return false;
 	
 	        var group_list = [];
-	        var hasStave = false;
 	        var prev_note = null;
 	        var shiftL = 0;
 	
-	        var i = void 0,
-	            gracenote_group = void 0,
-	            props_tmp = void 0;
-	        for (i = 0; i < gracenote_groups.length; ++i) {
-	          gracenote_group = gracenote_groups[i];
+	        for (var i = 0; i < gracenote_groups.length; ++i) {
+	          var gracenote_group = gracenote_groups[i];
 	          var note = gracenote_group.getNote();
 	          var stave = note.getStave();
-	          if (note != prev_note) {
+	          if (note !== prev_note) {
 	            // Iterate through all notes to get the displaced pixels
 	            for (var n = 0; n < note.keys.length; ++n) {
-	              props_tmp = note.getKeyProps()[n];
+	              var props_tmp = note.getKeyProps()[n];
 	              shiftL = props_tmp.displaced ? note.getExtraLeftPx() : shiftL;
 	            }
 	            prev_note = note;
 	          }
 	          if (stave != null) {
-	            hasStave = true;
 	            group_list.push({ shift: shiftL, gracenote_group: gracenote_group });
 	          } else {
 	            group_list.push({ shift: shiftL, gracenote_group: gracenote_group });
@@ -18470,17 +18644,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // If first note left shift in case it is displaced
 	        var group_shift = group_list[0].shift;
 	        var formatWidth = void 0;
-	        for (i = 0; i < group_list.length; ++i) {
-	          gracenote_group = group_list[i].gracenote_group;
-	          gracenote_group.preFormat();
-	          formatWidth = gracenote_group.getWidth() + gracenote_spacing;
+	        for (var _i = 0; _i < group_list.length; ++_i) {
+	          var _gracenote_group = group_list[_i].gracenote_group;
+	          _gracenote_group.preFormat();
+	          formatWidth = _gracenote_group.getWidth() + gracenote_spacing;
 	          group_shift = Math.max(formatWidth, group_shift);
 	        }
 	
-	        for (i = 0; i < group_list.length; ++i) {
-	          gracenote_group = group_list[i].gracenote_group;
-	          formatWidth = gracenote_group.getWidth() + gracenote_spacing;
-	          gracenote_group.setSpacingFromNextModifier(group_shift - Math.min(formatWidth, group_shift));
+	        for (var _i2 = 0; _i2 < group_list.length; ++_i2) {
+	          var _gracenote_group2 = group_list[_i2].gracenote_group;
+	          formatWidth = _gracenote_group2.getWidth() + gracenote_spacing;
+	          _gracenote_group2.setSpacingFromNextModifier(group_shift - Math.min(formatWidth, group_shift));
 	        }
 	
 	        state.left_shift += group_shift;
@@ -18575,8 +18749,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
+	        var _this2 = this;
+	
 	        if (!this.context) {
-	          throw new Vex$1.RuntimeError('NoContext', "Can't draw Grace note without a context.");
+	          throw new Vex.RuntimeError('NoContext', "Can't draw Grace note without a context.");
 	        }
 	
 	        var note = this.getNote();
@@ -18584,16 +18760,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        L$8('Drawing grace note group for:', note);
 	
 	        if (!(note && this.index !== null)) {
-	          throw new Vex$1.RuntimeError('NoAttachedNote', "Can't draw grace note without a parent note and parent note index.");
+	          throw new Vex.RuntimeError('NoAttachedNote', "Can't draw grace note without a parent note and parent note index.");
 	        }
 	
 	        var that = this;
-	        function alignGraceNotesWithNote(grace_notes, note, groupWidth) {
+	        function alignGraceNotesWithNote(grace_notes, note) {
 	          // Shift over the tick contexts of each note
 	          // So that th aligned with the note
 	          var tickContext = note.getTickContext();
 	          var extraPx = tickContext.getExtraPx();
 	          var x = tickContext.getX() - extraPx.left - extraPx.extraLeft + that.getSpacingFromNextModifier();
+	
 	          grace_notes.forEach(function (graceNote) {
 	            var tick_context = graceNote.getTickContext();
 	            var x_offset = tick_context.getX();
@@ -18606,8 +18783,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // Draw notes
 	        this.grace_notes.forEach(function (graceNote) {
-	          graceNote.setContext(this.context).draw();
-	        }, this);
+	          graceNote.setContext(_this2.context).draw();
+	        });
 	
 	        // Draw beam
 	        if (this.beam) {
@@ -18631,11 +18808,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return GraceNoteGroup;
 	  }(Modifier);
 	
-	  // To enable logging for this class. Set `Vex.Flow.GraceNoteGroup.DEBUG` to `true`.
-	  function L$8() {
-	    if (GraceNoteGroup.DEBUG) Vex$1.L('Vex.Flow.GraceNoteGroup', arguments);
-	  }
-	
 	  var Stroke = function (_Modifier) {
 	    inherits(Stroke, _Modifier);
 	    createClass(Stroke, null, [{
@@ -18649,37 +18821,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        if (!strokes || strokes.length === 0) return this;
 	
-	        var str_list = [];
-	        var i = void 0,
-	            str = void 0,
-	            shift = void 0;
-	        for (i = 0; i < strokes.length; ++i) {
-	          str = strokes[i];
-	          var note = str.getNote();
-	          var props = void 0;
+	        var strokeList = strokes.map(function (stroke) {
+	          var note = stroke.getNote();
 	          if (note instanceof StaveNote) {
-	            props = note.getKeyProps()[str.getIndex()];
-	            shift = props.displaced ? note.getExtraLeftPx() : 0;
-	            str_list.push({ line: props.line, shift: shift, str: str });
-	          } else {
-	            props = note.getPositions()[str.getIndex()];
-	            str_list.push({ line: props.str, shift: 0, str: str });
-	          }
-	        }
+	            var _note$getKeyProps$str = note.getKeyProps()[stroke.getIndex()];
+	            var line = _note$getKeyProps$str.line;
+	            var displaced = _note$getKeyProps$str.displaced;
 	
-	        var str_shift = left_shift;
-	        var x_shift = 0;
+	            var shift = displaced ? note.getExtraLeftPx() : 0;
+	            return { line: line, shift: shift, stroke: stroke };
+	          } else {
+	            var string = note.getPositions()[stroke.getIndex()].str;
+	
+	            return { line: string, shift: 0, stroke: stroke };
+	          }
+	        });
+	
+	        var strokeShift = left_shift;
 	
 	        // There can only be one stroke .. if more than one, they overlay each other
-	        for (i = 0; i < str_list.length; ++i) {
-	          str = str_list[i].str;
-	          shift = str_list[i].shift;
+	        var xShift = strokeList.reduce(function (xShift, _ref) {
+	          var stroke = _ref.stroke;
+	          var shift = _ref.shift;
 	
-	          str.setXShift(str_shift + shift);
-	          x_shift = Math.max(str.getWidth() + stroke_spacing, x_shift);
-	        }
+	          stroke.setXShift(strokeShift + shift);
+	          return Math.max(stroke.getWidth() + stroke_spacing, xShift);
+	        }, 0);
 	
-	        state.left_shift += x_shift;
+	        state.left_shift += xShift;
 	        return true;
 	      }
 	    }, {
@@ -18707,7 +18876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _this = possibleConstructorReturn(this, Object.getPrototypeOf(Stroke).call(this));
 	
 	      _this.note = null;
-	      _this.options = Vex$1.Merge({}, options);
+	      _this.options = Vex.Merge({}, options);
 	
 	      // multi voice - span stroke across all voices if true
 	      _this.all_voices = 'all_voices' in _this.options ? _this.options.all_voices : true;
@@ -18753,8 +18922,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw stroke without a context.");
-	        if (!(this.note && this.index != null)) throw new Vex$1.RERR('NoAttachedNote', "Can't draw stroke without a note and index.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw stroke without a context.");
+	        }
+	
+	        if (!(this.note && this.index != null)) {
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw stroke without a note and index.");
+	        }
+	
 	        var start = this.note.getModifierStartXY(this.position, this.index);
 	        var ys = this.note.getYs();
 	        var topY = start.y;
@@ -18763,22 +18938,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var line_space = this.note.stave.options.spacing_between_lines_px;
 	
 	        var notes = this.getModifierContext().getModifiers(this.note.getCategory());
-	        var i = void 0;
-	        for (i = 0; i < notes.length; i++) {
+	        for (var i = 0; i < notes.length; i++) {
 	          ys = notes[i].getYs();
 	          for (var n = 0; n < ys.length; n++) {
-	            if (this.note == notes[i] || this.all_voices) {
-	              topY = Vex$1.Min(topY, ys[n]);
-	              botY = Vex$1.Max(botY, ys[n]);
+	            if (this.note === notes[i] || this.all_voices) {
+	              topY = Vex.Min(topY, ys[n]);
+	              botY = Vex.Max(botY, ys[n]);
 	            }
 	          }
 	        }
 	
-	        var arrow = void 0,
-	            arrow_shift_x = void 0,
-	            arrow_y = void 0,
-	            text_shift_x = void 0,
-	            text_y = void 0;
+	        var arrow = void 0;
+	        var arrow_shift_x = void 0;
+	        var arrow_y = void 0;
+	        var text_shift_x = void 0;
+	        var text_y = void 0;
 	        switch (this.type) {
 	          case Stroke.Type.BRUSH_DOWN:
 	            arrow = 'vc3';
@@ -18833,21 +19007,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	              text_y = topY - line_space;
 	            }
 	            break;
+	          default:
+	            throw new Vex.RERR('InvalidType', 'The stroke type ' + this.type + ' does not exist');
 	        }
 	
 	        // Draw the stroke
-	        if (this.type == Stroke.Type.BRUSH_DOWN || this.type == Stroke.Type.BRUSH_UP) {
+	        if (this.type === Stroke.Type.BRUSH_DOWN || this.type === Stroke.Type.BRUSH_UP) {
 	          this.context.fillRect(x + this.x_shift, topY, 1, botY - topY);
 	        } else {
 	          if (this.note instanceof StaveNote) {
-	            for (i = topY; i <= botY; i += line_space) {
-	              Glyph.renderGlyph(this.context, x + this.x_shift - 4, i, this.render_options.font_scale, 'va3');
+	            for (var _i = topY; _i <= botY; _i += line_space) {
+	              Glyph.renderGlyph(this.context, x + this.x_shift - 4, _i, this.render_options.font_scale, 'va3');
 	            }
 	          } else {
-	            for (i = topY; i <= botY; i += 10) {
-	              Glyph.renderGlyph(this.context, x + this.x_shift - 4, i, this.render_options.font_scale, 'va3');
+	            var _i2 = void 0;
+	            for (_i2 = topY; _i2 <= botY; _i2 += 10) {
+	              Glyph.renderGlyph(this.context, x + this.x_shift - 4, _i2, this.render_options.font_scale, 'va3');
 	            }
-	            if (this.type == Stroke.Type.RASQUEDO_DOWN) text_y = i + 0.25 * line_space;
+	            if (this.type === Stroke.Type.RASQUEDO_DOWN) {
+	              text_y = _i2 + 0.25 * line_space;
+	            }
 	          }
 	        }
 	
@@ -18855,7 +19034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        Glyph.renderGlyph(this.context, x + this.x_shift + arrow_shift_x, arrow_y, this.render_options.font_scale, arrow);
 	
 	        // Draw the rasquedo "R"
-	        if (this.type == Stroke.Type.RASQUEDO_DOWN || this.type == Stroke.Type.RASQUEDO_UP) {
+	        if (this.type === Stroke.Type.RASQUEDO_DOWN || this.type === Stroke.Type.RASQUEDO_UP) {
 	          this.context.save();
 	          this.context.setFont(this.font.family, this.font.size, this.font.weight);
 	          this.context.fillText('R', x + text_shift_x, text_y);
@@ -19078,10 +19257,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw string number without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw string number without a context.");
 	        }
 	        if (!(this.note && this.index != null)) {
-	          throw new Vex$1.RERR('NoAttachedNote', "Can't draw string number without a note and index.");
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw string number without a note and index.");
 	        }
 	
 	        var ctx = this.context;
@@ -19120,7 +19299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            dot_x += this.radius / 2 + 6;
 	            break;
 	          default:
-	            throw new Vex$1.RERR('InvalidPosition', 'The position ' + this.position + ' is invalid');
+	            throw new Vex.RERR('InvalidPosition', 'The position ' + this.position + ' is invalid');
 	        }
 	
 	        ctx.save();
@@ -19173,7 +19352,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (Articulation.DEBUG) Vex$1.L('Vex.Flow.Articulation', args);
+	    if (Articulation.DEBUG) Vex.L('Vex.Flow.Articulation', args);
 	  }
 	
 	  var Articulation = function (_Modifier) {
@@ -19233,7 +19412,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      _this.articulation = Flow.articulationCodes(_this.type);
 	      if (!_this.articulation) {
-	        throw new Vex$1.RERR('ArgumentError', "Articulation not found: '" + _this.type + "'");
+	        throw new Vex.RERR('ArgumentError', "Articulation not found: '" + _this.type + "'");
 	      }
 	
 	      // Default width comes from articulation table.
@@ -19253,10 +19432,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw Articulation without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw Articulation without a context.");
 	        }
 	        if (!(this.note && this.index !== null)) {
-	          throw new Vex$1.RERR('NoAttachedNote', "Can't draw Articulation without a note and index.");
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw Articulation without a note and index.");
 	        }
 	
 	        var stem_direction = this.note.getStemDirection();
@@ -19496,14 +19675,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            right_shift = Math.max(right_shift, mContext.state.right_shift);
 	          }
 	        }
-	        return { left: left_shift, right: right_shift,
-	          extraLeft: extraLeftPx, extraRight: extraRightPx };
+	        return {
+	          left: left_shift,
+	          right: right_shift,
+	          extraLeft: extraLeftPx,
+	          extraRight: extraRightPx
+	        };
 	      }
 	    }, {
 	      key: 'addTickable',
 	      value: function addTickable(tickable) {
 	        if (!tickable) {
-	          throw new Vex$1.RERR('BadArgument', 'Invalid tickable added.');
+	          throw new Vex.RERR('BadArgument', 'Invalid tickable added.');
 	        }
 	
 	        if (!tickable.shouldIgnoreTicks()) {
@@ -19530,7 +19713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'preFormat',
 	      value: function preFormat() {
-	        if (this.preFormatted) return;
+	        if (this.preFormatted) return this;
 	
 	        for (var i = 0; i < this.tickables.length; ++i) {
 	          var tickable = this.tickables[i];
@@ -19563,7 +19746,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.Ornament.DEBUG` to `true`.
 	  function L$10() {
-	    if (Ornament.DEBUG) Vex$1.L('Vex.Flow.Ornament', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (Ornament.DEBUG) Vex.L('Vex.Flow.Ornament', args);
 	  }
 	
 	  // Accidental position modifications for each glyph
@@ -19718,7 +19905,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	
 	      _this.ornament = Flow.ornamentCodes(_this.type);
-	      if (!_this.ornament) throw new Vex$1.RERR('ArgumentError', "Ornament not found: '" + _this.type + "'");
+	      if (!_this.ornament) {
+	        throw new Vex.RERR('ArgumentError', 'Ornament not found: \'' + _this.type + '\'');
+	      }
 	
 	      // Default width comes from ornament table.
 	      _this.setWidth(_this.ornament.width);
@@ -19762,8 +19951,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw Ornament without a context.");
-	        if (!(this.note && this.index !== null)) throw new Vex$1.RERR('NoAttachedNote', "Can't draw Ornament without a note and index.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw Ornament without a context.");
+	        }
+	
+	        if (!this.note || this.index == null) {
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw Ornament without a note and index.");
+	        }
 	
 	        var ctx = this.context;
 	        var stem_direction = this.note.getStemDirection();
@@ -19771,14 +19965,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // Get stem extents
 	        var stem_ext = this.note.getStem().getExtents();
-	        var top = void 0,
-	            bottom = void 0;
+	        var top = void 0;
 	        if (stem_direction === StaveNote.STEM_DOWN) {
 	          top = stem_ext.baseY;
-	          bottom = stem_ext.topY;
 	        } else {
 	          top = stem_ext.topY;
-	          bottom = stem_ext.baseY;
 	        }
 	
 	        // TabNotes don't have stems attached to them. Tab stems are rendered
@@ -19786,15 +19977,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var is_tabnote = this.note.getCategory() === 'tabnotes';
 	        if (is_tabnote) {
 	          if (this.note.hasStem()) {
-	            if (stem_direction === StaveNote.STEM_UP) {
-	              bottom = stave.getYForBottomText(this.text_line - 2);
-	            } else if (stem_direction === StaveNote.STEM_DOWN) {
+	            if (stem_direction === StaveNote.STEM_DOWN) {
 	              top = stave.getYForTopText(this.text_line - 1.5);
 	            }
 	          } else {
 	            // Without a stem
 	            top = stave.getYForTopText(this.text_line - 1);
-	            bottom = stave.getYForBottomText(this.text_line - 2);
 	          }
 	        }
 	
@@ -19829,6 +20017,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var ornament = this;
 	        function drawAccidental(ctx, code, upper) {
+	          var mods = acc_mods[code];
 	          var accidental = Flow.accidentalCodes(code);
 	
 	          var acc_x = glyph_x - 3;
@@ -19843,7 +20032,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          // Fine tune position of accidental glyph
-	          var mods = acc_mods[code];
 	          if (mods) {
 	            acc_x += mods.shift_x;
 	            acc_y += upper ? mods.shift_y_upper : mods.shift_y_lower;
@@ -19883,7 +20071,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (Annotation.DEBUG) Vex$1.L('Vex.Flow.Annotation', args);
+	    if (Annotation.DEBUG) Vex.L('Vex.Flow.Annotation', args);
 	  }
 	
 	  var Annotation = function (_Modifier) {
@@ -20017,10 +20205,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw text annotation without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw text annotation without a context.");
 	        }
 	        if (!this.note) {
-	          throw new Vex$1.RERR('NoNoteForAnnotation', "Can't draw text annotation without an attached note.");
+	          throw new Vex.RERR('NoNoteForAnnotation', "Can't draw text annotation without an attached note.");
 	        }
 	
 	        var start = this.note.getModifierStartXY(Modifier.Position.ABOVE, this.index);
@@ -20242,7 +20430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          } else {
 	            var additional_width = bend.type === Bend.UP ? this.render_options.bend_width : this.render_options.release_width;
 	
-	            bend.width = Vex$1.Max(additional_width, measure_text(bend.text)) + 3;
+	            bend.width = Vex.Max(additional_width, measure_text(bend.text)) + 3;
 	            bend.draw_width = bend.width / 2;
 	            total_width += bend.width;
 	          }
@@ -20255,10 +20443,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw bend without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw bend without a context.");
 	        }
 	        if (!(this.note && this.index != null)) {
-	          throw new Vex$1.RERR('NoNoteForBend', "Can't draw bend without a note or index.");
+	          throw new Vex.RERR('NoNoteForBend', "Can't draw bend without a note or index.");
 	        }
 	
 	        var start = this.note.getModifierStartXY(Modifier.Position.RIGHT, this.index);
@@ -20453,11 +20641,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this2 = this;
 	
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw vibrato without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw vibrato without a context.");
 	        }
 	
 	        if (!this.note) {
-	          throw new Vex$1.RERR('NoNoteForVibrato', "Can't draw vibrato without an attached note.");
+	          throw new Vex.RERR('NoNoteForVibrato', "Can't draw vibrato without an attached note.");
 	        }
 	
 	        var start = this.note.getModifierStartXY(Modifier.Position.RIGHT, this.index);
@@ -20525,7 +20713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (ModifierContext.DEBUG) Vex$1.L('Vex.Flow.ModifierContext', args);
+	    if (ModifierContext.DEBUG) Vex.L('Vex.Flow.ModifierContext', args);
 	  }
 	
 	  var ModifierContext = function () {
@@ -20594,7 +20782,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getMetrics',
 	      value: function getMetrics() {
 	        if (!this.formatted) {
-	          throw new Vex$1.RERR('UnformattedModifier', 'Unformatted modifier has no metrics.');
+	          throw new Vex.RERR('UnformattedModifier', 'Unformatted modifier has no metrics.');
 	        }
 	
 	        return {
@@ -20640,7 +20828,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (Formatter.DEBUG) Vex$1.L('Vex.Flow.Formatter', args);
+	    if (Formatter.DEBUG) Vex.L('Vex.Flow.Formatter', args);
 	  }
 	
 	  // Helper function to locate the next non-rest note(s).
@@ -20661,7 +20849,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (compare && restLine !== nextRestLine) {
 	      var top = Math.max(restLine, nextRestLine);
 	      var bot = Math.min(restLine, nextRestLine);
-	      nextRestLine = Vex$1.MidLine(top, bot);
+	      nextRestLine = Vex.MidLine(top, bot);
 	    }
 	    return nextRestLine;
 	  }
@@ -20676,7 +20864,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // * `addToContext`: Function to add tickable to context.
 	  function createContexts(voices, ContextType, addToContext) {
 	    if (!voices || !voices.length) {
-	      throw new Vex$1.RERR('BadArgument', 'No voices to format');
+	      throw new Vex.RERR('BadArgument', 'No voices to format');
 	    }
 	
 	    // Find out highest common multiple of resolution multipliers.
@@ -20687,11 +20875,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var totalTicks = voices[0].getTotalTicks();
 	    var resolutionMultiplier = voices.reduce(function (resolutionMultiplier, voice) {
 	      if (!voice.getTotalTicks().equals(totalTicks)) {
-	        throw new Vex$1.RERR('TickMismatch', 'Voices should have same total note duration in ticks.');
+	        throw new Vex.RERR('TickMismatch', 'Voices should have same total note duration in ticks.');
 	      }
 	
 	      if (voice.getMode() === Voice.Mode.STRICT && !voice.isComplete()) {
-	        throw new Vex$1.RERR('IncompleteVoice', 'Voice does not have enough notes.');
+	        throw new Vex.RERR('IncompleteVoice', 'Voice does not have enough notes.');
 	      }
 	
 	      return Math.max(resolutionMultiplier, Fraction.LCM(resolutionMultiplier, voice.getResolutionMultiplier()));
@@ -20732,7 +20920,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return {
 	      map: tickToContextMap,
 	      array: contexts,
-	      list: Vex$1.SortAndUnique(tickList, function (a, b) {
+	      list: Vex.SortAndUnique(tickList, function (a, b) {
 	        return a - b;
 	      }, function (a, b) {
 	        return a === b;
@@ -20769,7 +20957,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	
 	        if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) === 'object') {
-	          Vex$1.Merge(options, params);
+	          Vex.Merge(options, params);
 	        } else if (typeof params === 'boolean') {
 	          options.auto_beam = params;
 	        }
@@ -20816,7 +21004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	
 	        if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) === 'object') {
-	          Vex$1.Merge(opts, params);
+	          Vex.Merge(opts, params);
 	        } else if (typeof params === 'boolean') {
 	          opts.auto_beam = params;
 	        }
@@ -20918,7 +21106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'alignRests',
 	      value: function alignRests(voices, alignAllNotes) {
 	        if (!voices || !voices.length) {
-	          throw new Vex$1.RERR('BadArgument', 'No voices to format rests');
+	          throw new Vex.RERR('BadArgument', 'No voices to format rests');
 	        }
 	
 	        voices.forEach(function (voice) {
@@ -20937,7 +21125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Create tick contexts if not already created.
 	        if (!this.tickContexts) {
 	          if (!voices) {
-	            throw new Vex$1.RERR('BadArgument', "'voices' required to run preCalculateMinTotalWidth");
+	            throw new Vex.RERR('BadArgument', "'voices' required to run preCalculateMinTotalWidth");
 	          }
 	
 	          this.createTickContexts(voices);
@@ -20969,7 +21157,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getMinTotalWidth',
 	      value: function getMinTotalWidth() {
 	        if (!this.hasMinTotalWidth) {
-	          throw new Vex$1.RERR('NoMinTotalWidth', "Call 'preCalculateMinTotalWidth' or 'preFormat' before calling 'getMinTotalWidth'");
+	          throw new Vex.RERR('NoMinTotalWidth', "Call 'preCalculateMinTotalWidth' or 'preFormat' before calling 'getMinTotalWidth'");
 	        }
 	
 	        return this.minTotalWidth;
@@ -21197,7 +21385,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          stave: null
 	        };
 	
-	        Vex$1.Merge(opts, options);
+	        Vex.Merge(opts, options);
 	        this.alignRests(voices, opts.align_rests);
 	        this.createTickContexts(voices);
 	        this.preFormat(justifyWidth, opts.context, voices, opts.stave);
@@ -21217,7 +21405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var justifyWidth = stave.getNoteEndX() - stave.getNoteStartX() - 10;
 	        L('Formatting voices to width: ', justifyWidth);
 	        var opts = { context: stave.getContext() };
-	        Vex$1.Merge(opts, options);
+	        Vex.Merge(opts, options);
 	        return this.format(voices, justifyWidth, opts);
 	      }
 	    }]);
@@ -21445,16 +21633,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawVerticalBar',
 	      value: function drawVerticalBar(stave, x, double_bar) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
+	
 	        var topY = stave.getYForLine(0);
 	        var botY = stave.getYForLine(stave.getNumLines() - 1) + this.thickness;
-	        if (double_bar) stave.context.fillRect(x - 3, topY, 1, botY - topY);
+	        if (double_bar) {
+	          stave.context.fillRect(x - 3, topY, 1, botY - topY);
+	        }
 	        stave.context.fillRect(x, topY, 1, botY - topY);
 	      }
 	    }, {
 	      key: 'drawVerticalEndBar',
 	      value: function drawVerticalEndBar(stave, x) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
 	
 	        var topY = stave.getYForLine(0);
 	        var botY = stave.getYForLine(stave.getNumLines() - 1) + this.thickness;
@@ -21464,7 +21659,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawRepeatBar',
 	      value: function drawRepeatBar(stave, x, begin) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
 	
 	        var topY = stave.getYForLine(0);
 	        var botY = stave.getYForLine(stave.getNumLines() - 1) + this.thickness;
@@ -21612,7 +21809,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawCodaFixed',
 	      value: function drawCodaFixed(stave, x) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
 	
 	        var y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
 	        Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y + 25, 40, 'v4d', true);
@@ -21621,7 +21820,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawSignoFixed',
 	      value: function drawSignoFixed(stave, x) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
+	
 	        var y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
 	        Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y + 25, 30, 'v8c', true);
 	        return this;
@@ -21629,7 +21831,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawSymbolText',
 	      value: function drawSymbolText(stave, x, text, draw_coda) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
 	
 	        var ctx = stave.context;
 	        ctx.save();
@@ -21637,7 +21841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Default to right symbol
 	        var text_x = 0 + this.x_shift;
 	        var symbol_x = x + this.x_shift;
-	        if (this.symbol_type == Repetition.type.CODA_LEFT) {
+	        if (this.symbol_type === Repetition.type.CODA_LEFT) {
 	          // Offset Coda text to right of stave beginning
 	          text_x = this.x + stave.options.vertical_bar_width;
 	          symbol_x = text_x + ctx.measureText(text).width + 12;
@@ -21646,6 +21850,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          symbol_x = this.x + x + stave.width - 5 + this.x_shift;
 	          text_x = symbol_x - +ctx.measureText(text).width - 12;
 	        }
+	
 	        var y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
 	        if (draw_coda) {
 	          Glyph.renderGlyph(ctx, symbol_x, y, 40, 'v4d', true);
@@ -21710,7 +21915,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw(stave, shift_x) {
-	        if (!stave.context) throw new Vex$1.RERR('NoContext', "Can't draw stave section without a context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw stave section without a context.");
+	        }
 	
 	        var ctx = stave.context;
 	
@@ -21789,7 +21996,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw(stave, shift_x) {
-	        if (!stave.context) throw new Vex$1.RERR('NoContext', "Can't draw stave tempo without a context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw stave tempo without a context.");
+	        }
 	
 	        var options = this.render_options;
 	        var scale = options.glyph_font_scale / 38;
@@ -22026,11 +22235,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // measure the length of text is with `canvasContext.measureText()`
 	      if (_this.glyph_type) {
 	        var struct = TextNote.GLYPHS[_this.glyph_type];
-	        if (!struct) throw new Vex$1.RERR('Invalid glyph type: ' + _this.glyph_type);
+	        if (!struct) throw new Vex.RERR('Invalid glyph type: ' + _this.glyph_type);
 	
 	        _this.glyph = new Glyph(struct.code, struct.point, { cache: false });
 	
-	        if (struct.width) _this.setWidth(struct.width);else _this.setWidth(_this.glyph.getMetrics().width);
+	        if (struct.width) {
+	          _this.setWidth(struct.width);
+	        } else {
+	          _this.setWidth(_this.glyph.getMetrics().width);
+	        }
 	
 	        _this.glyph_struct = struct;
 	      } else {
@@ -22067,7 +22280,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'preFormat',
 	      value: function preFormat() {
-	        if (!this.context) throw new Vex$1.RERR('NoRenderContext', "Can't measure text without rendering context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoRenderContext', "Can't measure text without rendering context.");
+	        }
+	
 	        if (this.preFormatted) return;
 	
 	        if (this.smooth) {
@@ -22080,9 +22296,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	
-	        if (this.justification == TextNote.Justification.CENTER) {
+	        if (this.justification === TextNote.Justification.CENTER) {
 	          this.extraLeftPx = this.width / 2;
-	        } else if (this.justification == TextNote.Justification.RIGHT) {
+	        } else if (this.justification === TextNote.Justification.RIGHT) {
 	          this.extraLeftPx = this.width;
 	        }
 	
@@ -22094,14 +22310,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
+	
+	        if (!this.stave) {
+	          throw new Vex.RERR('NoStave', "Can't draw without a stave.");
+	        }
 	
 	        var ctx = this.context;
 	        var x = this.getAbsoluteX();
-	        if (this.justification == TextNote.Justification.CENTER) {
+	        if (this.justification === TextNote.Justification.CENTER) {
 	          x -= this.getWidth() / 2;
-	        } else if (this.justification == TextNote.Justification.RIGHT) {
+	        } else if (this.justification === TextNote.Justification.RIGHT) {
 	          x -= this.getWidth();
 	        }
 	
@@ -22161,7 +22382,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        shift_y: 0,
 	        justification: TextNote.Justification.CENTER
 	      };
-	      Vex$1.Merge(_this.options, options);
+	      Vex.Merge(_this.options, options);
 	
 	      _this.font = {
 	        family: 'times',
@@ -22194,7 +22415,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setFont',
 	      value: function setFont(font) {
-	        Vex$1.Merge(this.font, font);
+	        Vex.Merge(this.font, font);
 	      }
 	    }, {
 	      key: 'setText',
@@ -22204,7 +22425,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw(stave) {
-	        if (!stave.context) throw new Vex$1.RERR('NoContext', "Can't draw stave text without a context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw stave text without a context.");
+	        }
 	
 	        var ctx = stave.context;
 	
@@ -22213,14 +22436,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        ctx.setFont(this.font.family, this.font.size, this.font.weight);
 	        var text_width = ctx.measureText('' + this.text).width;
 	
-	        var x = void 0,
-	            y = void 0;
+	        var x = void 0;
+	        var y = void 0;
 	        var Position = StaveModifier.Position;
+	        var Justification = TextNote.Justification;
 	        switch (this.position) {
 	          case Position.LEFT:
 	          case Position.RIGHT:
 	            y = (stave.getYForLine(0) + stave.getBottomLineY()) / 2 + this.options.shift_y;
-	            if (this.position == Position.LEFT) {
+	            if (this.position === Position.LEFT) {
 	              x = stave.getX() - text_width - 24 + this.options.shift_x;
 	            } else {
 	              x = stave.getX() + stave.getWidth() + 24 + this.options.shift_x;
@@ -22228,22 +22452,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	            break;
 	          case Position.ABOVE:
 	          case Position.BELOW:
-	            var Justification = TextNote.Justification;
 	            x = stave.getX() + this.options.shift_x;
-	            if (this.options.justification == Justification.CENTER) {
+	            if (this.options.justification === Justification.CENTER) {
 	              x += stave.getWidth() / 2 - text_width / 2;
-	            } else if (this.options.justification == Justification.RIGHT) {
+	            } else if (this.options.justification === Justification.RIGHT) {
 	              x += stave.getWidth() - text_width;
 	            }
 	
-	            if (this.position == Position.ABOVE) {
+	            if (this.position === Position.ABOVE) {
 	              y = stave.getYForTopText(2) + this.options.shift_y;
 	            } else {
 	              y = stave.getYForBottomText(2) + this.options.shift_y;
 	            }
 	            break;
 	          default:
-	            throw new Vex$1.RERR('InvalidPosition', 'Value Must be in Modifier.Position.');
+	            throw new Vex.RERR('InvalidPosition', 'Value Must be in Modifier.Position.');
 	        }
 	
 	        ctx.fillText('' + this.text, x, y + 4);
@@ -22260,7 +22483,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (Clef.DEBUG) Vex$1.L('Vex.Flow.Clef', args);
+	    if (Clef.DEBUG) Vex.L('Vex.Flow.Clef', args);
 	  }
 	
 	  var Clef = function (_StaveModifier) {
@@ -22460,7 +22683,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'getWidth',
 	      value: function getWidth() {
 	        if (this.type === 'tab' && !this.stave) {
-	          throw new Vex$1.RERR('ClefError', "Can't get width without stave.");
+	          throw new Vex.RERR('ClefError', "Can't get width without stave.");
 	        }
 	
 	        return this.width;
@@ -22497,7 +22720,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            glyphOffset = -12;
 	            break;
 	          default:
-	            throw new Vex$1.RERR('ClefError', 'Invalid number of lines: ' + numLines);
+	            throw new Vex.RERR('ClefError', 'Invalid number of lines: ' + numLines);
 	        }
 	
 	        this.glyph.setPoint(glyphScale);
@@ -22508,8 +22731,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.x) throw new Vex$1.RERR('ClefError', "Can't draw clef without x.");
-	        if (!this.stave) throw new Vex$1.RERR('ClefError', "Can't draw clef without stave.");
+	        if (!this.x) throw new Vex.RERR('ClefError', "Can't draw clef without x.");
+	        if (!this.stave) throw new Vex.RERR('ClefError', "Can't draw clef without stave.");
 	
 	        this.glyph.setStave(this.stave);
 	        this.glyph.setContext(this.stave.context);
@@ -22681,12 +22904,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var different_types = this.accList.length > 0 && cancel_accList.length > 0 && cancel_accList[0].type !== this.accList[0].type;
 	
 	        // Determine how many naturals needed to add
-	        var naturals = 0;
-	        if (different_types) {
-	          naturals = cancel_accList.length;
-	        } else {
-	          naturals = cancel_accList.length - this.accList.length;
-	        }
+	        var naturals = different_types ? cancel_accList.length : cancel_accList.length - this.accList.length;
 	
 	        // Return if no naturals needed
 	        if (naturals < 1) return;
@@ -22711,7 +22929,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    }, {
 	      key: 'addToStave',
-	      value: function addToStave(stave, firstGlyph) {
+	      value: function addToStave(stave) {
 	        this.paddingForced = true;
 	        stave.addModifier(this);
 	
@@ -22748,6 +22966,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          case 'bass':
 	          case 'french':
 	            offset = 1;
+	            break;
+	          default:
 	            break;
 	        }
 	
@@ -22813,7 +23033,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'format',
 	      value: function format() {
-	        if (!this.stave) throw new Vex$1.RERR('KeySignatureError', "Can't draw key signature without stave.");
+	        if (!this.stave) {
+	          throw new Vex.RERR('KeySignatureError', "Can't draw key signature without stave.");
+	        }
 	
 	        this.width = 0;
 	        this.glyphs = [];
@@ -22839,8 +23061,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.x) throw new Vex$1.RERR('KeySignatureError', "Can't draw key signature without x.");
-	        if (!this.stave) throw new Vex$1.RERR('KeySignatureError', "Can't draw key signature without stave.");
+	        if (!this.x) {
+	          throw new Vex.RERR('KeySignatureError', "Can't draw key signature without x.");
+	        }
+	
+	        if (!this.stave) {
+	          throw new Vex.RERR('KeySignatureError', "Can't draw key signature without stave.");
+	        }
+	
 	        if (!this.formatted) this.format();
 	
 	        for (var i = 0; i < this.glyphs.length; i++) {
@@ -22854,6 +23082,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }]);
 	    return KeySignature;
 	  }(StaveModifier);
+	
+	  var assertIsValidFraction = function assertIsValidFraction(timeSpec) {
+	    var numbers = timeSpec.split('/').filter(function (number) {
+	      return number !== '';
+	    });
+	
+	    if (numbers.length !== 2) {
+	      throw new Vex.RERR('BadTimeSignature', 'Invalid time spec: ' + timeSpec + '. Must be in the form "<numerator>/<denominator>"');
+	    }
+	
+	    numbers.forEach(function (number) {
+	      if (isNaN(Number(number))) {
+	        throw new Vex.RERR('BadTimeSignature', 'Invalid time spec: ' + timeSpec + '. Must contain two valid numbers.');
+	      }
+	    });
+	  };
 	
 	  var TimeSignature = function (_StaveModifier) {
 	    inherits(TimeSignature, _StaveModifier);
@@ -22887,9 +23131,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var _this = possibleConstructorReturn(this, Object.getPrototypeOf(TimeSignature).call(this));
 	
-	      if (timeSpec === null) {
-	        return possibleConstructorReturn(_this);
-	      }
+	      if (timeSpec === null) return possibleConstructorReturn(_this);
+	
 	      var padding = customPadding;
 	
 	      _this.point = 40;
@@ -22910,61 +23153,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'parseTimeSpec',
 	      value: function parseTimeSpec(timeSpec) {
-	        if (timeSpec == 'C' || timeSpec == 'C|') {
-	          var glyphInfo = TimeSignature.glyphs[timeSpec];
-	          return { num: false, line: glyphInfo.line,
-	            glyph: new Glyph(glyphInfo.code, glyphInfo.point) };
+	        if (timeSpec === 'C' || timeSpec === 'C|') {
+	          var _TimeSignature$glyphs = TimeSignature.glyphs[timeSpec];
+	          var line = _TimeSignature$glyphs.line;
+	          var code = _TimeSignature$glyphs.code;
+	          var point = _TimeSignature$glyphs.point;
+	
+	          return {
+	            line: line,
+	            num: false,
+	            glyph: new Glyph(code, point)
+	          };
 	        }
 	
-	        var topNums = [];
-	        var i = void 0,
-	            c = void 0;
-	        for (i = 0; i < timeSpec.length; ++i) {
-	          c = timeSpec.charAt(i);
-	          if (c == '/') {
-	            break;
-	          } else if (/[0-9]/.test(c)) {
-	            topNums.push(c);
-	          } else {
-	            throw new Vex$1.RERR('BadTimeSignature', 'Invalid time spec: ' + timeSpec);
-	          }
-	        }
+	        assertIsValidFraction(timeSpec);
 	
-	        if (i === 0) {
-	          throw new Vex$1.RERR('BadTimeSignature', 'Invalid time spec: ' + timeSpec);
-	        }
+	        var _timeSpec$split$map = timeSpec.split('/').map(function (number) {
+	          return number.split('');
+	        });
 	
-	        // skip the "/"
-	        ++i;
+	        var _timeSpec$split$map2 = slicedToArray(_timeSpec$split$map, 2);
 	
-	        if (i == timeSpec.length) {
-	          throw new Vex$1.RERR('BadTimeSignature', 'Invalid time spec: ' + timeSpec);
-	        }
+	        var topDigits = _timeSpec$split$map2[0];
+	        var botDigits = _timeSpec$split$map2[1];
 	
-	        var botNums = [];
-	        for (; i < timeSpec.length; ++i) {
-	          c = timeSpec.charAt(i);
-	          if (/[0-9]/.test(c)) {
-	            botNums.push(c);
-	          } else {
-	            throw new Vex$1.RERR('BadTimeSignature', 'Invalid time spec: ' + timeSpec);
-	          }
-	        }
 	
-	        return { num: true, glyph: this.makeTimeSignatureGlyph(topNums, botNums) };
+	        return {
+	          num: true,
+	          glyph: this.makeTimeSignatureGlyph(topDigits, botDigits)
+	        };
 	      }
 	    }, {
 	      key: 'makeTimeSignatureGlyph',
-	      value: function makeTimeSignatureGlyph(topNums, botNums) {
+	      value: function makeTimeSignatureGlyph(topDigits, botDigits) {
 	        var glyph = new Glyph('v0', this.point);
-	        glyph['topGlyphs'] = [];
-	        glyph['botGlyphs'] = [];
+	        glyph.topGlyphs = [];
+	        glyph.botGlyphs = [];
 	
 	        var topWidth = 0;
-	        var i = void 0,
-	            num = void 0;
-	        for (i = 0; i < topNums.length; ++i) {
-	          num = topNums[i];
+	        for (var i = 0; i < topDigits.length; ++i) {
+	          var num = topDigits[i];
 	          var topGlyph = new Glyph('v' + num, this.point);
 	
 	          glyph.topGlyphs.push(topGlyph);
@@ -22972,9 +23200,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        var botWidth = 0;
-	        for (i = 0; i < botNums.length; ++i) {
-	          num = botNums[i];
-	          var botGlyph = new Glyph('v' + num, this.point);
+	        for (var _i = 0; _i < botDigits.length; ++_i) {
+	          var _num = botDigits[_i];
+	          var botGlyph = new Glyph('v' + _num, this.point);
 	
 	          glyph.botGlyphs.push(botGlyph);
 	          botWidth += botGlyph.getMetrics().width;
@@ -22995,22 +23223,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var botStartX = (width - botWidth) / 2.0;
 	
 	        var that = this;
-	        glyph.renderToStave = function (x) {
+	        glyph.renderToStave = function renderToStave(x) {
 	          var start_x = x + topStartX;
-	          var i = void 0,
-	              g = void 0;
-	          for (i = 0; i < this.topGlyphs.length; ++i) {
-	            g = this.topGlyphs[i];
-	            Glyph.renderOutline(this.context, g.metrics.outline, g.scale, start_x + g.x_shift, this.stave.getYForLine(that.topLine) + 1);
-	            start_x += g.getMetrics().width;
+	          for (var _i2 = 0; _i2 < this.topGlyphs.length; ++_i2) {
+	            var _glyph = this.topGlyphs[_i2];
+	            Glyph.renderOutline(this.context, _glyph.metrics.outline, _glyph.scale, start_x + _glyph.x_shift, this.stave.getYForLine(that.topLine) + 1);
+	            start_x += _glyph.getMetrics().width;
 	          }
 	
 	          start_x = x + botStartX;
-	          for (i = 0; i < this.botGlyphs.length; ++i) {
-	            g = this.botGlyphs[i];
-	            that.placeGlyphOnLine(g, this.stave, g.line);
-	            Glyph.renderOutline(this.context, g.metrics.outline, g.scale, start_x + g.x_shift, this.stave.getYForLine(that.bottomLine) + 1);
-	            start_x += g.getMetrics().width;
+	          for (var _i3 = 0; _i3 < this.botGlyphs.length; ++_i3) {
+	            var _glyph2 = this.botGlyphs[_i3];
+	            that.placeGlyphOnLine(_glyph2, this.stave, _glyph2.line);
+	            Glyph.renderOutline(this.context, _glyph2.metrics.outline, _glyph2.scale, start_x + _glyph2.x_shift, this.stave.getYForLine(that.bottomLine) + 1);
+	            start_x += _glyph2.getMetrics().width;
 	          }
 	        };
 	
@@ -23030,8 +23256,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.x) throw new Vex$1.RERR('TimeSignatureError', "Can't draw time signature without x.");
-	        if (!this.stave) throw new Vex$1.RERR('TimeSignatureError', "Can't draw time signature without stave.");
+	        if (!this.x) {
+	          throw new Vex.RERR('TimeSignatureError', "Can't draw time signature without x.");
+	        }
+	
+	        if (!this.stave) {
+	          throw new Vex.RERR('TimeSignatureError', "Can't draw time signature without stave.");
+	        }
 	
 	        this.timeSig.glyph.setStave(this.stave);
 	        this.timeSig.glyph.setContext(this.stave.context);
@@ -23092,7 +23323,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw(stave, x) {
-	        if (!stave.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        if (!stave.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	        }
+	
 	        var ctx = stave.context;
 	        var width = stave.width;
 	        var top_y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
@@ -23110,14 +23344,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ctx.fillRect(this.x + x, top_y, 1, vert_height);
 	            ctx.fillRect(this.x + x + width, top_y, 1, vert_height);
 	            break;
+	          default:
+	            break;
 	        }
 	        // If the beginning of a volta, draw measure number
-	        if (this.volta == Volta.type.BEGIN || this.volta == Volta.type.BEGIN_END) {
+	        if (this.volta === Volta.type.BEGIN || this.volta === Volta.type.BEGIN_END) {
 	          ctx.save();
 	          ctx.setFont(this.font.family, this.font.size, this.font.weight);
 	          ctx.fillText(this.number, this.x + x + 5, top_y + 15);
 	          ctx.restore();
 	        }
+	
 	        ctx.fillRect(this.x + x, top_y, width, 1);
 	        return this;
 	      }
@@ -23158,7 +23395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        space_below_staff_ln: 4, // in staff lines
 	        top_text_position: 1 };
 	      this.bounds = { x: this.x, y: this.y, w: this.width, h: 0 };
-	      Vex$1.Merge(this.options, options);
+	      Vex.Merge(this.options, options);
 	
 	      this.resetLines();
 	
@@ -23299,7 +23536,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var index = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
 	
 	        if (typeof index !== 'number') {
-	          throw new Vex$1.RERR('InvalidIndex', 'Must be of number type');
+	          throw new Vex.RERR('InvalidIndex', 'Must be of number type');
 	        }
 	
 	        if (!this.formatted) this.format();
@@ -23695,7 +23932,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
 	        }
 	
 	        if (!this.formatted) this.format();
@@ -23751,7 +23988,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'drawVerticalFixed',
 	      value: function drawVerticalFixed(x, isDouble) {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
 	        }
 	
 	        var top_line = this.getYForLine(0);
@@ -23770,7 +24007,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'drawVerticalBarFixed',
 	      value: function drawVerticalBarFixed(x) {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw stave without canvas context.");
 	        }
 	
 	        var top_line = this.getYForLine(0);
@@ -23801,15 +24038,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'setConfigForLine',
 	      value: function setConfigForLine(line_number, line_config) {
 	        if (line_number >= this.options.num_lines || line_number < 0) {
-	          throw new Vex$1.RERR('StaveConfigError', 'The line number must be within the range of the number of lines in the Stave.');
+	          throw new Vex.RERR('StaveConfigError', 'The line number must be within the range of the number of lines in the Stave.');
 	        }
 	
-	        if (!line_config.hasOwnProperty('visible')) {
-	          throw new Vex$1.RERR('StaveConfigError', "The line configuration object is missing the 'visible' property.");
+	        if (line_config.visible === undefined) {
+	          throw new Vex.RERR('StaveConfigError', "The line configuration object is missing the 'visible' property.");
 	        }
 	
 	        if (typeof line_config.visible !== 'boolean') {
-	          throw new Vex$1.RERR('StaveConfigError', "The line configuration objects 'visible' property must be true or false.");
+	          throw new Vex.RERR('StaveConfigError', "The line configuration objects 'visible' property must be true or false.");
 	        }
 	
 	        this.options.line_config[line_number] = line_config;
@@ -23831,7 +24068,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'setConfigForLines',
 	      value: function setConfigForLines(lines_configuration) {
 	        if (lines_configuration.length !== this.options.num_lines) {
-	          throw new Vex$1.RERR('StaveConfigError', 'The length of the lines configuration array must match the number of lines in the Stave');
+	          throw new Vex.RERR('StaveConfigError', 'The length of the lines configuration array must match the number of lines in the Stave');
 	        }
 	
 	        // Make sure the defaults are present in case an incomplete set of
@@ -23841,7 +24078,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (!lines_configuration[line_config]) {
 	            lines_configuration[line_config] = this.options.line_config[line_config];
 	          }
-	          Vex$1.Merge(this.options.line_config[line_config], lines_configuration[line_config]);
+	          Vex.Merge(this.options.line_config[line_config], lines_configuration[line_config]);
 	        }
 	
 	        this.options.line_config = lines_configuration;
@@ -23864,7 +24101,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        top_text_position: 1
 	      };
 	
-	      Vex$1.Merge(tab_options, options);
+	      Vex.Merge(tab_options, options);
 	      return possibleConstructorReturn(this, Object.getPrototypeOf(TabStave).call(this, x, y, width, tab_options));
 	    }
 	
@@ -24005,7 +24242,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.positions = tab_struct.positions;
 	
 	      // Render Options
-	      Vex$1.Merge(_this.render_options, {
+	      Vex.Merge(_this.render_options, {
 	        // font size for note heads and rests
 	        glyph_font_scale: 30,
 	        // Flag to draw a stem
@@ -24017,8 +24254,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	
 	      _this.glyph = Flow.durationToGlyph(_this.duration, _this.noteType);
+	
 	      if (!_this.glyph) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Invalid note initialization data (No glyph found): ' + JSON.stringify(tab_struct));
+	        throw new Vex.RuntimeError('BadArguments', 'Invalid note initialization data (No glyph found): ' + JSON.stringify(tab_struct));
 	      }
 	
 	      _this.buildStem();
@@ -24087,7 +24325,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'addDot',
 	      value: function addDot() {
 	        var dot = new Dot();
-	        this.dots++;
+	        this.dots += 1;
 	        return this.addModifier(dot, 0);
 	      }
 	
@@ -24121,7 +24359,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.context) {
 	          for (i = 0; i < this.glyphs.length; ++i) {
 	            var text = '' + this.glyphs[i].text;
-	            if (text.toUpperCase() != 'X') this.glyphs[i].width = this.context.measureText(text).width;
+	            if (text.toUpperCase() !== 'X') {
+	              this.glyphs[i].width = this.context.measureText(text).width;
+	            }
 	            this.width = this.glyphs[i].width > this.width ? this.glyphs[i].width : this.width;
 	          }
 	        }
@@ -24191,21 +24431,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'getModifierStartXY',
 	      value: function getModifierStartXY(position, index) {
-	        if (!this.preFormatted) throw new Vex$1.RERR('UnformattedNote', "Can't call GetModifierStartXY on an unformatted note");
+	        if (!this.preFormatted) {
+	          throw new Vex.RERR('UnformattedNote', "Can't call GetModifierStartXY on an unformatted note");
+	        }
 	
-	        if (this.ys.length === 0) throw new Vex$1.RERR('NoYValues', 'No Y-Values calculated for this note.');
+	        if (this.ys.length === 0) {
+	          throw new Vex.RERR('NoYValues', 'No Y-Values calculated for this note.');
+	        }
 	
 	        var x = 0;
-	        if (position == Modifier.Position.LEFT) {
+	        if (position === Modifier.Position.LEFT) {
 	          x = -1 * 2; // extra_left_px
-	        } else if (position == Modifier.Position.RIGHT) {
+	        } else if (position === Modifier.Position.RIGHT) {
 	          x = this.width + 2; // extra_right_px
-	        } else if (position == Modifier.Position.BELOW || position == Modifier.Position.ABOVE) {
+	        } else if (position === Modifier.Position.BELOW || position === Modifier.Position.ABOVE) {
 	          var note_glyph_width = this.glyph.head_width;
 	          x = note_glyph_width / 2;
 	        }
 	
-	        return { x: this.getAbsoluteX() + x, y: this.ys[index] };
+	        return {
+	          x: this.getAbsoluteX() + x,
+	          y: this.ys[index]
+	        };
 	      }
 	
 	      // Get the default line for rest
@@ -24276,7 +24523,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var flag_y = this.getStemY() - this.stem.getHeight();
 	          var flag_code = void 0;
 	
-	          if (this.stem_direction == Stem.DOWN) {
+	          if (this.stem_direction === Stem.DOWN) {
 	            // Down stems have flags on the left.
 	            flag_code = this.glyph.code_flag_downstem;
 	          } else {
@@ -24294,14 +24541,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'drawModifiers',
 	      value: function drawModifiers() {
+	        var _this2 = this;
+	
 	        // Draw the modifiers
 	        this.modifiers.forEach(function (modifier) {
 	          // Only draw the dots if enabled
-	          if (modifier.getCategory() === 'dots' && !this.render_options.draw_dots) return;
+	          if (modifier.getCategory() === 'dots' && !_this2.render_options.draw_dots) return;
 	
-	          modifier.setContext(this.context);
+	          modifier.setContext(_this2.context);
 	          modifier.draw();
-	        }, this);
+	        });
 	      }
 	
 	      // Render the stem extension through the fret positions
@@ -24352,11 +24601,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var ctx = this.context;
 	        var x = this.getAbsoluteX();
 	        var ys = this.ys;
-	        var y = void 0;
-	
 	        for (var i = 0; i < this.positions.length; ++i) {
-	          y = ys[i];
-	
+	          var y = ys[i];
 	          var glyph = this.glyphs[i];
 	
 	          // Center the fret text beneath the notation note head
@@ -24379,9 +24625,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoCanvasContext', "Can't draw without a canvas context.");
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
-	        if (this.ys.length === 0) throw new Vex$1.RERR('NoYValues', "Can't draw note without Y values.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoCanvasContext', "Can't draw without a canvas context.");
+	        }
+	
+	        if (!this.stave) {
+	          throw new Vex.RERR('NoStave', "Can't draw without a stave.");
+	        }
+	
+	        if (this.ys.length === 0) {
+	          throw new Vex.RERR('NoYValues', "Can't draw note without Y values.");
+	        }
 	
 	        var render_stem = this.beam == null && this.render_options.draw_stem;
 	
@@ -24478,7 +24732,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
+	        if (!this.stave) throw new Vex.RERR('NoStave', "Can't draw without a stave.");
 	
 	        if (!this.glyph.getContext()) {
 	          this.glyph.setContext(this.context);
@@ -24542,7 +24796,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
+	        if (!this.stave) throw new Vex.RERR('NoStave', "Can't draw without a stave.");
 	
 	        if (!this.timeSig.glyph.getContext()) {
 	          this.timeSig.glyph.setContext(this.context);
@@ -24598,13 +24852,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    createClass(TabTie, [{
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', 'No context to render tie.');
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', 'No context to render tie.');
+	        }
+	
 	        var first_note = this.first_note;
 	        var last_note = this.last_note;
-	        var first_x_px = void 0,
-	            last_x_px = void 0,
-	            first_ys = void 0,
-	            last_ys = void 0;
+	        var first_x_px = void 0;
+	        var last_x_px = void 0;
+	        var first_ys = void 0;
+	        var last_ys = void 0;
 	
 	        if (first_note) {
 	          first_x_px = first_note.getTieRightX() + this.render_options.tie_spacing;
@@ -24699,7 +24956,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    createClass(TabSlide, [{
 	      key: 'renderTie',
 	      value: function renderTie(params) {
-	        if (params.first_ys.length === 0 || params.last_ys.length === 0) throw new Vex$1.RERR('BadArguments', 'No Y-values to render');
+	        if (params.first_ys.length === 0 || params.last_ys.length === 0) {
+	          throw new Vex.RERR('BadArguments', 'No Y-values to render');
+	        }
 	
 	        var ctx = this.context;
 	        var first_x_px = params.first_x_px;
@@ -24707,14 +24966,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var last_x_px = params.last_x_px;
 	
 	        var direction = this.slide_direction;
-	        if (direction != TabSlide.SLIDE_UP && direction != TabSlide.SLIDE_DOWN) {
-	          throw new Vex$1.RERR('BadSlide', 'Invalid slide direction');
+	        if (direction !== TabSlide.SLIDE_UP && direction !== TabSlide.SLIDE_DOWN) {
+	          throw new Vex.RERR('BadSlide', 'Invalid slide direction');
 	        }
 	
 	        for (var i = 0; i < this.first_indices.length; ++i) {
 	          var slide_y = first_ys[this.first_indices[i]] + this.render_options.y_shift;
 	
-	          if (isNaN(slide_y)) throw new Vex$1.RERR('BadArguments', 'Bad indices for slide rendering.');
+	          if (isNaN(slide_y)) {
+	            throw new Vex.RERR('BadArguments', 'Bad indices for slide rendering.');
+	          }
 	
 	          ctx.beginPath();
 	          ctx.moveTo(first_x_px, slide_y + 3 * direction);
@@ -24846,7 +25107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var keys = noteString.split(/\s*,\s*/);
 	        if (keys.length === 0) {
-	          throw new Vex$1.RERR('BadArguments', 'Invalid tuning string: ' + noteString);
+	          throw new Vex.RERR('BadArguments', 'Invalid tuning string: ' + noteString);
 	        }
 	
 	        this.numStrings = keys.length;
@@ -24859,7 +25120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      value: function getValueForString(stringNum) {
 	        var s = parseInt(stringNum, 10);
 	        if (s < 1 || s > this.numStrings) {
-	          throw new Vex$1.RERR('BadArguments', 'String number must be between 1 and ' + this.numStrings + ':' + stringNum);
+	          throw new Vex.RERR('BadArguments', 'String number must be between 1 and ' + this.numStrings + ':' + stringNum);
 	        }
 	
 	        return this.tuningValues[s - 1];
@@ -24871,7 +25132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var f = parseInt(fretNum, 10);
 	
 	        if (f < 0) {
-	          throw new Vex$1.RERR('BadArguments', 'Fret number must be 0 or higher: ' + fretNum);
+	          throw new Vex.RERR('BadArguments', 'Fret number must be 0 or higher: ' + fretNum);
 	        }
 	
 	        return stringValue + f;
@@ -24919,7 +25180,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.keyParts.accidental) this.keyString += this.keyParts.accidental;
 	
 	        var is_supported_type = Music.scaleTypes[this.keyParts.type];
-	        if (!is_supported_type) throw new Vex$1.RERR('BadArguments', 'Unsupported key type: ' + this.key);
+	        if (!is_supported_type) {
+	          throw new Vex.RERR('BadArguments', 'Unsupported key type: ' + this.key);
+	        }
 	
 	        this.scale = this.music.getScaleTones(this.music.getNoteValue(this.keyString), Music.scaleTypes[this.keyParts.type]);
 	
@@ -24962,11 +25225,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var scaleNote = this.scaleMap[parts.root];
 	        var modparts = this.music.getNoteParts(scaleNote);
 	
-	        if (scaleNote == note) return {
-	          'note': scaleNote,
-	          'accidental': parts.accidental,
-	          'change': false
-	        };
+	        if (scaleNote === note) {
+	          return {
+	            'note': scaleNote,
+	            'accidental': parts.accidental,
+	            'change': false
+	          };
+	        }
 	
 	        // Then search for a note of equivalent value in our altered scale
 	        var valueNote = this.scaleMapByValue[this.music.getNoteValue(note)];
@@ -24992,7 +25257,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        // Then try to unmodify a currently modified note.
-	        if (modparts.root == note) {
+	        if (modparts.root === note) {
 	          delete this.scaleMapByValue[this.music.getNoteValue(this.scaleMap[parts.root])];
 	          this.scaleMapByValue[this.music.getNoteValue(modparts.root)] = modparts.root;
 	          this.scaleMap[modparts.root] = modparts.root;
@@ -25043,7 +25308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var ppt = formatter.pixelsPerTick;
 	
 	        if (ppt == null) {
-	          throw new Vex$1.RuntimeError('BadArguments', 'A valid Formatter must be provide to draw offsets by ticks.');
+	          throw new Vex.RuntimeError('BadArguments', 'A valid Formatter must be provide to draw offsets by ticks.');
 	        }
 	
 	        var l_shift_px = ppt * options.left_shift_ticks;
@@ -25115,7 +25380,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setPosition',
 	      value: function setPosition(position) {
-	        if (position == Modifier.Position.ABOVE || position == Modifier.Position.BELOW) this.position = position;
+	        if (position === Modifier.Position.ABOVE || position === Modifier.Position.BELOW) {
+	          this.position = position;
+	        }
 	        return this;
 	      }
 	    }, {
@@ -25136,7 +25403,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setNotes',
 	      value: function setNotes(notes) {
-	        if (!notes.first_note && !notes.last_note) throw new Vex$1.RuntimeError('BadArguments', 'Hairpin needs to have either first_note or last_note set.');
+	        if (!notes.first_note && !notes.last_note) {
+	          throw new Vex.RuntimeError('BadArguments', 'Hairpin needs to have either first_note or last_note set.');
+	        }
 	
 	        // Success. Lets grab 'em notes.
 	        this.first_note = notes.first_note;
@@ -25150,7 +25419,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var dis = this.render_options.y_shift + 20;
 	        var y_shift = params.first_y;
 	
-	        if (this.position == Modifier.Position.ABOVE) {
+	        if (this.position === Modifier.Position.ABOVE) {
 	          dis = -dis + 30;
 	          y_shift = params.first_y - params.staff_height;
 	        }
@@ -25182,20 +25451,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw Hairpin without a context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw Hairpin without a context.");
+	        }
 	
-	        var first_note = this.first_note;
-	        var last_note = this.last_note;
+	        var firstNote = this.first_note;
+	        var lastNote = this.last_note;
 	
-	        var start = first_note.getModifierStartXY(this.position, 0);
-	        var end = last_note.getModifierStartXY(this.position, 0);
+	        var start = firstNote.getModifierStartXY(this.position, 0);
+	        var end = lastNote.getModifierStartXY(this.position, 0);
 	
 	        this.renderHairpin({
 	          first_x: start.x,
 	          last_x: end.x,
-	          first_y: first_note.getStave().y + first_note.getStave().height,
-	          last_y: last_note.getStave().y + last_note.getStave().height,
-	          staff_height: first_note.getStave().height
+	          first_y: firstNote.getStave().y + firstNote.getStave().height,
+	          last_y: lastNote.getStave().y + lastNote.getStave().height,
+	          staff_height: firstNote.getStave().height
 	        });
 	        return true;
 	      }
@@ -25235,7 +25506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        cps: [{ x: 0, y: 10 }, { x: 0, y: 10 }]
 	      };
 	
-	      Vex$1.Merge(this.render_options, options);
+	      Vex.Merge(this.render_options, options);
 	      this.setNotes(from, to);
 	    }
 	
@@ -25247,7 +25518,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setNotes',
 	      value: function setNotes(from, to) {
-	        if (!from && !to) throw new Vex$1.RuntimeError('BadArguments', 'Curve needs to have either first_note or last_note set.');
+	        if (!from && !to) {
+	          throw new Vex.RuntimeError('BadArguments', 'Curve needs to have either first_note or last_note set.');
+	        }
 	
 	        this.from = from;
 	        this.to = to;
@@ -25291,14 +25564,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', 'No context to render tie.');
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', 'No context to render tie.');
+	        }
+	
 	        var first_note = this.from;
 	        var last_note = this.to;
-	        var first_x = void 0,
-	            last_x = void 0,
-	            first_y = void 0,
-	            last_y = void 0,
-	            stem_direction = void 0;
+	        var first_x = void 0;
+	        var last_x = void 0;
+	        var first_y = void 0;
+	        var last_y = void 0;
+	        var stem_direction = void 0;
 	
 	        var metric = 'baseY';
 	        var end_metric = 'baseY';
@@ -25310,9 +25586,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          end_metric = 'topY';
 	        }
 	
-	        if (position_end == Curve.Position.NEAR_HEAD) {
+	        if (position_end === Curve.Position.NEAR_HEAD) {
 	          end_metric = 'baseY';
-	        } else if (position_end == Curve.Position.NEAR_TOP) {
+	        } else if (position_end === Curve.Position.NEAR_TOP) {
 	          end_metric = 'topY';
 	        }
 	
@@ -25349,7 +25625,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.TextDynamics.DEBUG` to `true`.
 	  function L$13() {
-	    if (TextDynamics.DEBUG) Vex$1.L('Vex.Flow.TextDynamics', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (TextDynamics.DEBUG) Vex.L('Vex.Flow.TextDynamics', args);
 	  }
 	
 	  var TextDynamics = function (_Note) {
@@ -25404,7 +25684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.line = text_struct.line || 0;
 	      _this.glyphs = [];
 	
-	      Vex$1.Merge(_this.render_options, {
+	      Vex.Merge(_this.render_options, {
 	        glyph_font_size: 40
 	      });
 	
@@ -25418,7 +25698,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    createClass(TextDynamics, [{
 	      key: 'setLine',
 	      value: function setLine(line) {
-	        this.line = line;return this;
+	        this.line = line;
+	        return this;
 	      }
 	
 	      // Preformat the dynamics text
@@ -25426,21 +25707,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'preFormat',
 	      value: function preFormat() {
+	        var _this2 = this;
+	
 	        var total_width = 0;
 	        // Iterate through each letter
 	        this.sequence.split('').forEach(function (letter) {
 	          // Get the glyph data for the letter
 	          var glyph_data = TextDynamics.GLYPHS[letter];
-	          if (!glyph_data) throw new Vex$1.RERR('Invalid dynamics character: ' + letter);
+	          if (!glyph_data) throw new Vex.RERR('Invalid dynamics character: ' + letter);
 	
-	          var size = this.render_options.glyph_font_size;
+	          var size = _this2.render_options.glyph_font_size;
 	          var glyph = new Glyph(glyph_data.code, size);
 	
 	          // Add the glyph
-	          this.glyphs.push(glyph);
+	          _this2.glyphs.push(glyph);
 	
 	          total_width += glyph_data.width;
-	        }, this);
+	        });
 	
 	        // Store the width of the text
 	        this.setWidth(total_width);
@@ -25453,6 +25736,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
+	        var _this3 = this;
+	
 	        var x = this.getAbsoluteX();
 	        var y = this.stave.getYForLine(this.line + -3);
 	
@@ -25460,10 +25745,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var letter_x = x;
 	        this.glyphs.forEach(function (glyph, index) {
-	          var current_letter = this.sequence[index];
-	          glyph.render(this.context, letter_x, y);
+	          var current_letter = _this3.sequence[index];
+	          glyph.render(_this3.context, letter_x, y);
 	          letter_x += TextDynamics.GLYPHS[current_letter].width;
-	        }, this);
+	        });
 	      }
 	    }]);
 	    return TextDynamics;
@@ -25499,10 +25784,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // so that wide lines won't put a flat end on the arrow.
 	    var distance = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 	    var ratio = (distance - config.arrowhead_length / 3) / distance;
-	    var end_x = void 0,
-	        end_y = void 0,
-	        start_x = void 0,
-	        start_y = void 0;
+	    var end_x = void 0;
+	    var end_y = void 0;
+	    var start_x = void 0;
+	    var start_y = void 0;
 	    if (config.draw_end_arrow || both_arrows) {
 	      end_x = Math.round(x1 + (x2 - x1) * ratio);
 	      end_y = Math.round(y1 + (y2 - y1) * ratio);
@@ -25536,12 +25821,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // h is the line length of a side of the arrow head
 	    var h = Math.abs(config.arrowhead_length / Math.cos(config.arrowhead_angle));
 	
-	    var angle1 = void 0,
-	        angle2 = void 0;
-	    var top_x = void 0,
-	        top_y = void 0;
-	    var bottom_x = void 0,
-	        bottom_y = void 0;
+	    var angle1 = void 0;
+	    var angle2 = void 0;
+	    var top_x = void 0;
+	    var top_y = void 0;
+	    var bottom_x = void 0;
+	    var bottom_y = void 0;
 	
 	    if (config.draw_end_arrow || both_arrows) {
 	      angle1 = line_angle + Math.PI + config.arrowhead_angle;
@@ -25677,12 +25962,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'setNotes',
 	      value: function setNotes(notes) {
-	        if (!notes.first_note && !notes.last_note) throw new Vex$1.RuntimeError('BadArguments', 'Notes needs to have either first_note or last_note set.');
+	        if (!notes.first_note && !notes.last_note) {
+	          throw new Vex.RuntimeError('BadArguments', 'Notes needs to have either first_note or last_note set.');
+	        }
 	
 	        if (!notes.first_indices) notes.first_indices = [0];
 	        if (!notes.last_indices) notes.last_indices = [0];
 	
-	        if (notes.first_indices.length != notes.last_indices.length) throw new Vex$1.RuntimeError('BadArguments', 'Connected notes must have similar' + ' index sizes');
+	        if (notes.first_indices.length !== notes.last_indices.length) {
+	          throw new Vex.RuntimeError('BadArguments', 'Connected notes must have similar index sizes');
+	        }
 	
 	        // Success. Lets grab 'em notes.
 	        this.first_note = notes.first_note;
@@ -25698,7 +25987,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'applyLineStyle',
 	      value: function applyLineStyle() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', 'No context to apply the styling to');
+	          throw new Vex.RERR('NoContext', 'No context to apply the styling to');
 	        }
 	
 	        var render_options = this.render_options;
@@ -25725,7 +26014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'applyFontStyle',
 	      value: function applyFontStyle() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', 'No context to apply the styling to');
+	          throw new Vex.RERR('NoContext', 'No context to apply the styling to');
 	        }
 	
 	        var ctx = this.context;
@@ -25745,8 +26034,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
+	        var _this = this;
+	
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', 'No context to render StaveLine.');
+	          throw new Vex.RERR('NoContext', 'No context to render StaveLine.');
 	        }
 	
 	        var ctx = this.context;
@@ -25761,7 +26052,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var start_position = void 0;
 	        var end_position = void 0;
 	        this.first_indices.forEach(function (first_index, i) {
-	          var last_index = this.last_indices[i];
+	          var last_index = _this.last_indices[i];
 	
 	          // Get initial coordinates for the start/end of the line
 	          start_position = first_note.getModifierStartXY(2, first_index);
@@ -25789,8 +26080,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          start_position.y += upwards_slope ? -3 : 1;
 	          end_position.y += upwards_slope ? 2 : 0;
 	
-	          drawArrowLine(ctx, start_position, end_position, this.render_options);
-	        }, this);
+	          drawArrowLine(ctx, start_position, end_position, _this.render_options);
+	        });
 	
 	        ctx.restore();
 	
@@ -25831,7 +26122,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.PedalMarking.DEBUG` to `true`.
 	  function L$14() {
-	    if (PedalMarking.DEBUG) Vex$1.L('Vex.Flow.PedalMarking', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (PedalMarking.DEBUG) Vex.L('Vex.Flow.PedalMarking', args);
 	  }
 	
 	  // Draws a pedal glyph with the provided `name` on a rendering `context`
@@ -25953,7 +26248,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'setStyle',
 	      value: function setStyle(style) {
 	        if (style < 1 && style > 3) {
-	          throw new Vex$1.RERR('InvalidParameter', 'The style must be one found in PedalMarking.Styles');
+	          throw new Vex.RERR('InvalidParameter', 'The style must be one found in PedalMarking.Styles');
 	        }
 	
 	        this.style = style;
@@ -25997,7 +26292,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var y = note.getStave().getYForBottomText(pedal.line + 3);
 	
 	          // Throw if current note is positioned before the previous note
-	          if (x < prev_x) throw new Vex$1.RERR('InvalidConfiguration', 'The notes provided must be in order of ascending x positions');
+	          if (x < prev_x) {
+	            throw new Vex.RERR('InvalidConfiguration', 'The notes provided must be in order of ascending x positions');
+	          }
 	
 	          // Determine if the previous or next note are the same
 	          // as the current note. We need to keep track of this for
@@ -26093,7 +26390,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw PedalMarking without a context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw PedalMarking without a context.");
+	        }
+	
 	        var ctx = this.context;
 	
 	        ctx.save();
@@ -26118,7 +26418,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.TextBracket.DEBUG` to `true`.
 	  function L$15() {
-	    if (TextBracket.DEBUG) Vex$1.L('Vex.Flow.TextBracket', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (TextBracket.DEBUG) Vex.L('Vex.Flow.TextBracket', args);
 	  }
 	
 	  var TextBracket = function () {
@@ -26227,6 +26531,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          case TextBracket.Positions.BOTTOM:
 	            y = this.start.getStave().getYForBottomText(this.line);
 	            break;
+	          default:
+	            throw new Vex.RERR('InvalidPosition', 'The position ' + this.position + ' is invalid');
 	        }
 	
 	        // Get the preliminary start and stop coordintates for the bracket
@@ -26308,7 +26614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      args[_key] = arguments[_key];
 	    }
 	
-	    if (BarNote.DEBUG) Vex$1.L('Vex.Flow.BarNote', args);
+	    if (BarNote.DEBUG) Vex.L('Vex.Flow.BarNote', args);
 	  }
 	
 	  var BarNote = function (_Note) {
@@ -26381,7 +26687,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
+	        if (!this.stave) throw new Vex.RERR('NoStave', "Can't draw without a stave.");
 	        L$16('Rendering bar line at: ', this.getAbsoluteX());
 	        var barline = new Barline(this.type);
 	        barline.setX(this.getAbsoluteX());
@@ -26401,7 +26707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // Sanity check
 	      if (!parameter) {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Ghost note must have valid initialization data to identify ' + 'duration.');
+	        throw new Vex.RuntimeError('BadArguments', 'Ghost note must have valid initialization data to identify ' + 'duration.');
 	      }
 	
 	      var note_struct = void 0;
@@ -26412,7 +26718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else if ((typeof parameter === 'undefined' ? 'undefined' : _typeof(parameter)) === 'object') {
 	        note_struct = parameter;
 	      } else {
-	        throw new Vex$1.RuntimeError('BadArguments', 'Ghost note must have valid initialization data to identify ' + 'duration.');
+	        throw new Vex.RuntimeError('BadArguments', 'Ghost note must have valid initialization data to identify ' + 'duration.');
 	      }
 	
 	      // Note properties
@@ -26447,7 +26753,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.stave) throw new Vex$1.RERR('NoStave', "Can't draw without a stave.");
+	        if (!this.stave) throw new Vex.RERR('NoStave', "Can't draw without a stave.");
 	
 	        // Draw the modifiers
 	        for (var i = 0; i < this.modifiers.length; ++i) {
@@ -26505,11 +26811,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      key: 'draw',
 	      value: function draw() {
 	        if (!this.context) {
-	          throw new Vex$1.RERR('NoContext', "Can't draw Tremolo without a context.");
+	          throw new Vex.RERR('NoContext', "Can't draw Tremolo without a context.");
 	        }
 	
 	        if (!(this.note && this.index != null)) {
-	          throw new Vex$1.RERR('NoAttachedNote', "Can't draw Tremolo without a note and index.");
+	          throw new Vex.RERR('NoAttachedNote', "Can't draw Tremolo without a note and index.");
 	        }
 	
 	        var start = this.note.getModifierStartXY(this.position, this.index);
@@ -26528,7 +26834,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // To enable logging for this class. Set `Vex.Flow.Crescendo.DEBUG` to `true`.
 	  function L$17() {
-	    if (Crescendo.DEBUG) Vex$1.L('Vex.Flow.Crescendo', arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    if (Crescendo.DEBUG) Vex.L('Vex.Flow.Crescendo', args);
 	  }
 	
 	  // Private helper to draw the hairpin
@@ -26575,7 +26885,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // The height at the open end of the cresc/decresc
 	      _this.height = 15;
 	
-	      Vex$1.Merge(_this.render_options, {
+	      Vex.Merge(_this.render_options, {
 	        // Extensions to the length of the crescendo on either side
 	        extend_left: 0,
 	        extend_right: 0,
@@ -26625,19 +26935,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	      key: 'draw',
 	      value: function draw() {
-	        if (!this.context) throw new Vex$1.RERR('NoContext', "Can't draw Hairpin without a context.");
+	        if (!this.context) {
+	          throw new Vex.RERR('NoContext', "Can't draw Hairpin without a context.");
+	        }
 	
 	        var tick_context = this.getTickContext();
 	        var next_context = TickContext.getNextContext(tick_context);
 	
 	        var begin_x = this.getAbsoluteX();
-	        var end_x = void 0;
-	        if (next_context) {
-	          end_x = next_context.getX();
-	        } else {
-	          end_x = this.stave.x + this.stave.width;
-	        }
-	
+	        var end_x = next_context ? next_context.getX() : this.stave.x + this.stave.width;
 	        var y = this.stave.getYForLine(this.line + -3) + 1;
 	
 	        L$17('Drawing ', this.decrescendo ? 'decrescendo ' : 'crescendo ', this.height, 'x', begin_x - end_x);
@@ -26654,66 +26960,66 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Crescendo;
 	  }(Note);
 	
-	  Vex$1.Flow = Flow;
-	  Vex$1.Flow.Fraction = Fraction;
-	  Vex$1.Flow.Renderer = Renderer;
-	  Vex$1.Flow.Formatter = Formatter;
-	  Vex$1.Flow.Music = Music;
-	  Vex$1.Flow.Glyph = Glyph;
-	  Vex$1.Flow.Stave = Stave;
-	  Vex$1.Flow.StaveNote = StaveNote;
-	  Vex$1.Flow.Voice = Voice;
-	  Vex$1.Flow.Accidental = Accidental;
-	  Vex$1.Flow.Beam = Beam;
-	  Vex$1.Flow.StaveTie = StaveTie;
-	  Vex$1.Flow.TabStave = TabStave;
-	  Vex$1.Flow.TabNote = TabNote;
-	  Vex$1.Flow.Bend = Bend;
-	  Vex$1.Flow.Vibrato = Vibrato;
-	  Vex$1.Flow.Note = Note;
-	  Vex$1.Flow.ModifierContext = ModifierContext;
-	  Vex$1.Flow.TickContext = TickContext;
-	  Vex$1.Flow.Articulation = Articulation;
-	  Vex$1.Flow.Annotation = Annotation;
-	  Vex$1.Flow.Barline = Barline;
-	  Vex$1.Flow.NoteHead = NoteHead;
-	  Vex$1.Flow.StaveConnector = StaveConnector;
-	  Vex$1.Flow.ClefNote = ClefNote;
-	  Vex$1.Flow.KeySignature = KeySignature;
-	  Vex$1.Flow.TimeSignature = TimeSignature;
-	  Vex$1.Flow.TimeSigNote = TimeSigNote;
-	  Vex$1.Flow.Stem = Stem;
-	  Vex$1.Flow.TabTie = TabTie;
-	  Vex$1.Flow.Clef = Clef;
-	  Vex$1.Flow.Modifier = Modifier;
-	  Vex$1.Flow.TabSlide = TabSlide;
-	  Vex$1.Flow.Tuplet = Tuplet;
-	  Vex$1.Flow.GraceNote = GraceNote;
-	  Vex$1.Flow.Tuning = Tuning;
-	  Vex$1.Flow.KeyManager = KeyManager;
-	  Vex$1.Flow.StaveHairpin = StaveHairpin;
-	  Vex$1.Flow.BoundingBox = BoundingBox;
-	  Vex$1.Flow.Stroke = Stroke;
-	  Vex$1.Flow.TextNote = TextNote;
-	  Vex$1.Flow.Curve = Curve;
-	  Vex$1.Flow.TextDynamics = TextDynamics;
-	  Vex$1.Flow.StaveLine = StaveLine;
-	  Vex$1.Flow.Ornament = Ornament;
-	  Vex$1.Flow.PedalMarking = PedalMarking;
-	  Vex$1.Flow.TextBracket = TextBracket;
-	  Vex$1.Flow.FretHandFinger = FretHandFinger;
-	  Vex$1.Flow.Repetition = Repetition;
-	  Vex$1.Flow.BarNote = BarNote;
-	  Vex$1.Flow.GhostNote = GhostNote;
-	  Vex$1.Flow.NoteSubGroup = NoteSubGroup;
-	  Vex$1.Flow.GraceNoteGroup = GraceNoteGroup;
-	  Vex$1.Flow.Tremolo = Tremolo;
-	  Vex$1.Flow.StringNumber = StringNumber;
-	  Vex$1.Flow.Crescendo = Crescendo;
-	  Vex$1.Flow.Volta = Volta;
-	  Vex$1.Flow.Font = Font;
+	  Vex.Flow = Flow;
+	  Vex.Flow.Fraction = Fraction;
+	  Vex.Flow.Renderer = Renderer;
+	  Vex.Flow.Formatter = Formatter;
+	  Vex.Flow.Music = Music;
+	  Vex.Flow.Glyph = Glyph;
+	  Vex.Flow.Stave = Stave;
+	  Vex.Flow.StaveNote = StaveNote;
+	  Vex.Flow.Voice = Voice;
+	  Vex.Flow.Accidental = Accidental;
+	  Vex.Flow.Beam = Beam;
+	  Vex.Flow.StaveTie = StaveTie;
+	  Vex.Flow.TabStave = TabStave;
+	  Vex.Flow.TabNote = TabNote;
+	  Vex.Flow.Bend = Bend;
+	  Vex.Flow.Vibrato = Vibrato;
+	  Vex.Flow.Note = Note;
+	  Vex.Flow.ModifierContext = ModifierContext;
+	  Vex.Flow.TickContext = TickContext;
+	  Vex.Flow.Articulation = Articulation;
+	  Vex.Flow.Annotation = Annotation;
+	  Vex.Flow.Barline = Barline;
+	  Vex.Flow.NoteHead = NoteHead;
+	  Vex.Flow.StaveConnector = StaveConnector;
+	  Vex.Flow.ClefNote = ClefNote;
+	  Vex.Flow.KeySignature = KeySignature;
+	  Vex.Flow.TimeSignature = TimeSignature;
+	  Vex.Flow.TimeSigNote = TimeSigNote;
+	  Vex.Flow.Stem = Stem;
+	  Vex.Flow.TabTie = TabTie;
+	  Vex.Flow.Clef = Clef;
+	  Vex.Flow.Modifier = Modifier;
+	  Vex.Flow.TabSlide = TabSlide;
+	  Vex.Flow.Tuplet = Tuplet;
+	  Vex.Flow.GraceNote = GraceNote;
+	  Vex.Flow.Tuning = Tuning;
+	  Vex.Flow.KeyManager = KeyManager;
+	  Vex.Flow.StaveHairpin = StaveHairpin;
+	  Vex.Flow.BoundingBox = BoundingBox;
+	  Vex.Flow.Stroke = Stroke;
+	  Vex.Flow.TextNote = TextNote;
+	  Vex.Flow.Curve = Curve;
+	  Vex.Flow.TextDynamics = TextDynamics;
+	  Vex.Flow.StaveLine = StaveLine;
+	  Vex.Flow.Ornament = Ornament;
+	  Vex.Flow.PedalMarking = PedalMarking;
+	  Vex.Flow.TextBracket = TextBracket;
+	  Vex.Flow.FretHandFinger = FretHandFinger;
+	  Vex.Flow.Repetition = Repetition;
+	  Vex.Flow.BarNote = BarNote;
+	  Vex.Flow.GhostNote = GhostNote;
+	  Vex.Flow.NoteSubGroup = NoteSubGroup;
+	  Vex.Flow.GraceNoteGroup = GraceNoteGroup;
+	  Vex.Flow.Tremolo = Tremolo;
+	  Vex.Flow.StringNumber = StringNumber;
+	  Vex.Flow.Crescendo = Crescendo;
+	  Vex.Flow.Volta = Volta;
+	  Vex.Flow.Font = Font;
 	
-	  return Vex$1;
+	  return Vex;
 	
 	}));
 	//# sourceMappingURL=vexflow-debug.js.map
@@ -31086,12 +31392,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!nPack) {
 	          remainingWidth = Math.min(width / packWidths.length, 50);
 	        } else {
+	          var nBeginAttributesWidth = _this4.getBeginAttributesWidth(nPack, i + 1);
 	          nextWidth = nPack.getMinTotalWidth();
 	          nextWidth += PADDING;
-	          nextWidth += _this4.getBeginAttributesWidth(nPack, i);
-	          if (nnPack) nextWidth += _this4.getBeginAttributesWidth(nnPack, i);
+	          nextWidth += nBeginAttributesWidth;
+	          if (nnPack) nextWidth += _this4.getBeginAttributesWidth(nnPack, i + 2);
 	
 	          if (nextWidth < width) return; // it's ok to go next!
+	
+	          // Flush the line, apply attributes width to the last measure of the current line!
+	          width -= nBeginAttributesWidth;
+	          packWidths[packWidths.length - 1] += nBeginAttributesWidth;
 	
 	          remainingWidth = Math.max(width / packWidths.length, 0);
 	        }
