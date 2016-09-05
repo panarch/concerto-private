@@ -91,12 +91,19 @@ TYPES.forEach(type => {
   typeSelectNode.appendChild(optionNode);
 });
 
-const onChange = () => load(scoreSelectNode.value, typeSelectNode.value);
+const onChange = () => {
+  localStorage.setItem('score-select', scoreSelectNode.value);
+  localStorage.setItem('type-select', typeSelectNode.value);
+  load(scoreSelectNode.value, typeSelectNode.value);
+};
+
 scoreSelectNode.addEventListener('change', onChange);
 typeSelectNode.addEventListener('change', onChange);
 
-const url = URLS[8];
-const type = TYPES[0];
+const url = localStorage.hasOwnProperty('score-select') ?
+              localStorage.getItem('score-select') : URLS[10];
+const type = localStorage.hasOwnProperty('type-select') ?
+              localStorage.getItem('type-select') : TYPES[0];
 
 scoreSelectNode.value = url;
 typeSelectNode.value = type;
