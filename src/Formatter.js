@@ -2,6 +2,7 @@
 // @author Taehoon Moon
 
 import Vex from '@panarch/allegretto';
+const VF = Vex.Flow;
 //import VFStaveFormatter from './VFStaveFormatter';
 import Measure from './Measure';
 import Table from './Table';
@@ -1221,19 +1222,36 @@ export default class Formatter {
               tuplet.actual.number : note.timeModification.actualNotes),
             numNormal: (tuplet.normal ?
               tuplet.normal.number : note.timeModification.normalNotes),
-            location: (tuplet.placement === 'below' ?
-              Vex.Flow.Tuplet.LOCATION_BOTTOM : Vex.Flow.Tuplet.LOCATION_TOP),
+            placement: tuplet.placement,
             bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam,
           });
 
           break;
         case 'stop':
-          const { index, numActual, numNormal, location, bracket } = tupletStack.pop();
+          const { index, numActual, numNormal, placement, bracket } = tupletStack.pop();
           const vfNotes = [];
           const vfLyricNotesMap = new Map();
+          // if placement value exists => use placement, no need to auto calculation
+          const hasPlacement = placement != null;
+          let [hasUp, hasDown] = [false, false];
+          let vfLocation = !hasPlacement || placement === 'above' ?
+            VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
 
           notes.slice(index, i + 1).filter(_note => !_note.getGrace()).forEach(_note => {
-            vfNotes.push(_note.getVFNote());
+            const vfNote = _note.getVFNote();
+
+            if (!hasPlacement && !vfNote.isRest()) {
+              switch (vfNote.getStemDirection()) {
+              case VF.Stem.UP: hasUp = true; break;
+              case VF.Stem.DOWN: hasDown = true; break;
+              }
+
+              vfLocation = hasUp && hasDown || !hasDown ?
+                VF.Tuplet.LOCATION_TOP :
+                VF.Tuplet.LOCATION_BOTTOM;
+            }
+
+            vfNotes.push(vfNote);
 
             _note.getVFLyricNotesMap().forEach((_vfLyricNotes, lyricName) => {
               let vfLyricNotes = vfLyricNotesMap.has(lyricName) ?
@@ -1256,7 +1274,7 @@ export default class Formatter {
             new Vex.Flow.Tuplet(vfLyricNotes, tupletOptions);
           });
 
-          vfTuplet.setTupletLocation(location);
+          vfTuplet.setTupletLocation(vfLocation);
           vfTuplets.push(vfTuplet);
           break;
         }
