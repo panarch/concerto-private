@@ -180,6 +180,7 @@ const parseNoteTechnical = (note, head, technicalNode) => {
 };
 
 const parseNoteNotations = (note, head, notationsNode) => {
+  const arpeggiateNode = notationsNode.getElementsByTagName('arpeggiate')[0];
   const articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
   const tupletNodes = [...notationsNode.getElementsByTagName('tuplet')];
   const tiedNodes = notationsNode.getElementsByTagName('tied');
@@ -200,6 +201,16 @@ const parseNoteNotations = (note, head, notationsNode) => {
   }
 
   note.notations = {};
+
+  if (arpeggiateNode) {
+    const arpeggiate = {};
+    if (arpeggiateNode.hasAttribute('direction')) {
+      arpeggiate.direction = arpeggiateNode.getAttribute('direction');
+    }
+
+    note.notations.arpeggiate = arpeggiate;
+  }
+
   if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
   if (tupletNodes.length > 0) parseNoteTuplets(note.notations, tupletNodes);
 };

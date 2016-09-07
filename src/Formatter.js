@@ -822,6 +822,15 @@ export default class Formatter {
     if (!note.notations) return;
 
     this._formatNoteArticulations(staveNote, note);
+
+    // arpeggiate
+    if (note.notations.arpeggiate) {
+      const vfStrokeType = note.notations.arpeggiate.direction === 'down' ?
+        VF.Stroke.Type.ROLL_UP : VF.Stroke.Type.ROLL_DOWN;
+
+      staveNote.addStroke(0, new VF.Stroke(vfStrokeType));
+    }
+
   }
 
   _formatNote(note, clef, divisions, lyricNames) {
