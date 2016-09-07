@@ -29151,9 +29151,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // Copyright (c) Taehoon Moon 2015.
 	// @author Taehoon Moon
 	
-	//import VFStaveFormatter from './VFStaveFormatter';
-	
-	
 	var _allegretto = __webpack_require__(299);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
@@ -29173,6 +29170,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var VF = _allegretto2.default.Flow;
+	//import VFStaveFormatter from './VFStaveFormatter';
 	
 	var Formatter = function () {
 	  function Formatter(score) {
@@ -30572,7 +30572,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  index: i,
 	                  numActual: tuplet.actual ? tuplet.actual.number : note.timeModification.actualNotes,
 	                  numNormal: tuplet.normal ? tuplet.normal.number : note.timeModification.normalNotes,
-	                  location: tuplet.placement === 'below' ? _allegretto2.default.Flow.Tuplet.LOCATION_BOTTOM : _allegretto2.default.Flow.Tuplet.LOCATION_TOP,
+	                  placement: tuplet.placement,
 	                  bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam
 	                });
 	
@@ -30583,16 +30583,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var index = _tupletStack$pop.index;
 	                var numActual = _tupletStack$pop.numActual;
 	                var numNormal = _tupletStack$pop.numNormal;
-	                var location = _tupletStack$pop.location;
+	                var placement = _tupletStack$pop.placement;
 	                var bracket = _tupletStack$pop.bracket;
 	
 	                var vfNotes = [];
 	                var vfLyricNotesMap = new Map();
+	                // if placement value exists => use placement, no need to auto calculation
+	                var hasPlacement = placement != null;
+	                var hasUp = false;
+	                var hasDown = false;
+	
+	                var vfLocation = !hasPlacement || placement === 'above' ? VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
 	
 	                notes.slice(index, i + 1).filter(function (_note) {
 	                  return !_note.getGrace();
 	                }).forEach(function (_note) {
-	                  vfNotes.push(_note.getVFNote());
+	                  var vfNote = _note.getVFNote();
+	
+	                  if (!hasPlacement && !vfNote.isRest()) {
+	                    switch (vfNote.getStemDirection()) {
+	                      case VF.Stem.UP:
+	                        hasUp = true;break;
+	                      case VF.Stem.DOWN:
+	                        hasDown = true;break;
+	                    }
+	
+	                    vfLocation = hasUp && hasDown || !hasDown ? VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+	                  }
+	
+	                  vfNotes.push(vfNote);
 	
 	                  _note.getVFLyricNotesMap().forEach(function (_vfLyricNotes, lyricName) {
 	                    var vfLyricNotes = vfLyricNotesMap.has(lyricName) ? vfLyricNotesMap.get(lyricName) : [];
@@ -30614,7 +30633,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  new _allegretto2.default.Flow.Tuplet(vfLyricNotes, tupletOptions);
 	                });
 	
-	                vfTuplet.setTupletLocation(location);
+	                vfTuplet.setTupletLocation(vfLocation);
 	                vfTuplets.push(vfTuplet);
 	                break;
 	            }
