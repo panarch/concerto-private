@@ -28337,6 +28337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var parseNoteNotations = function parseNoteNotations(note, head, notationsNode) {
+	  var arpeggiateNode = notationsNode.getElementsByTagName('arpeggiate')[0];
 	  var articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
 	  var tupletNodes = [].concat(_toConsumableArray(notationsNode.getElementsByTagName('tuplet')));
 	  var tiedNodes = notationsNode.getElementsByTagName('tied');
@@ -28357,6 +28358,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  note.notations = {};
+	
+	  if (arpeggiateNode) {
+	    var arpeggiate = {};
+	    if (arpeggiateNode.hasAttribute('direction')) {
+	      arpeggiate.direction = arpeggiateNode.getAttribute('direction');
+	    }
+	
+	    note.notations.arpeggiate = arpeggiate;
+	  }
+	
 	  if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
 	  if (tupletNodes.length > 0) parseNoteTuplets(note.notations, tupletNodes);
 	};
@@ -30079,6 +30090,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!note.notations) return;
 	
 	      this._formatNoteArticulations(staveNote, note);
+	
+	      // arpeggiate
+	      if (note.notations.arpeggiate) {
+	        var vfStrokeType = note.notations.arpeggiate.direction === 'down' ? VF.Stroke.Type.ROLL_UP : VF.Stroke.Type.ROLL_DOWN;
+	
+	        staveNote.addStroke(0, new VF.Stroke(vfStrokeType));
+	      }
 	    }
 	  }, {
 	    key: '_formatNote',
