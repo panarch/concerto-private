@@ -14,27 +14,33 @@ filenames.forEach(function(filename) {
   const data = fs.read('./tests/' + filename);
   const domParser = new DOMParser();
   const doc = domParser.parseFromString(data, 'application/xml');
-  const score = Concerto.parse(doc);
-  const formatters = [
-    ['original', new Concerto.Formatter(score)],
-    ['horizontal', new Concerto.HorizontalFormatter(score)],
-    ['vertical', new Concerto.VerticalFormatter(score, { infinite: true, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
-    ['responsive', new Concerto.VerticalFormatter(score, { infinite: false, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
-  ];
 
-  formatters.forEach(function([type, formatter]) {
-    formatter.format();
-    const renderer = new Concerto.Renderer(score, { element });
-    renderer.render();
+  try {
+    const score = Concerto.parse(doc);
+    const formatters = [
+      ['original', new Concerto.Formatter(score)],
+      ['horizontal', new Concerto.HorizontalFormatter(score)],
+      ['vertical', new Concerto.VerticalFormatter(score, { infinite: true, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
+      ['responsive', new Concerto.VerticalFormatter(score, { infinite: false, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
+    ];
 
-    filename = filename.split(/.xml$/)[0];
-    console.log(filename + '_' + type);
+    formatters.forEach(function([type, formatter]) {
+      formatter.format();
+      const renderer = new Concerto.Renderer(score, { element });
+      renderer.render();
 
-    renderer.getContexts().forEach(function(context, i) {
-      const svgData = new XMLSerializer().serializeToString(context.svg);
-      fs.write(path + '/' + filename + '_' + type + '_' + i + '.svg', svgData, 'w');
+      filename = filename.split(/.xml$/)[0];
+      console.log(filename + '_' + type);
+
+      renderer.getContexts().forEach(function(context, i) {
+        const svgData = new XMLSerializer().serializeToString(context.svg);
+        fs.write(path + '/' + filename + '_' + type + '_' + i + '.svg', svgData, 'w');
+      });
     });
-  });
+
+  } catch (error) {
+    console.log(error);
+  }
 
 });
 
