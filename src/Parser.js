@@ -115,12 +115,12 @@ const parsePartList = partListNode => {
     if (partNameNode) scorePart.partName = partNameNode.textContent;
     if (partAbbreviationNode) scorePart.partAbbreviation = partAbbreviationNode.textContent;
     if (midiInstNode) {
-      const volumeNode = midiInstNode.getElementsByTagName('volume')[0];
-      const panNode = midiInstNode.getElementsByTagName('pan')[0];
-      const midiProgramNode = midiInstNode.getElementsByTagName('midi-program')[0];
+      const volumeNode = midiInstNode.querySelector('volume');
+      const panNode = midiInstNode.querySelector('pan');
+      const midiProgramNode = midiInstNode.querySelector('midi-program');
       scorePart.midiInstrument = {
         id: midiInstNode.getAttribute('id'),
-        midiChannel: Number(midiInstNode.getElementsByTagName('midi-channel')[0].textContent),
+        midiChannel: Number(midiInstNode.querySelector('midi-channel').textContent),
       };
 
       if (volumeNode) scorePart.midiInstrument.volume = Number(volumeNode.textContent);

@@ -26,8 +26,18 @@ export default class MeasurePack {
   getVFFormatter() { return this.vfFormatter; }
   setVFFormatter(vfFormatter) { this.vfFormatter = vfFormatter; }
 
+  getAllVFVoices() {
+    return this.getVFVoices().concat(this.getVFDirectionVoices()).concat(this.getVFLyricVoices());
+  }
+
   getVFVoices() {
     return this.measures.reduce((vfVoices, measure) => vfVoices.concat(measure.getVFVoices()), []);
+  }
+
+  getVFDirectionVoices() {
+    return this.measures.reduce((vfDirectionVoices, measure) => (
+      vfDirectionVoices.concat(measure.getVFDirectionVoices())
+    ), []);
   }
 
   getVFLyricVoices() {

@@ -6,6 +6,8 @@ import Part from './Part';
 import Measure from './Measure';
 import Note from './Note';
 import ClefNote from './ClefNote';
+import Direction from './Direction';
+import { sumNotesDuration, getMaxDuration } from './Util';
 
 const parsePrint = (data, printNode) => {
   const print = {};
@@ -117,11 +119,33 @@ const parseAttributes = (data, attrNode, state) => {
   });
 };
 
-const sumNotesDuration = notes => {
-  return notes.reduce(
-    (duration, note) => duration + (note.duration ? note.duration : 0),
-    0
-  );
+const parseDirection = (data, directionNode, state) => {
+  const staffNode = directionNode.querySelector('staff');
+  const directionTypeNode = directionNode.querySelector('direction-type');
+  const dynamicsNode = directionTypeNode.querySelector('dynamics')
+  if (!dynamicsNode) return;
+
+  const direction = {
+    tag: 'dynamics',
+    dynamicType: dynamicsNode.firstElementChild.tagName,
+    beginDuration: state.duration,
+    staff: staffNode ? Number(staffNode.textContent) : state.staff,
+  };
+
+  if (dynamicsNode.hasAttribute('default-x')) {
+    direction.defaultX = Number(dynamicsNode.getAttribute('default-x'));
+  }
+
+  if (directionNode.hasAttribute('placement')) {
+    direction.placement = directionNode.getAttribute('placement');
+  }
+
+  if (data.directionsMap.has(direction.staff)) {
+    data.directionsMap.get(direction.staff).push(new Direction(direction));
+  } else {
+    data.directionsMap.set(direction.staff, [new Direction(direction)]);
+  }
+
 };
 
 const parseNoteArticulations = (notations, articulationsNode) => {
@@ -313,6 +337,10 @@ const parseNote = (data, noteNode, state) => {
     hidden: false, // true for GhostNote
   };
 
+  if (noteNode.hasAttribute('default-x')) {
+    note.defaultX = Number(noteNode.getAttribute('default-x'));
+  }
+
   if (pitchNode) {
     const pitch = {
       step: pitchNode.getElementsByTagName('step')[0].textContent,
@@ -406,20 +434,14 @@ const parseNotes = (data, noteNodes) => {
         state.duration -= getDuration(node);
         break;
       case 'direction':
-        // TODO
+        parseDirection(data, node, state);
         break;
     }
   });
 };
 
 const fillNotesMap = notesMap => {
-  const maxDuration = [...notesMap.values()].reduce(
-    (max, notes) => {
-      const sum = sumNotesDuration(notes);
-      return max > sum ? max : sum;
-    },
-    0
-  );
+  const maxDuration = getMaxDuration(notesMap);
 
   notesMap.forEach(notes => {
     const duration = maxDuration - sumNotesDuration(notes);
@@ -440,6 +462,7 @@ export const parsePart = partNode => {
       number: Number(node.getAttribute('number')),
       width: node.hasAttribute('width') ? Number(node.getAttribute('width')) : 100,
       notesMap: new Map(), // key is voice number
+      directionsMap: new Map(), // key is staff number
       clefMap: new Map(), // key is staff number
       voices: [],
       staffs: [],

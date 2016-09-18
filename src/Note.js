@@ -3,7 +3,8 @@
 
 export default class Note {
   constructor({ tag, rest, full, grace, staff, voice, dot, duration, hidden,
-      heads, stem, type, beam, chord, slur, notations, lyrics, timeModification }) {
+      heads, stem, type, beam, chord, slur, notations, lyrics, timeModification,
+      defaultX }) {
     this.tag = tag;
     this.staff = staff;
     this.voice = voice;
@@ -22,6 +23,9 @@ export default class Note {
     this.notations = notations;
     this.lyrics = lyrics;
     this.timeModification = timeModification;
+
+    // extra read-only
+    this.defaultX = defaultX;
 
     this.vfNote = null;
     this.vfLyricNotesMap = new Map(); // lyricName -> vfLyricNote(TextNote)
@@ -45,6 +49,9 @@ export default class Note {
   getNotations() { return this.notations; }
   getLyrics() { return this.lyrics; }
   getTimeModification() { return this.timeModification; }
+
+  // extra read-only
+  getDefaultX() { return this.defaultX; }
 
   getVFNote() { return this.vfNote; }
   setVFNote(vfNote) { this.vfNote = vfNote; }

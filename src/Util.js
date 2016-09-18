@@ -22,6 +22,11 @@ export const getVFClef = clef => {
 };
 
 export const getVFDuration = (note, divisions) => {
+  if (!divisions) {
+    console.error('[Util.getVFDuration] No divisions')
+    return;
+  }
+
   const type = note.getType();
   let duration;
 
@@ -148,10 +153,54 @@ export class Stack {
   empty() { return this.items.length === 0; }
 }
 
+// notes -> integer
+export function sumNotesDuration(notes) {
+  return notes.reduce(
+    (duration, note) => duration + (note.duration ? note.duration : 0),
+    0
+  );
+}
+
+// notesMap -> integer
+export function getMaxDuration(notesMap) {
+  return [...notesMap.values()].reduce(
+    (max, notes) => {
+      const sum = sumNotesDuration(notes);
+      return max > sum ? max : sum;
+    },
+    0
+  );
+}
+
+export function getLineGenerator(part) {
+  function* lineGenerator() {
+    const measures = part.getMeasures();
+    let lineMeasures = [];
+
+    for (let mi = 0; mi < measures.length; mi++) {
+      const measure = measures[mi];
+
+      if (mi > 0 && measure.isNewLineStarting()) {
+        yield lineMeasures;
+        lineMeasures = [measure];
+      } else {
+        lineMeasures.push(measure);
+      }
+    }
+
+    if (lineMeasures.length > 0) yield lineMeasures;
+  }
+
+  return lineGenerator();
+}
+
 export default {
   getVFClef,
   getVFDuration,
   getVFKeySignature,
   getVFConnectorType,
   Stack,
+  sumNotesDuration,
+  getMaxDuration,
+  getLineGenerator,
 };

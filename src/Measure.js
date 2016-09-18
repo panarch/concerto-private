@@ -3,12 +3,13 @@
 
 export default class Measure {
   constructor({ number, width, voices, staffs, notesMap, key, time, clefMap, print, divisions,
-      barline, staffDetailsMap } = {}) {
+      barline, directionsMap, staffDetailsMap } = {}) {
     this.number = number;
     this.width = width;
     this.voices = voices;
     this.staffs = staffs;
     this.notesMap = notesMap; // voice -> notes
+    this.directionsMap = directionsMap; // staff -> Direction[]
     this.key = key;
     this.time = time;
     this.clefMap = clefMap;
@@ -26,6 +27,7 @@ export default class Measure {
     this.staffYMap = new Map();
     this.staffDisplayedMap = new Map();
     this.vfVoiceMap = new Map(); // voice -> vfVoice
+    this.vfDirectionVoicesMap = new Map(); // staff -> vfVoice[] TODO
     this.vfLyricVoicesMap = new Map(); // voice -> vfVoice[]
     this.vfBeamsMap = new Map(); // voice -> vfBeams
     this.vfTupletsMap = new Map(); // voice -> vfTuplets
@@ -185,10 +187,16 @@ export default class Measure {
   setClef(staff, clef) { this.clefMap.set(staff, clef); }
   getDivisions() { return this.divisions; }
   setDivisions(divisions) { this.divisions = divisions; }
+  getDirectionsMap() { return this.directionsMap; }
 
   getNotesMap() { return this.notesMap; }
   getVoices() { return this.voices; }
   getStaffs() { return this.staffs; }
+  getVFDirectionVoices() {
+    return [...this.vfDirectionVoicesMap.values()].reduce((a, b) => a.concat(b), []);
+  }
+  getVFDirectionVoicesMap() { return this.vfDirectionVoicesMap; }
+  setVFDirectionVoicesMap(vfDirectionVoicesMap) { this.vfDirectionVoicesMap = vfDirectionVoicesMap }
   getVFLyricVoices() {
     return [...this.vfLyricVoicesMap.values()].reduce((a, b) => a.concat(b), []);
   }

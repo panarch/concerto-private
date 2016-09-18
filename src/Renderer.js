@@ -59,6 +59,7 @@ export default class Renderer {
 
         measure.getVFVoices().forEach(vfVoice => vfVoice.draw(context));
         measure.getVFLyricVoices().forEach(vfVoice => vfVoice.draw(context));
+        measure.getVFDirectionVoices().forEach(vfVoice => vfVoice.draw(context));
       });
     });
   }

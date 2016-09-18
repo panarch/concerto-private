@@ -4,6 +4,51 @@
 
 import Vex from '@panarch/allegretto';
 
+const TextDynamics = Vex.Flow.TextDynamics;
+Vex.Flow.TextDynamics.prototype.preFormat = function preFormat() {
+  if (this.preFormatted) return this; // ADDED
+
+  this.glyphs = []; // ADDED
+  let total_width = 0;
+  // Iterate through each letter
+  this.sequence.split('').forEach(letter => {
+    // Get the glyph data for the letter
+    const glyph_data = TextDynamics.GLYPHS[letter];
+    if (!glyph_data) throw new Vex.RERR('Invalid dynamics character: ' + letter);
+
+    const size =  this.render_options.glyph_font_size;
+    const glyph = new Glyph(glyph_data.code, size);
+
+    // Add the glyph
+    this.glyphs.push(glyph);
+
+    total_width += glyph_data.width;
+  });
+
+  // Store the width of the text
+  this.setWidth(total_width);
+  this.preFormatted = true;
+  return this;
+};
+
+//TODO: remove after PR merged
+Vex.Flow.BoundingBox.prototype.mergeWith = function mergeWith(boundingBox, ctx) {
+  const that = boundingBox;
+
+  const new_x = this.x < that.x ? this.x : that.x;
+  const new_y = this.y < that.y ? this.y : that.y;
+  const new_w = Math.max(this.x + this.w, that.x + that.w) - new_x;
+  const new_h = Math.max(this.y + this.h, that.y + that.h) - new_y;
+
+  this.x = new_x;
+  this.y = new_y;
+  this.w = new_w;
+  this.h = new_h;
+
+  if (ctx) this.draw(ctx);
+  return this;
+};
+
 // Get the bounding box for the voice
 Vex.Flow.Voice.prototype.getBoundingBox = function getBoundingBox() {
   //let stave;

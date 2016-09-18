@@ -4,6 +4,7 @@
 import Vex from '@panarch/allegretto';
 const VF = Vex.Flow;
 //import VFStaveFormatter from './VFStaveFormatter';
+import Note from './Note';
 import Measure from './Measure';
 import Table from './Table';
 import {
@@ -16,6 +17,7 @@ import {
   convertVFBarlineTypeToVFConnectorType,
   splitVFDuration,
   Stack,
+  getLineGenerator,
 } from './Util';
 
 export default class Formatter {
@@ -106,28 +108,6 @@ export default class Formatter {
     // Unexpected
     console.error('Formatter->getPrintMeasure, failed to find print measure');
     return parts[0].getMeasures()[mi];
-  }
-
-  getLineGenerator(part) {
-    function* lineGenerator() {
-      const measures = part.getMeasures();
-      let lineMeasures = [];
-
-      for (let mi = 0; mi < measures.length; mi++) {
-        const measure = measures[mi];
-
-        if (mi > 0 && measure.isNewLineStarting()) {
-          yield lineMeasures;
-          lineMeasures = [measure];
-        } else {
-          lineMeasures.push(measure);
-        }
-      }
-
-      if (lineMeasures.length > 0) yield lineMeasures;
-    }
-
-    return lineGenerator();
   }
 
   formatStaffDisplayed() {
@@ -1095,7 +1075,7 @@ export default class Formatter {
             if (!line) {
               const vfStave = vfLyricNote.getStave();
               const height = y - vfStave.getYForLine(0);
-              line = height / vfStave.getOptions().spacing_between_lines_px;
+              line = height / vfStave.getSpacingBetweenLines();
               line += 3 + 0.2;
             }
 
@@ -1106,12 +1086,210 @@ export default class Formatter {
     });
   }
 
+  // @after formatDirection
   formatLyric() {
     this.parts.forEach(part => {
-      const lineGenerator = this.getLineGenerator(part);
+      const lineGenerator = getLineGenerator(part);
       for (const measures of lineGenerator) {
         this._formatLyric(measures);
       }
+    });
+  }
+
+  _formatDirectionBeginDurations(measure, measureCache) {
+    const directionsMap = measure.getDirectionsMap();
+    const notesMap = measure.getNotesMap();
+
+    directionsMap.forEach((directions, staff) => directions.forEach(direction => {
+      if (direction.getTag() !== 'dynamics') return; // TODO
+      else if (direction.getBeginDuration() > 0 || direction.getDefaultX() == null) return;
+
+      const defaultX = direction.getDefaultX();
+      let maxDuration = 0;
+
+      // Ensure all notes have defaultX
+      notesMap.forEach(notes => {
+        if (notes.length === 0 || notes[0].getDefaultX() == null) return;
+
+        let lastDuration = 0;
+        let sumDuration = 0;
+        let gap = Infinity;
+
+        for (const note of notes) {
+          if (note.getDefaultX() == null) return; // not break, return
+
+          const newGap = Math.abs(note.getDefaultX() - defaultX);
+
+          if (gap < newGap) break;
+          else gap = newGap;
+
+          sumDuration += lastDuration;
+          lastDuration = note.getDuration();
+        }
+
+        if (sumDuration > maxDuration) maxDuration = sumDuration;
+      });
+
+      if (maxDuration > direction.getBeginDuration()) direction.setBeginDuration(maxDuration);
+    }));
+  }
+
+  _formatDirectionDurations(measure, measureCache) {
+    const directionsMap = measure.getDirectionsMap();
+    const notesMap = measure.getNotesMap();
+    const divisions = measureCache.getDivisions();
+
+    directionsMap.forEach((directions, staff) => directions.forEach(direction => {
+      if (direction.getTag() !== 'dynamics') return; // TODO
+
+      const vfStave = measure.getStave(staff);
+      const beginDuration = direction.getBeginDuration();
+      const vfDirectionNote = new VF.TextDynamics({
+        text: direction.getDynamicType(),
+        duration: 'q',
+      });
+
+      vfDirectionNote.setStave(vfStave).preFormat();
+      direction.setVFNote(vfDirectionNote);
+
+      const width = vfDirectionNote.getWidth();
+      let maxDuration = 0;
+      let boundingBox;
+
+      notesMap.forEach(notes => {
+        let sumDuration = 0;
+        let beginX;
+        let voiceBoundingBox;
+
+        for (const note of notes) {
+          if (note.getStaff() !== staff) break;
+          else if (sumDuration + note.getDuration() <= beginDuration) {
+            sumDuration += note.getDuration();
+            continue;
+          } else if (!beginX) {
+            sumDuration += note.getDuration();
+            voiceBoundingBox = note.getVFNote().getBoundingBox();
+            beginX = voiceBoundingBox.getX();
+            continue;
+          }
+
+          const noteBoundingBox = note.getVFNote().getBoundingBox();
+
+          if (noteBoundingBox.getX() - beginX > width) {
+            let duration = sumDuration - beginDuration;
+
+            if (duration > maxDuration) maxDuration = duration;
+
+            if (boundingBox) boundingBox.mergeWith(voiceBoundingBox);
+            else boundingBox = voiceBoundingBox;
+
+            break;
+          }
+
+          sumDuration += note.getDuration();
+          voiceBoundingBox.mergeWith(noteBoundingBox);
+        }
+
+        // If there exists only a SINGLE note, loop will end without boundingbox
+        if (!boundingBox) {
+          boundingBox = voiceBoundingBox;
+          maxDuration = sumDuration - beginDuration;
+        }
+      });
+
+      direction.setDuration(maxDuration);
+      const vfDuration = getVFDuration(direction, divisions);
+      vfDirectionNote.setDuration(vfDuration);
+      vfDirectionNote.duration = vfDuration;
+
+      const spacing = vfStave.getSpacingBetweenLines();
+      const placement = direction.getPlacement();
+
+      if (placement === 'above') {
+        const maxY = boundingBox.getY();
+        const maxLine = 1.5 + Math.min(0, (maxY - vfStave.getYForLine(0)) / spacing);
+
+        direction.setMaxLine(maxLine);
+      } else {
+        const numLines = vfStave.getNumLines();
+        const minY = boundingBox.getY() + boundingBox.getH();
+        const minLine = numLines + 1 + Math.max(0, (minY - vfStave.getBottomLineY()) / spacing);
+
+        direction.setMinLine(minLine);
+      }
+
+    }));
+  }
+
+  _formatDirection(measure, measureCache) {
+    const directionsMap = measure.getDirectionsMap();
+    const divisions = measureCache.getDivisions();
+    const { beats = 4, beatType = 4 } = measureCache.hasTime() ? measureCache.getTime() : {};
+    const voiceOptions = { num_beats: beats, beat_value: beatType };
+
+    // 1. calculate begin duration of directions.
+    this._formatDirectionBeginDurations(measure, measureCache);
+
+    // 2. calculate duration of directions.(make [beginDuration, duration] pairs)
+    this._formatDirectionDurations(measure, measureCache);
+
+    // 3. Fill vfDirectionVoicesMap
+    const vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
+
+    directionsMap.forEach((directions, staff) => {
+      directions.forEach(direction => {
+        const line = direction.getPlacement() === 'above' ?
+          direction.getMaxLine() : direction.getMinLine() + 4;
+
+        direction.getVFNote().setLine(line);
+      });
+
+      // TODO: Join multiple directions into same voice
+      directions.forEach(direction => {
+        const vfDirectionVoice = new VF.Voice(voiceOptions);
+        vfDirectionVoice.setMode(VF.Voice.Mode.SOFT);
+
+        const vfTickables = [];
+
+        if (direction.getBeginDuration() > 0) {
+          const vfDuration = getVFDuration(new Note({ duration: direction.getBeginDuration() }), divisions);
+          const ghostNote = new VF.GhostNote(vfDuration);
+          const vfStave = measure.getStave(direction.getStaff());
+          ghostNote.setStave(vfStave)
+          vfTickables.push(ghostNote);
+        }
+
+        vfTickables.push(direction.getVFNote());
+        vfDirectionVoice.addTickables(vfTickables);
+        vfDirectionVoice.setStave(measure.getStave(staff));
+
+        if (vfDirectionVoicesMap.has(staff)) {
+          vfDirectionVoicesMap.get(staff).push(vfDirectionVoice);
+        } else {
+          vfDirectionVoicesMap.set(staff, [vfDirectionVoice]);
+        }
+      });
+
+    });
+
+    measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
+  }
+
+  // @before formatLyric
+  formatDirection() {
+    this.parts.forEach((part, pi) => {
+      part.getMeasures().forEach((measure, mi) => {
+        const measureCache = this.getMeasureCache(pi, mi);
+        this._formatDirection(measure, measureCache);
+      });
+    });
+
+    // joinVoices to existing formatters!
+    this.measurePacks.forEach(measurePack => {
+      const vfDirectionVoices = measurePack.getVFDirectionVoices();
+      if (vfDirectionVoices.length === 0) return;
+
+      measurePack.getVFFormatter().joinVoices(vfDirectionVoices);
     });
   }
 
@@ -1150,7 +1328,7 @@ export default class Formatter {
       }));
 
       const width = minEndX - maxStartX - 10;
-      const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices);
+      const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices).format(vfVoices, width);
       minTotalWidth = Math.max(vfFormatter.preCalculateMinTotalWidth(vfVoices), minTotalWidth);
 
       //vfFormatter.format(vfVoices, width); -> runFormatter
@@ -1162,12 +1340,13 @@ export default class Formatter {
 
   runFormatter() {
     this.measurePacks.forEach(measurePack => {
-      const vfVoices = measurePack.getVFVoices().concat(measurePack.getVFLyricVoices());
+      const vfVoices = measurePack.getAllVFVoices();
       const width = measurePack.getWidth();
       const vfFormatter = measurePack.getVFFormatter();
       if (!vfFormatter) return;
 
-      vfFormatter.format(vfVoices, width);
+      (new Vex.Flow.Formatter()).joinVoices(vfVoices).format(vfVoices, width);
+      //vfFormatter.format(vfVoices, width);
     });
   }
 
@@ -1461,6 +1640,7 @@ export default class Formatter {
     this.formatNotes();
     this.formatBeam();
     this.formatVoices();
+    this.formatDirection();
     this.formatLyric();
     this.runFormatter();
     this.formatTie();
