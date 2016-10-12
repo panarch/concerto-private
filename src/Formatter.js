@@ -1094,6 +1094,15 @@ export default class Formatter {
         this._formatLyric(measures);
       }
     });
+
+    // join lyric voices to VFFormatter
+    this.measurePacks.forEach(measurePack => {
+      const vfLyricVoices = measurePack.getVFLyricVoices();
+      const vfFormatter = measurePack.getVFFormatter();
+      if (!vfFormatter || vfLyricVoices.length === 0) return;
+
+      vfFormatter.joinVoices(vfLyricVoices);
+    });
   }
 
   _formatDirectionBeginDurations(measure, measureCache) {
@@ -1328,7 +1337,9 @@ export default class Formatter {
       }));
 
       const width = minEndX - maxStartX - 10;
-      const vfFormatter = (new Vex.Flow.Formatter()).joinVoices(vfVoices).format(vfVoices, width);
+      const vfFormatter = new Vex.Flow.Formatter();
+      vfVoices.forEach(_vfVoice => vfFormatter.joinVoices([_vfVoice]));
+
       minTotalWidth = Math.max(vfFormatter.preCalculateMinTotalWidth(vfVoices), minTotalWidth);
 
       //vfFormatter.format(vfVoices, width); -> runFormatter
@@ -1345,8 +1356,7 @@ export default class Formatter {
       const vfFormatter = measurePack.getVFFormatter();
       if (!vfFormatter) return;
 
-      (new Vex.Flow.Formatter()).joinVoices(vfVoices).format(vfVoices, width);
-      //vfFormatter.format(vfVoices, width);
+      vfFormatter.format(vfVoices, width - 5);
     });
   }
 
@@ -1640,7 +1650,7 @@ export default class Formatter {
     this.formatNotes();
     this.formatBeam();
     this.formatVoices();
-    this.formatDirection();
+    //this.formatDirection();
     this.formatLyric();
     this.runFormatter();
     this.formatTie();
