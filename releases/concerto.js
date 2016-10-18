@@ -8198,8 +8198,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  function Wedge(_ref) {
 	    var beginNote = _ref.beginNote;
-	    var endNote = _ref.endNote;
+	    var beginStave = _ref.beginStave;
 	    var beginHeight = _ref.beginHeight;
+	    var endNote = _ref.endNote;
+	    var endStave = _ref.endStave;
 	    var endHeight = _ref.endHeight;
 	    var line = _ref.line;
 	
@@ -8208,9 +8210,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Wedge).call(this));
 	
 	    _this.beginNote = beginNote;
+	    _this.beginStave = beginStave;
+	    _this.beginHeight = beginHeight;
 	    _this.endNote = endNote;
-	    _this.beginHeight = beginHeight | 0;
-	    _this.endHeight = endHeight | 10;
+	    _this.endStave = endStave;
+	    _this.endHeight = endHeight;
 	    _this.line = line | 0;
 	    return _this;
 	  }
@@ -8224,12 +8228,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'draw',
 	    value: function draw() {
 	      var ctx = this.context;
-	      var stave = this.beginNote ? this.beginNote.getStave() : this.endNote.getStave();
-	      var beginX = this.beginNote ? this.beginNote.getAbsoluteX() : stave.getX();
-	      var endX = this.endNote ? this.endNote.getAbsoluteX() : stave.getX() + stave.getWidth();
-	      var y = stave.getYForLine(this.line + -3) + 1;
+	      var stave = this.beginStave || this.endStave || (this.beginNote ? this.beginNote.getStave() : this.endNote.getStave());
+	      var y = stave.getYForLine(this.line + -3.5) + 1;
 	      var beginH = this.beginHeight / 2;
 	      var endH = this.endHeight / 2;
+	      var beginX = this.beginNote ? this.beginNote.getAbsoluteX() : this.beginStave.getX() + 10;
+	      var endX = -10 + (this.endNote ? this.endNote.getAbsoluteX() : this.endStave.getX() + this.endStave.getWidth());
 	
 	      ctx.beginPath();
 	      ctx.moveTo(beginX, y - beginH);
@@ -32490,6 +32494,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.directionsMap;
 	    }
 	  }, {
+	    key: "setDirections",
+	    value: function setDirections(staff, directions) {
+	      this.directionsMap.set(staff, directions);
+	    }
+	  }, {
+	    key: "getDirections",
+	    value: function getDirections() {
+	      return [].concat(_toConsumableArray(this.directionsMap.values())).reduce(function (a, b) {
+	        return a.concat(b);
+	      }, []);
+	    }
+	  }, {
 	    key: "getNotesMap",
 	    value: function getNotesMap() {
 	      return this.notesMap;
@@ -33012,6 +33028,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var parseDirection = function parseDirection(data, directionNode, state) {
 	  var staffNode = directionNode.querySelector('staff');
 	  var directionTypeNode = directionNode.querySelector('direction-type');
+	  var offsetNode = directionNode.querySelector('offset'); // number based on divisions
 	  var contentNode = directionTypeNode.firstElementChild;
 	
 	  var direction = {
@@ -33020,6 +33037,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    beginDuration: state.duration,
 	    staff: staffNode ? Number(staffNode.textContent) : state.staff
 	  };
+	
+	  if (offsetNode) direction.beginDuration += Number(offsetNode.textContent);
 	
 	  if (contentNode.tagName === 'dynamics') {
 	    direction.dynamicType = contentNode.firstElementChild.tagName;
@@ -33360,6 +33379,87 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
+	var _splitMultiMeasureDirection = function _splitMultiMeasureDirection(_ref) {
+	  var direction = _ref.direction;
+	  var measures = _ref.measures;
+	  var mi = _ref.mi;
+	  var staff = _ref.staff;
+	
+	  if (['continue', 'stop'].includes(direction.getWedge().type)) return;
+	
+	  var maxDuration = (0, _Util.getMaxDuration)(measures[mi].getNotesMap());
+	  if (direction.getBeginDuration() >= maxDuration) {
+	    direction.setBeginDuration(maxDuration / 2);
+	  }
+	
+	  var started = false;
+	  var stopped = false;
+	  var nextDirection = direction;
+	  var stopDirection = void 0;
+	  var stopDirectionIndex = void 0;
+	
+	  for (; mi < measures.length; mi++) {
+	    var measure = measures[mi];
+	    var directions = measure.getDirectionsMap().has(staff) ? measure.getDirectionsMap().get(staff) : [];
+	
+	    if (directions.length === 0) measure.setDirections(staff, directions);
+	
+	    if (started) {
+	      // replace next
+	      nextDirection.setNextDirection(direction.clone());
+	      nextDirection = nextDirection.getNextDirection();
+	      nextDirection.getWedge().type = 'continue';
+	      nextDirection.setBeginDuration(0);
+	
+	      directions.splice(0, 0, nextDirection);
+	    }
+	
+	    for (var i = 0; i < directions.length; i++) {
+	      stopDirection = directions[i];
+	
+	      if (!started) {
+	        // find starting direction first
+	        if (stopDirection === direction) started = true;
+	
+	        continue;
+	      }
+	
+	      // stop found!
+	      if (stopDirection.getDirectionType() === direction.getDirectionType() && stopDirection.getWedge().number === direction.getWedge().number && stopDirection.getWedge().type === 'stop') {
+	        stopped = true;
+	        stopDirectionIndex = i;
+	
+	        nextDirection.setDuration(stopDirection.getBeginDuration() - nextDirection.getBeginDuration());
+	
+	        break;
+	      }
+	    }
+	
+	    if (stopped) {
+	      directions.splice(stopDirectionIndex, 1);
+	      break;
+	    }
+	
+	    var duration = (0, _Util.getMaxDuration)(measure.getNotesMap()) - nextDirection.getBeginDuration();
+	    nextDirection.setDuration(duration);
+	  }
+	};
+	
+	// split multi-measure directions
+	var splitMultiMeasureDirection = function splitMultiMeasureDirection(measures) {
+	  measures.forEach(function (measure, mi) {
+	    var directionsMap = measure.getDirectionsMap();
+	
+	    directionsMap.forEach(function (directions, staff) {
+	      return directions.forEach(function (direction) {
+	        if (direction.getDirectionType() !== 'wedge') return;
+	
+	        _splitMultiMeasureDirection({ direction: direction, measures: measures, mi: mi, staff: staff });
+	      });
+	    });
+	  });
+	};
+	
 	var parsePart = exports.parsePart = function parsePart(partNode) {
 	  var id = partNode.getAttribute('id');
 	  var measures = [].concat(_toConsumableArray(partNode.getElementsByTagName('measure'))).map(function (node) {
@@ -33380,6 +33480,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    fillNotesMap(data.notesMap);
 	    return new _Measure2.default(data);
 	  });
+	
+	  splitMultiMeasureDirection(measures);
 	
 	  return new _Part2.default({
 	    id: id,
@@ -33757,9 +33859,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    // variables
 	    this.duration = null;
-	    this.maxLine = null; // line: VexFlow Stave line number
+	    this.line = null; // line: VexFlow Stave line number
+	    this.maxLine = null;
 	    this.minLine = null;
 	    this.vfNote = null; // TextNote, TextDynamics, ...
+	    this.vfEndNote = null; // it is for Crescendo etc...
 	    this.vfElement = null; // Crescendo (VF StaveHairpin)
 	    this.nextDirection = null;
 	  }
@@ -33855,6 +33959,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.duration = duration;
 	    }
 	  }, {
+	    key: 'getLine',
+	    value: function getLine() {
+	      return this.line;
+	    }
+	  }, {
+	    key: 'setLine',
+	    value: function setLine(line) {
+	      this.line = line;
+	    }
+	  }, {
 	    key: 'getMaxLine',
 	    value: function getMaxLine() {
 	      return this.maxLine;
@@ -33893,6 +34007,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'setVFNote',
 	    value: function setVFNote(vfNote) {
 	      this.vfNote = vfNote;
+	    }
+	  }, {
+	    key: 'getVFEndNote',
+	    value: function getVFEndNote() {
+	      return this.vfEndNote;
+	    }
+	  }, {
+	    key: 'setVFEndNote',
+	    value: function setVFEndNote(vfEndNote) {
+	      this.vfEndNote = vfEndNote;
 	    }
 	  }, {
 	    key: 'getVFElement',
@@ -34556,8 +34680,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.context = this.createContext();
 	
 	    this.measureCacheMap = new Map();
-	
-	    this.directionPreFormatted = false;
 	  }
 	
 	  _createClass(Formatter, [{
@@ -34594,8 +34716,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.state.systemDistanceMap.set(pi, systemDistance);
 	
 	        var numStaffs = this.parts[pi].getNumStaffs();
-	        for (var _staff = 1; _staff <= numStaffs; _staff++) {
-	          var key = pi + '/' + _staff;
+	        for (var staff = 1; staff <= numStaffs; staff++) {
+	          var key = pi + '/' + staff;
 	          this.state.staffDistanceMap.set(key, staffDistance);
 	          this.state.staffDisplayedMap.set(key, true);
 	        }
@@ -34620,8 +34742,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var staffDisplayedMap = measure.getStaffDisplayedMap();
 	      var numStaffs = measure.getNumStaffs();
 	
-	      for (var _staff2 = 1; _staff2 <= numStaffs; _staff2++) {
-	        if (staffDisplayedMap.get(_staff2)) return true;
+	      for (var staff = 1; staff <= numStaffs; staff++) {
+	        if (staffDisplayedMap.get(staff)) return true;
 	      }
 	
 	      return false;
@@ -34637,8 +34759,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var numStaffs = measure.getNumStaffs();
 	        var staffDisplayedMap = measure.getStaffDisplayedMap();
 	
-	        for (var _staff3 = 1; _staff3 <= numStaffs; _staff3++) {
-	          if (staffDisplayedMap.get(_staff3)) return measure;
+	        for (var staff = 1; staff <= numStaffs; staff++) {
+	          if (staffDisplayedMap.get(staff)) return measure;
 	        }
 	      }
 	
@@ -34658,10 +34780,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var numStaffs = part.getNumStaffs();
 	          var measure = part.getMeasures()[mi];
 	
-	          for (var _staff4 = 1; _staff4 <= numStaffs; _staff4++) {
-	            var key = pi + '/' + _staff4;
+	          for (var staff = 1; staff <= numStaffs; staff++) {
+	            var key = pi + '/' + staff;
 	            var staffDisplayed = _this.state.staffDisplayedMap.get(key);
-	            measure.setStaffDisplayed(_staff4, staffDisplayed);
+	            measure.setStaffDisplayed(staff, staffDisplayed);
 	          }
 	        });
 	      };
@@ -34741,8 +34863,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        var height = _Measure2.default.STAFF_HEIGHT;
-	        for (var _staff5 = 2; _staff5 <= numStaffs; _staff5++) {
-	          height += _Measure2.default.STAFF_HEIGHT + _this4.state.staffDistanceMap.get(pi + '/' + _staff5);
+	        for (var staff = 2; staff <= numStaffs; staff++) {
+	          height += _Measure2.default.STAFF_HEIGHT + _this4.state.staffDistanceMap.get(pi + '/' + staff);
 	        }
 	
 	        /*
@@ -34771,11 +34893,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var numStaffs = part.getNumStaffs();
 	        var measure = part.getMeasures()[mi];
 	
-	        for (var _staff6 = 1; _staff6 <= numStaffs; _staff6++) {
-	          var staffDisplayed = measure.isStaffDisplayed(_staff6, null);
+	        for (var staff = 1; staff <= numStaffs; staff++) {
+	          var staffDisplayed = measure.isStaffDisplayed(staff, null);
 	
 	          if (staffDisplayed !== null) {
-	            _this5.state.staffDisplayedMap.set(pi + '/' + _staff6, staffDisplayed);
+	            _this5.state.staffDisplayedMap.set(pi + '/' + staff, staffDisplayed);
 	          }
 	        }
 	      });
@@ -34810,11 +34932,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          var measureTopY = measureTopYs[pi];
-	          for (var _staff7 = 1; _staff7 <= numStaffs; _staff7++) {
-	            var key = pi + '/' + _staff7;
+	          for (var staff = 1; staff <= numStaffs; staff++) {
+	            var key = pi + '/' + staff;
 	            var staffDistance = _this6.state.staffDistanceMap.has(key) ? _this6.state.staffDistanceMap.get(key) : 0;
 	
-	            measure.setStaffY(_staff7, measureTopY + (_Measure2.default.STAFF_HEIGHT + staffDistance) * (_staff7 - 1));
+	            measure.setStaffY(staff, measureTopY + (_Measure2.default.STAFF_HEIGHT + staffDistance) * (staff - 1));
 	          }
 	
 	          measure.setY(measureTopY);
@@ -34843,14 +34965,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            space_above_staff_ln: 0
 	          };
 	
-	          for (var _staff8 = 1; _staff8 <= numStaffs; _staff8++) {
-	            var y = measure.getStaffY(_staff8);
+	          for (var staff = 1; staff <= numStaffs; staff++) {
+	            var y = measure.getStaffY(staff);
 	
-	            if (printMeasure.isStaffDisplayed(_staff8)) {
+	            if (printMeasure.isStaffDisplayed(staff)) {
 	              var StaveClass = clef.sign === 'TAB' ? _allegretto2.default.Flow.TabStave : _allegretto2.default.Flow.Stave;
 	              var stave = new StaveClass(x, y, width, options);
 	              stave.setBegBarType(_allegretto2.default.Flow.Barline.type.NONE);
-	              measure.setStave(_staff8, stave);
+	              measure.setStave(staff, stave);
 	            }
 	          }
 	        });
@@ -35766,7 +35888,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          // => set begin duration as measure duration / 2
 	          var duration = (0, _Util.getMaxDuration)(notesMap);
 	          if (direction.getBeginDuration() >= duration) {
-	            console.log('this one', duration, direction.getBeginDuration());
 	            direction.setBeginDuration(duration / 2);
 	            return;
 	          }
@@ -35825,20 +35946,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: '_convertDirectionWidthToDuration',
-	    value: function _convertDirectionWidthToDuration(_ref6) {
+	    key: '_calculateDirectionBoundingBox',
+	    value: function _calculateDirectionBoundingBox(_ref6) {
 	      var direction = _ref6.direction;
-	      var vfDirectionNote = _ref6.vfDirectionNote;
 	      var notesMap = _ref6.notesMap;
+	      var vfStave = _ref6.vfStave;
 	
-	      var width = vfDirectionNote.getWidth();
-	      var maxDuration = 0;
 	      var boundingBox = void 0;
+	      var endDuration = direction.getBeginDuration() + direction.getDuration();
 	
 	      notesMap.forEach(function (notes) {
-	        var sumDuration = 0;
-	        var beginX = void 0;
-	        var voiceBoundingBox = void 0;
+	        var duration = 0;
 	
 	        var _iteratorNormalCompletion3 = true;
 	        var _didIteratorError3 = false;
@@ -35847,82 +35965,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        try {
 	          for (var _iterator3 = notes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 	            var note = _step3.value;
-	
-	            if (note.getStaff() !== staff) break;else if (sumDuration + note.getDuration() <= beginDuration) {
-	              sumDuration += note.getDuration();
-	              continue;
-	            } else if (!beginX) {
-	              sumDuration += note.getDuration();
-	              voiceBoundingBox = note.getVFNote().getBoundingBox();
-	              beginX = voiceBoundingBox.getX();
-	              continue;
-	            }
-	
-	            var noteBoundingBox = note.getVFNote().getBoundingBox();
-	
-	            if (noteBoundingBox.getX() - beginX > width) {
-	              var duration = sumDuration - beginDuration;
-	
-	              if (duration > maxDuration) maxDuration = duration;
-	
-	              if (boundingBox) boundingBox.mergeWith(voiceBoundingBox);else boundingBox = voiceBoundingBox;
-	
-	              break;
-	            }
-	
-	            sumDuration += note.getDuration();
-	            voiceBoundingBox.mergeWith(noteBoundingBox);
-	          }
-	
-	          // If there exists only a SINGLE note, loop will end without boundingbox
-	        } catch (err) {
-	          _didIteratorError3 = true;
-	          _iteratorError3 = err;
-	        } finally {
-	          try {
-	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	              _iterator3.return();
-	            }
-	          } finally {
-	            if (_didIteratorError3) {
-	              throw _iteratorError3;
-	            }
-	          }
-	        }
-	
-	        if (!boundingBox) {
-	          boundingBox = voiceBoundingBox;
-	          maxDuration = sumDuration - beginDuration;
-	        }
-	      });
-	
-	      direction.setDuration(maxDuration);
-	      var vfDuration = (0, _Util.getVFDuration)(direction, divisions);
-	      vfDirectionNote.setDuration(vfDuration);
-	      vfDirectionNote.duration = vfDuration;
-	    }
-	  }, {
-	    key: '_calculateDirectionBoundingBox',
-	    value: function _calculateDirectionBoundingBox(_ref7) {
-	      var direction = _ref7.direction;
-	      var notesMap = _ref7.notesMap;
-	      var vfStave = _ref7.vfStave;
-	
-	      var topY = vfStave.getYForLine(0);
-	      var bottomY = vfStave.getBottomLineY();
-	      var boundingBox = void 0;
-	      var endDuration = direction.getBeginDuration() + direction.getDuration();
-	
-	      notesMap.forEach(function (notes) {
-	        var duration = 0;
-	
-	        var _iteratorNormalCompletion4 = true;
-	        var _didIteratorError4 = false;
-	        var _iteratorError4 = undefined;
-	
-	        try {
-	          for (var _iterator4 = notes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	            var note = _step4.value;
 	
 	            if (duration > endDuration) break;
 	
@@ -35935,16 +35977,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (boundingBox) boundingBox.mergeWith(noteBoundingBox);else boundingBox = noteBoundingBox;
 	          }
 	        } catch (err) {
-	          _didIteratorError4 = true;
-	          _iteratorError4 = err;
+	          _didIteratorError3 = true;
+	          _iteratorError3 = err;
 	        } finally {
 	          try {
-	            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	              _iterator4.return();
+	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	              _iterator3.return();
 	            }
 	          } finally {
-	            if (_didIteratorError4) {
-	              throw _iteratorError4;
+	            if (_didIteratorError3) {
+	              throw _iteratorError3;
 	            }
 	          }
 	        }
@@ -35963,42 +36005,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var directionsMap = measure.getDirectionsMap();
 	      var notesMap = measure.getNotesMap();
 	      var divisions = measureCache.getDivisions();
+	      var maxDuration = (0, _Util.getMaxDuration)(notesMap);
 	
 	      directionsMap.forEach(function (directions, staff) {
 	        return directions.forEach(function (direction) {
 	          var directionType = direction.getDirectionType();
-	          if (!['dynamics', 'wedge'].includes(directionType)) return;else if (directionType === 'wedge' && direction.getWedge().type === 'stop') return;
+	          if (!['dynamics', 'wedge'].includes(directionType)) return;
 	
 	          var vfStave = measure.getStave(staff);
-	          var beginDuration = direction.getBeginDuration();
 	
 	          var vfDirectionNote = void 0;
 	          switch (directionType) {
 	            case 'dynamics':
+	              direction.setDuration(divisions);
 	              vfDirectionNote = new VF.TextDynamics({
 	                text: direction.getDynamicType(),
-	                duration: 'q'
+	                duration: (0, _Util.getVFDuration)(direction, divisions)
 	              });
 	              vfDirectionNote.setStave(vfStave).preFormat();
-	
-	              _this18._convertDirectionWidthToDuration({
-	                direction: direction, vfDirectionNote: vfDirectionNote, notesMap: notesMap
-	              });
-	
 	              break;
 	            case 'wedge':
-	              vfDirectionNote = new VF.Crescendo({ duration: 'q' }); //getVFDuration(direction, divisions) });
-	              vfDirectionNote.width = 10;
+	              if (direction.getDuration() === 0) {
+	                console.warn('[warn] measure number ' + measure.number + ', found duration 0 direction');
+	                return;
+	              }
 	
-	              var temp = (0, _Util.getVFDuration)(new _Note2.default({ duration: direction.getBeginDuration() }), divisions);
-	              console.log('begin', direction.getBeginDuration(), 'duration', (0, _Util.getVFDuration)(direction, divisions));
+	              var vfDuration = (0, _Util.getVFDuration)(direction, divisions);
+	              var sumDuration = direction.getBeginDuration() + direction.getDuration();
+	              vfDirectionNote = new VF.GhostNote({ duration: vfDuration });
+	
+	              if (sumDuration < maxDuration) {
+	                var vfDirectionEndNote = new VF.GhostNote({
+	                  duration: (0, _Util.getVFDuration)(new _Note2.default({ duration: maxDuration - sumDuration }), divisions)
+	                });
+	
+	                vfDirectionEndNote.setStave(vfStave);
+	                direction.setVFEndNote(vfDirectionEndNote);
+	              }
+	
 	              vfDirectionNote.setStave(vfStave);
 	              break;
 	          }
 	
 	          direction.setVFNote(vfDirectionNote);
 	
-	          //
 	          var spacing = vfStave.getSpacingBetweenLines();
 	          var placement = direction.getPlacement();
 	          var boundingBox = _this18._calculateDirectionBoundingBox({ direction: direction, notesMap: notesMap, vfStave: vfStave });
@@ -36024,12 +36074,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var directionsMap = measure.getDirectionsMap();
 	      var divisions = measureCache.getDivisions();
 	
-	      var _ref8 = measureCache.hasTime() ? measureCache.getTime() : {};
+	      var _ref7 = measureCache.hasTime() ? measureCache.getTime() : {};
 	
-	      var _ref8$beats = _ref8.beats;
-	      var beats = _ref8$beats === undefined ? 4 : _ref8$beats;
-	      var _ref8$beatType = _ref8.beatType;
-	      var beatType = _ref8$beatType === undefined ? 4 : _ref8$beatType;
+	      var _ref7$beats = _ref7.beats;
+	      var beats = _ref7$beats === undefined ? 4 : _ref7$beats;
+	      var _ref7$beatType = _ref7.beatType;
+	      var beatType = _ref7$beatType === undefined ? 4 : _ref7$beatType;
 	
 	      var voiceOptions = { num_beats: beats, beat_value: beatType };
 	
@@ -36042,19 +36092,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // 3. Fill vfDirectionVoicesMap
 	      var vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
 	
-	      console.log('measure number', measure.number);
 	      directionsMap.forEach(function (directions, staff) {
 	        directions.forEach(function (direction) {
-	          if (!direction.getVFNote()) return;
+	          var vfNote = direction.getVFNote();
+	          if (!vfNote) return;
 	
 	          var line = direction.getPlacement() === 'above' ? direction.getMaxLine() : direction.getMinLine() + 4;
+	
+	          direction.setLine(line);
+	
+	          if (vfNote instanceof VF.GhostNote) return;
 	
 	          direction.getVFNote().setLine(line);
 	        });
 	
 	        // TODO: Join multiple directions into same voice
 	        directions.forEach(function (direction) {
-	          if (!direction.getVFNote()) return;
+	          var vfNote = direction.getVFNote();
+	          var vfEndNote = direction.getVFEndNote();
+	          if (!vfNote) return;
 	
 	          var vfDirectionVoice = new VF.Voice(voiceOptions);
 	          vfDirectionVoice.setMode(VF.Voice.Mode.SOFT);
@@ -36069,9 +36125,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            vfTickables.push(ghostNote);
 	          }
 	
-	          vfTickables.push(direction.getVFNote());
+	          vfTickables.push(vfNote);
+	          if (vfEndNote) vfTickables.push(vfEndNote);
+	
 	          vfDirectionVoice.addTickables(vfTickables);
-	          console.log(vfTickables);
 	          vfDirectionVoice.setStave(measure.getStave(staff));
 	
 	          if (vfDirectionVoicesMap.has(staff)) {
@@ -36085,103 +36142,81 @@ return /******/ (function(modules) { // webpackBootstrap
 	      measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
 	    }
 	  }, {
-	    key: '_splitMultiMeasureDirection',
-	    value: function _splitMultiMeasureDirection(_ref9) {
-	      var direction = _ref9.direction;
-	      var measures = _ref9.measures;
-	      var mi = _ref9.mi;
-	      var staff = _ref9.staff;
-	
-	      if (['continue', 'stop'].includes(direction.getWedge().type)) return;
-	
-	      var begin = false;
-	      var end = false;
-	      var nDirection = direction; // clone direction;
-	
-	      for (; mi < measures.length; mi++) {
-	        var measure = measures[mi];
-	        var directions = measure.getDirectionsMap().get(staff);
-	        if (!directions) continue;
-	
-	        if (begin) {
-	          // replace next
-	          console.log('split!', mi);
-	          nDirection.setNextDirection(direction.clone());
-	          nDirection = nDirection.getNextDirection();
-	          nDirection.getWedge().type = 'continue';
-	          nDirection.setBeginDuration(0);
-	
-	          directions.splice(0, 0, nDirection);
-	        }
-	
-	        var _iteratorNormalCompletion5 = true;
-	        var _didIteratorError5 = false;
-	        var _iteratorError5 = undefined;
-	
-	        try {
-	          for (var _iterator5 = directions[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	            var _direction = _step5.value;
-	
-	            if (!begin) {
-	              if (_direction === direction) begin = true;
-	
-	              continue;
-	            }
-	
-	            // find stop!
-	            if (_direction.getDirectionType() === direction.getDirectionType() && _direction.getWedge().number === direction.getWedge().number && _direction.getWedge().type === 'stop') {
-	              end = true;
-	              nDirection.setDuration(_direction.getBeginDuration() - nDirection.getBeginDuration());
-	              break;
-	            }
-	          }
-	        } catch (err) {
-	          _didIteratorError5 = true;
-	          _iteratorError5 = err;
-	        } finally {
-	          try {
-	            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	              _iterator5.return();
-	            }
-	          } finally {
-	            if (_didIteratorError5) {
-	              throw _iteratorError5;
-	            }
-	          }
-	        }
-	
-	        if (end) break;
-	
-	        var duration = (0, _Util.getMaxDuration)(measure.getNotesMap()) - nDirection.getBeginDuration();
-	        console.log('set duration', duration);
-	        nDirection.setDuration(duration);
-	      }
-	    }
-	  }, {
-	    key: 'preFormatDirection',
-	    value: function preFormatDirection() {
+	    key: '_createVFElementFromDirection',
+	    value: function _createVFElementFromDirection(_ref8) {
 	      var _this19 = this;
 	
-	      if (this.directionPreFormatted) return;
+	      var measure = _ref8.measure;
+	      var mi = _ref8.mi;
+	      var pi = _ref8.pi;
 	
-	      // split multi-measure directions
-	      this.parts.forEach(function (part) {
-	        var measures = part.getMeasures();
-	
-	        measures.forEach(function (measure, mi) {
-	          var directionsMap = measure.getDirectionsMap();
-	
-	          directionsMap.forEach(function (directions, staff) {
-	            return directions.forEach(function (direction) {
-	              if (direction.getDirectionType() !== 'wedge') return;
-	
-	              _this19._splitMultiMeasureDirection({ direction: direction, measures: measures, mi: mi, staff: staff });
-	            });
-	          });
-	        });
+	      var directions = measure.getDirections().filter(function (direction) {
+	        return direction.getDirectionType() === 'wedge' && !['continue'].includes(direction.getWedge().type);
 	      });
 	
-	      this.directionPreFormatted = true;
+	      var initGetNextMeasure = function initGetNextMeasure(mi) {
+	        var _mi = mi;
+	        return function () {
+	          return _this19.parts[pi].getMeasures()[++_mi];
+	        };
+	      };
+	
+	      directions.forEach(function (direction) {
+	        var getNextMeasure = initGetNextMeasure(mi);
+	        var vfNote = direction.getVFNote();
+	        if (!vfNote) return;
+	
+	        var isCrescendo = direction.getWedge().type === 'crescendo';
+	        var line = direction.getLine();
+	
+	        var lineDirection = direction; // first direction of line
+	        var lastDirection = direction;
+	        var nextDirection = direction.getNextDirection();
+	        var lineChanged = false;
+	
+	        while (nextDirection) {
+	          var _measure = getNextMeasure();
+	          var isNewLine = _measure.isNewLineStarting();
+	
+	          if (isNewLine) {
+	            // flush!
+	            lineChanged = true;
+	
+	            lineDirection.setVFElement(new VF.Wedge({
+	              beginNote: lineDirection.getVFNote(),
+	              endStave: lastDirection.getVFNote().getStave(),
+	              beginHeight: isCrescendo ? 0 : 10,
+	              endHeight: isCrescendo ? 8 : 4,
+	              line: line
+	            }));
+	
+	            lineDirection = nextDirection;
+	          }
+	
+	          lastDirection = nextDirection;
+	          nextDirection = lastDirection.getNextDirection();
+	        }
+	
+	        var options = {
+	          endHeight: isCrescendo ? 10 : 0,
+	          line: line
+	        };
+	
+	        if (!lastDirection.getVFNote()) return;
+	
+	        var vfEndNote = lastDirection.getVFEndNote();
+	        if (vfEndNote) options.endNote = vfEndNote;else options.endStave = lastDirection.getVFNote().getStave();
+	
+	        if (lineChanged) {
+	          options.beginStave = lineDirection.getVFNote().getStave();
+	          options.beginHeight = isCrescendo ? 4 : 8;
+	        } else {
+	          options.beginNote = lineDirection.getVFNote();
+	          options.beginHeight = isCrescendo ? 0 : 10;
+	        }
+	
+	        lineDirection.setVFElement(new VF.Wedge(options));
+	      });
 	    }
 	
 	    // @before formatLyric
@@ -36191,12 +36226,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function formatDirection() {
 	      var _this20 = this;
 	
-	      this.preFormatDirection();
+	      // reset
+	      this.parts.forEach(function (part) {
+	        return part.getMeasures().forEach(function (measure) {
+	          measure.getDirections().forEach(function (direction) {
+	            direction.setVFNote(null);
+	            direction.setVFEndNote(null);
+	            direction.setVFElement(null);
+	          });
+	        });
+	      });
 	
 	      this.parts.forEach(function (part, pi) {
 	        part.getMeasures().forEach(function (measure, mi) {
 	          var measureCache = _this20.getMeasureCache(pi, mi);
 	          _this20._formatDirection(measure, measureCache);
+	        });
+	      });
+	
+	      // create VFElement from GhostNote (Wedge...)
+	      this.parts.forEach(function (part, pi) {
+	        part.getMeasures().forEach(function (measure, mi) {
+	          _this20._createVFElementFromDirection({ measure: measure, mi: mi, pi: pi });
 	        });
 	      });
 	
@@ -36231,27 +36282,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        var vfTabVoices = vfVoices.filter(function (vfVoice) {
-	          var _iteratorNormalCompletion6 = true;
-	          var _didIteratorError6 = false;
-	          var _iteratorError6 = undefined;
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
 	
 	          try {
-	            for (var _iterator6 = vfVoice.getTickables()[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	              var vfNote = _step6.value;
+	            for (var _iterator4 = vfVoice.getTickables()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var vfNote = _step4.value;
 	
 	              if (vfNote instanceof _allegretto2.default.Flow.TabNote) return true;
 	            }
 	          } catch (err) {
-	            _didIteratorError6 = true;
-	            _iteratorError6 = err;
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-	                _iterator6.return();
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
 	              }
 	            } finally {
-	              if (_didIteratorError6) {
-	                throw _iteratorError6;
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
 	              }
 	            }
 	          }
@@ -36610,7 +36661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatNotes();
 	      this.formatBeam();
 	      this.formatVoices();
-	      //this.formatDirection();
+	      this.formatDirection();
 	      this.formatLyric();
 	      this.runFormatter();
 	      this.formatTie();
@@ -37089,7 +37140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatNotes();
 	      this.formatBeam();
 	      this.formatVoices();
-	      //this.formatDirection();
+	      this.formatDirection();
 	      this.formatLyric();
 	      this.runFormatter();
 	      // END
@@ -37119,7 +37170,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatNotes(); // added
 	      this.formatBeam();
 	      this.formatVoices();
-	      //this.formatDirection();
+	      this.formatDirection();
 	      this.formatLyric();
 	      this.runFormatter();
 	      this.formatTie();
@@ -37651,9 +37702,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: 'renderTies',
-	    value: function renderTies() {
+	    key: 'renderDirections',
+	    value: function renderDirections() {
 	      var _this5 = this;
+	
+	      /* render directions which are not included in VFDirectionVoice
+	       * ex) Wedge, Bracket...
+	       */
 	
 	      this.score.getParts().forEach(function (part, pi) {
 	        var index = 0;
@@ -37665,17 +37720,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	            context = _this5.contexts[index];
 	          }
 	
-	          measure.getVoices().forEach(function (voice) {
-	            part.getVFTies(mi + '/' + voice).forEach(function (tie) {
-	              return tie.setContext(context).draw();
-	            });
+	          measure.getDirectionsMap().forEach(function (directions) {
+	            var _iteratorNormalCompletion = true;
+	            var _didIteratorError = false;
+	            var _iteratorError = undefined;
+	
+	            try {
+	              for (var _iterator = directions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                var direction = _step.value;
+	
+	                var vfElement = direction.getVFElement();
+	                if (!vfElement) continue;
+	
+	                vfElement.setContext(context).draw();
+	              }
+	            } catch (err) {
+	              _didIteratorError = true;
+	              _iteratorError = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion && _iterator.return) {
+	                  _iterator.return();
+	                }
+	              } finally {
+	                if (_didIteratorError) {
+	                  throw _iteratorError;
+	                }
+	              }
+	            }
 	          });
 	        });
 	      });
 	    }
 	  }, {
-	    key: 'renderSlurs',
-	    value: function renderSlurs() {
+	    key: 'renderTies',
+	    value: function renderTies() {
 	      var _this6 = this;
 	
 	      this.score.getParts().forEach(function (part, pi) {
@@ -37689,6 +37768,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          measure.getVoices().forEach(function (voice) {
+	            part.getVFTies(mi + '/' + voice).forEach(function (tie) {
+	              return tie.setContext(context).draw();
+	            });
+	          });
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'renderSlurs',
+	    value: function renderSlurs() {
+	      var _this7 = this;
+	
+	      this.score.getParts().forEach(function (part, pi) {
+	        var index = 0;
+	        var context = _this7.contexts[index];
+	
+	        part.getMeasures().forEach(function (measure, mi) {
+	          if (mi > 0 && measure.hasNewPage()) {
+	            index++;
+	            context = _this7.contexts[index];
+	          }
+	
+	          measure.getVoices().forEach(function (voice) {
 	            part.getVFSlurs(mi + '/' + voice).forEach(function (slur) {
 	              return slur.setContext(context).draw();
 	            });
@@ -37699,11 +37801,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'renderConnectors',
 	    value: function renderConnectors() {
-	      var _this7 = this;
+	      var _this8 = this;
 	
 	      this.score.getMeasurePacks().forEach(function (measurePack) {
 	        measurePack.getConnectors().forEach(function (connector) {
-	          var context = _this7.contexts[connector.page - 1];
+	          var context = _this8.contexts[connector.page - 1];
 	          connector.staveConnector.setContext(context).draw();
 	        });
 	      });
@@ -37711,10 +37813,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'renderCredits',
 	    value: function renderCredits() {
-	      var _this8 = this;
+	      var _this9 = this;
 	
 	      this.score.getCredits().forEach(function (credit) {
-	        var context = _this8.contexts[credit.getPage() - 1];
+	        var context = _this9.contexts[credit.getPage() - 1];
 	
 	        credit.getTexts().forEach(function (_ref2) {
 	          var content = _ref2.content;
@@ -37739,6 +37841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderVoices();
 	      this.renderBeams();
 	      this.renderTuplets();
+	      this.renderDirections();
 	      this.renderTies();
 	      this.renderSlurs();
 	      this.renderConnectors();
