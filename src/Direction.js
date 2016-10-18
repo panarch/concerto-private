@@ -2,10 +2,14 @@
 // @author Taehoon Moon
 
 export default class Direction {
-  constructor({ tag, staff, placement, beginDuration, dynamicType, defaultX }) {
+  constructor({ tag, directionType, wedge,
+      staff, placement, beginDuration, dynamicType, defaultX }) {
     this.tag = tag;
+    this.directionType = directionType;
     this.staff = staff;
     this.placement = placement;
+
+    this.wedge = wedge;
     this.dynamicType = dynamicType;
 
     // mutable
@@ -16,10 +20,26 @@ export default class Direction {
 
     // variables
     this.duration = null;
-    this.maxLine = null; // line: VexFlow Stave line number
+    this.line = null; // line: VexFlow Stave line number
+    this.maxLine = null;
     this.minLine = null;
     this.vfNote = null; // TextNote, TextDynamics, ...
-    this.vfElement = null; // Crescendo
+    this.vfEndNote = null; // it is for Crescendo etc...
+    this.vfElement = null; // Crescendo (VF StaveHairpin)
+    this.nextDirection = null;
+  }
+
+  clone() {
+    return new Direction({
+      tag: this.tag,
+      directionType: this.directionType,
+      staff: this.staff,
+      placement: this.placement,
+      wedge: Object.assign({}, this.wedge),
+      dynamicType: this.dynamicType,
+      beginDuration: this.beginDuration,
+      defaultX: this.defaultX,
+    });
   }
 
   // Note interface
@@ -28,8 +48,11 @@ export default class Direction {
   getRest() { return null; }
 
   getTag() { return this.tag; }
+  getDirectionType() { return this.directionType; }
   getStaff() { return this.staff; }
   getPlacement() { return this.placement ? this.placement : 'above'; }
+
+  getWedge() { return this.wedge; }
   getDynamicType() { return this.dynamicType; }
 
   getBeginDuration() { return this.beginDuration; }
@@ -40,12 +63,18 @@ export default class Direction {
 
   getDuration() { return this.duration; }
   setDuration(duration) { this.duration = duration; }
+  getLine() { return this.line; }
+  setLine(line) { this.line = line; }
   getMaxLine() { return this.maxLine; }
   setMaxLine(maxLine) { this.maxLine = maxLine; }
   getMinLine() { return this.minLine; }
   setMinLine(minLine) { this.minLine = minLine; }
+  getNextDirection() { return this.nextDirection; }
+  setNextDirection(direction) { this.nextDirection = direction; }
   getVFNote() { return this.vfNote; }
   setVFNote(vfNote) { this.vfNote = vfNote; }
+  getVFEndNote() { return this.vfEndNote; }
+  setVFEndNote(vfEndNote) { this.vfEndNote = vfEndNote; }
   getVFElement() { return this.vfElement; }
   setVFElement(vfElement) { this.vfElement = vfElement; }
 }

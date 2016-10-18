@@ -188,6 +188,8 @@ export default class Measure {
   getDivisions() { return this.divisions; }
   setDivisions(divisions) { this.divisions = divisions; }
   getDirectionsMap() { return this.directionsMap; }
+  setDirections(staff, directions) { this.directionsMap.set(staff, directions); }
+  getDirections() { return [...this.directionsMap.values()].reduce((a, b) => a.concat(b), []); }
 
   getNotesMap() { return this.notesMap; }
   getVoices() { return this.voices; }

@@ -96,6 +96,33 @@ export default class Renderer {
     });
   }
 
+  renderDirections() {
+    /* render directions which are not included in VFDirectionVoice
+     * ex) Wedge, Bracket...
+     */
+
+    this.score.getParts().forEach((part, pi) => {
+      let index = 0;
+      let context = this.contexts[index];
+
+      part.getMeasures().forEach((measure, mi) => {
+        if (mi > 0 && measure.hasNewPage()) {
+          index++;
+          context = this.contexts[index];
+        }
+
+        measure.getDirectionsMap().forEach(directions => {
+          for (const direction of directions) {
+            const vfElement = direction.getVFElement();
+            if (!vfElement) continue;
+
+            vfElement.setContext(context).draw();
+          }
+        });
+      });
+    });
+  }
+
   renderTies() {
     this.score.getParts().forEach((part, pi) => {
       let index = 0;
@@ -160,6 +187,7 @@ export default class Renderer {
     this.renderVoices();
     this.renderBeams();
     this.renderTuplets();
+    this.renderDirections();
     this.renderTies();
     this.renderSlurs();
     this.renderConnectors();

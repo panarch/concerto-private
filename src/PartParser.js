@@ -122,18 +122,32 @@ const parseAttributes = (data, attrNode, state) => {
 const parseDirection = (data, directionNode, state) => {
   const staffNode = directionNode.querySelector('staff');
   const directionTypeNode = directionNode.querySelector('direction-type');
-  const dynamicsNode = directionTypeNode.querySelector('dynamics')
-  if (!dynamicsNode) return;
+  const offsetNode = directionNode.querySelector('offset'); // number based on divisions
+  const contentNode = directionTypeNode.firstElementChild;
 
   const direction = {
-    tag: 'dynamics',
-    dynamicType: dynamicsNode.firstElementChild.tagName,
+    tag: 'direction',
+    directionType: contentNode.tagName,
     beginDuration: state.duration,
     staff: staffNode ? Number(staffNode.textContent) : state.staff,
   };
 
-  if (dynamicsNode.hasAttribute('default-x')) {
-    direction.defaultX = Number(dynamicsNode.getAttribute('default-x'));
+  if (offsetNode) direction.beginDuration += Number(offsetNode.textContent);
+
+  if (contentNode.tagName === 'dynamics') {
+    direction.dynamicType = contentNode.firstElementChild.tagName;
+  } else if (contentNode.tagName === 'wedge') {
+    direction.wedge = {
+      type: contentNode.getAttribute('type'), // crescendo | diminuendo | stop
+    };
+
+    if (contentNode.hasAttribute('number')) {
+      direction.wedge.number = contentNode.getAttribute('number');
+    }
+  }
+
+  if (contentNode.hasAttribute('default-x')) {
+    direction.defaultX = Number(contentNode.getAttribute('default-x'));
   }
 
   if (directionNode.hasAttribute('placement')) {
@@ -455,6 +469,84 @@ const fillNotesMap = notesMap => {
   });
 };
 
+const _splitMultiMeasureDirection = ({ direction, measures, mi, staff }) => {
+  if (['continue', 'stop'].includes(direction.getWedge().type)) return;
+
+  const maxDuration = getMaxDuration(measures[mi].getNotesMap());
+  if (direction.getBeginDuration() >= maxDuration) {
+    direction.setBeginDuration(maxDuration / 2);
+  }
+
+  let started = false;
+  let stopped = false;
+  let nextDirection = direction;
+  let stopDirection;
+  let stopDirectionIndex;
+
+  for (; mi < measures.length; mi++) {
+    const measure = measures[mi];
+    const directions = measure.getDirectionsMap().has(staff) ?
+      measure.getDirectionsMap().get(staff) : [];
+
+    if (directions.length === 0) measure.setDirections(staff, directions);
+
+    if (started) { // replace next
+      nextDirection.setNextDirection(direction.clone());
+      nextDirection = nextDirection.getNextDirection();
+      nextDirection.getWedge().type = 'continue';
+      nextDirection.setBeginDuration(0);
+
+      directions.splice(0, 0, nextDirection);
+    }
+
+    for (let i = 0; i < directions.length; i++) {
+      stopDirection = directions[i];
+
+      if (!started) { // find starting direction first
+        if (stopDirection === direction) started = true;
+
+        continue;
+      }
+
+      // stop found!
+      if (stopDirection.getDirectionType() === direction.getDirectionType() &&
+          stopDirection.getWedge().number === direction.getWedge().number &&
+          stopDirection.getWedge().type === 'stop') {
+        stopped = true;
+        stopDirectionIndex = i;
+
+        nextDirection.setDuration(
+          stopDirection.getBeginDuration() - nextDirection.getBeginDuration()
+        );
+
+        break;
+      }
+    }
+
+    if (stopped) {
+      directions.splice(stopDirectionIndex, 1);
+      break;
+    }
+
+    const duration = getMaxDuration(measure.getNotesMap()) - nextDirection.getBeginDuration();
+    nextDirection.setDuration(duration);
+  }
+
+};
+
+// split multi-measure directions
+const splitMultiMeasureDirection = measures => {
+  measures.forEach((measure, mi) => {
+    const directionsMap = measure.getDirectionsMap();
+
+    directionsMap.forEach((directions, staff) => directions.forEach(direction => {
+      if (direction.getDirectionType() !== 'wedge') return;
+
+      _splitMultiMeasureDirection({ direction, measures, mi, staff });
+    }));
+  });
+}
+
 export const parsePart = partNode => {
   const id = partNode.getAttribute('id');
   const measures = [...partNode.getElementsByTagName('measure')].map(node => {
@@ -477,6 +569,8 @@ export const parsePart = partNode => {
     fillNotesMap(data.notesMap);
     return new Measure(data);
   });
+
+  splitMultiMeasureDirection(measures);
 
   return new Part({
     id: id,

@@ -379,7 +379,7 @@ export default class VerticalFormatter extends AdvancedFormatter {
     this.formatNotes();
     this.formatBeam();
     this.formatVoices();
-    //this.formatDirection();
+    this.formatDirection();
     this.formatLyric();
     this.runFormatter();
     // END
@@ -409,7 +409,7 @@ export default class VerticalFormatter extends AdvancedFormatter {
     this.formatNotes(); // added
     this.formatBeam();
     this.formatVoices();
-    //this.formatDirection();
+    this.formatDirection();
     this.formatLyric();
     this.runFormatter();
     this.formatTie();

@@ -18,6 +18,7 @@ import {
   splitVFDuration,
   Stack,
   getLineGenerator,
+  getMaxDuration,
 } from './Util';
 
 export default class Formatter {
@@ -1110,7 +1111,15 @@ export default class Formatter {
     const notesMap = measure.getNotesMap();
 
     directionsMap.forEach((directions, staff) => directions.forEach(direction => {
-      if (direction.getTag() !== 'dynamics') return; // TODO
+      // 1. if begin duration >= measure duration
+      // => set begin duration as measure duration / 2
+      const duration = getMaxDuration(notesMap);
+      if (direction.getBeginDuration() >= duration) {
+        direction.setBeginDuration(duration / 2);
+        return;
+      }
+
+      if (direction.getDirectionType() !== 'dynamics') return; // TODO
       else if (direction.getBeginDuration() > 0 || direction.getDefaultX() == null) return;
 
       const defaultX = direction.getDefaultX();
@@ -1141,78 +1150,85 @@ export default class Formatter {
 
       if (maxDuration > direction.getBeginDuration()) direction.setBeginDuration(maxDuration);
     }));
+
   }
 
+  _calculateDirectionBoundingBox({ direction, notesMap, vfStave }) {
+    let boundingBox;
+    const endDuration = direction.getBeginDuration() + direction.getDuration();
+
+    notesMap.forEach(notes => {
+      let duration = 0;
+
+      for (const note of notes) {
+        if (duration > endDuration) break;
+
+        duration += note.getDuration();
+        if (note.getStaff() !== direction.getStaff() ||
+              duration < direction.getBeginDuration()) {
+          continue;
+        }
+
+        const noteBoundingBox = note.getVFNote().getBoundingBox();
+        if (boundingBox) boundingBox.mergeWith(noteBoundingBox);
+        else boundingBox = noteBoundingBox;
+      }
+    });
+
+    return boundingBox;
+  }
+
+  // @support dynamics
   _formatDirectionDurations(measure, measureCache) {
     const directionsMap = measure.getDirectionsMap();
     const notesMap = measure.getNotesMap();
     const divisions = measureCache.getDivisions();
+    const maxDuration = getMaxDuration(notesMap);
 
     directionsMap.forEach((directions, staff) => directions.forEach(direction => {
-      if (direction.getTag() !== 'dynamics') return; // TODO
+      const directionType = direction.getDirectionType();
+      if (!['dynamics', 'wedge'].includes(directionType)) return;
 
       const vfStave = measure.getStave(staff);
-      const beginDuration = direction.getBeginDuration();
-      const vfDirectionNote = new VF.TextDynamics({
-        text: direction.getDynamicType(),
-        duration: 'q',
-      });
 
-      vfDirectionNote.setStave(vfStave).preFormat();
+      let vfDirectionNote;
+      switch (directionType) {
+      case 'dynamics':
+        direction.setDuration(divisions);
+        vfDirectionNote = new VF.TextDynamics({
+          text: direction.getDynamicType(),
+          duration: getVFDuration(direction, divisions),
+        });
+        vfDirectionNote.setStave(vfStave).preFormat();
+        break;
+      case 'wedge':
+        if (direction.getDuration() === 0) {
+          console.warn(`[warn] measure number ${measure.number}, found duration 0 direction`);
+          return;
+        }
+
+        const vfDuration = getVFDuration(direction, divisions);
+        const sumDuration = direction.getBeginDuration() + direction.getDuration();
+        vfDirectionNote = new VF.GhostNote({ duration: vfDuration });
+
+        if (sumDuration < maxDuration) {
+          const vfDirectionEndNote = new VF.GhostNote({
+            duration: getVFDuration(new Note({ duration: maxDuration - sumDuration }), divisions),
+          });
+
+          vfDirectionEndNote.setStave(vfStave);
+          direction.setVFEndNote(vfDirectionEndNote);
+        }
+
+        vfDirectionNote.setStave(vfStave);
+        break;
+      }
+
       direction.setVFNote(vfDirectionNote);
-
-      const width = vfDirectionNote.getWidth();
-      let maxDuration = 0;
-      let boundingBox;
-
-      notesMap.forEach(notes => {
-        let sumDuration = 0;
-        let beginX;
-        let voiceBoundingBox;
-
-        for (const note of notes) {
-          if (note.getStaff() !== staff) break;
-          else if (sumDuration + note.getDuration() <= beginDuration) {
-            sumDuration += note.getDuration();
-            continue;
-          } else if (!beginX) {
-            sumDuration += note.getDuration();
-            voiceBoundingBox = note.getVFNote().getBoundingBox();
-            beginX = voiceBoundingBox.getX();
-            continue;
-          }
-
-          const noteBoundingBox = note.getVFNote().getBoundingBox();
-
-          if (noteBoundingBox.getX() - beginX > width) {
-            let duration = sumDuration - beginDuration;
-
-            if (duration > maxDuration) maxDuration = duration;
-
-            if (boundingBox) boundingBox.mergeWith(voiceBoundingBox);
-            else boundingBox = voiceBoundingBox;
-
-            break;
-          }
-
-          sumDuration += note.getDuration();
-          voiceBoundingBox.mergeWith(noteBoundingBox);
-        }
-
-        // If there exists only a SINGLE note, loop will end without boundingbox
-        if (!boundingBox) {
-          boundingBox = voiceBoundingBox;
-          maxDuration = sumDuration - beginDuration;
-        }
-      });
-
-      direction.setDuration(maxDuration);
-      const vfDuration = getVFDuration(direction, divisions);
-      vfDirectionNote.setDuration(vfDuration);
-      vfDirectionNote.duration = vfDuration;
 
       const spacing = vfStave.getSpacingBetweenLines();
       const placement = direction.getPlacement();
+      const boundingBox = this._calculateDirectionBoundingBox({ direction, notesMap, vfStave });
 
       if (placement === 'above') {
         const maxY = boundingBox.getY();
@@ -1247,14 +1263,25 @@ export default class Formatter {
 
     directionsMap.forEach((directions, staff) => {
       directions.forEach(direction => {
+        const vfNote = direction.getVFNote();
+        if (!vfNote) return;
+
         const line = direction.getPlacement() === 'above' ?
           direction.getMaxLine() : direction.getMinLine() + 4;
+
+        direction.setLine(line);
+
+        if (vfNote instanceof VF.GhostNote) return;
 
         direction.getVFNote().setLine(line);
       });
 
       // TODO: Join multiple directions into same voice
       directions.forEach(direction => {
+        const vfNote = direction.getVFNote();
+        const vfEndNote = direction.getVFEndNote();
+        if (!vfNote) return;
+
         const vfDirectionVoice = new VF.Voice(voiceOptions);
         vfDirectionVoice.setMode(VF.Voice.Mode.SOFT);
 
@@ -1268,7 +1295,9 @@ export default class Formatter {
           vfTickables.push(ghostNote);
         }
 
-        vfTickables.push(direction.getVFNote());
+        vfTickables.push(vfNote);
+        if (vfEndNote) vfTickables.push(vfEndNote);
+
         vfDirectionVoice.addTickables(vfTickables);
         vfDirectionVoice.setStave(measure.getStave(staff));
 
@@ -1284,12 +1313,97 @@ export default class Formatter {
     measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
   }
 
+  _createVFElementFromDirection({ measure, mi, pi }) {
+    const directions = measure.getDirections().filter(direction => (
+      direction.getDirectionType() === 'wedge' &&
+      !['continue'].includes(direction.getWedge().type)
+    ));
+
+    const initGetNextMeasure = mi => {
+      let _mi = mi;
+      return () => this.parts[pi].getMeasures()[++_mi];
+    }
+
+    directions.forEach(direction => {
+      const getNextMeasure = initGetNextMeasure(mi);
+      const vfNote = direction.getVFNote();
+      if (!vfNote) return;
+
+      const isCrescendo = direction.getWedge().type === 'crescendo';
+      const line = direction.getLine();
+
+      let lineDirection = direction; // first direction of line
+      let lastDirection = direction;
+      let nextDirection = direction.getNextDirection();
+      let lineChanged = false;
+
+      while (nextDirection) {
+        const _measure = getNextMeasure();
+        const isNewLine = _measure.isNewLineStarting();
+
+        if (isNewLine) { // flush!
+          lineChanged = true;
+
+          lineDirection.setVFElement(new VF.Wedge({
+            beginNote: lineDirection.getVFNote(),
+            endStave: lastDirection.getVFNote().getStave(),
+            beginHeight: isCrescendo ? 0 : 10,
+            endHeight: isCrescendo ? 8 : 4,
+            line,
+          }));
+
+          lineDirection = nextDirection;
+        }
+
+        lastDirection = nextDirection;
+        nextDirection = lastDirection.getNextDirection();
+      }
+
+      const options = {
+        endHeight: isCrescendo ? 10 : 0,
+        line,
+      };
+
+      if (!lastDirection.getVFNote()) return;
+
+      const vfEndNote = lastDirection.getVFEndNote();
+      if (vfEndNote) options.endNote = vfEndNote;
+      else options.endStave = lastDirection.getVFNote().getStave();
+
+      if (lineChanged) {
+        options.beginStave = lineDirection.getVFNote().getStave();
+        options.beginHeight = isCrescendo ? 4 : 8;
+      } else {
+        options.beginNote = lineDirection.getVFNote();
+        options.beginHeight = isCrescendo ? 0 : 10;
+      }
+
+      lineDirection.setVFElement(new VF.Wedge(options));
+    });
+  }
+
   // @before formatLyric
   formatDirection() {
+    // reset
+    this.parts.forEach(part => part.getMeasures().forEach(measure => {
+      measure.getDirections().forEach(direction => {
+        direction.setVFNote(null);
+        direction.setVFEndNote(null);
+        direction.setVFElement(null);
+      });
+    }));
+
     this.parts.forEach((part, pi) => {
       part.getMeasures().forEach((measure, mi) => {
         const measureCache = this.getMeasureCache(pi, mi);
         this._formatDirection(measure, measureCache);
+      });
+    });
+
+    // create VFElement from GhostNote (Wedge...)
+    this.parts.forEach((part, pi) => {
+      part.getMeasures().forEach((measure, mi) => {
+        this._createVFElementFromDirection({ measure, mi, pi });
       });
     });
 
@@ -1650,7 +1764,7 @@ export default class Formatter {
     this.formatNotes();
     this.formatBeam();
     this.formatVoices();
-    //this.formatDirection();
+    this.formatDirection();
     this.formatLyric();
     this.runFormatter();
     this.formatTie();
