@@ -8250,9 +8250,88 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	_allegretto2.default.Flow.Wedge = Wedge;
 	
+	// New options: numbered
+	var Tuplet = _allegretto2.default.Flow.Tuplet;
+	_allegretto2.default.Flow.Tuplet.prototype.draw = function draw() {
+	  var _this2 = this;
+	
+	  this.checkContext();
+	  this.setRendered();
+	
+	  // determine x value of left bound of tuplet
+	  var first_note = this.notes[0];
+	  var last_note = this.notes[this.notes.length - 1];
+	
+	  if (!this.bracketed) {
+	    this.x_pos = first_note.getStemX();
+	    this.width = last_note.getStemX() - this.x_pos;
+	  } else {
+	    this.x_pos = first_note.getTieLeftX() - 5;
+	    this.width = last_note.getTieRightX() - this.x_pos + 5;
+	  }
+	
+	  // determine y value for tuplet
+	  this.y_pos = this.getYPosition();
+	
+	  var addGlyphWidth = function addGlyphWidth(width, glyph) {
+	    return width + glyph.getMetrics().width;
+	  };
+	
+	  // calculate total width of tuplet notation
+	  var width = this.num_glyphs.reduce(addGlyphWidth, 0);
+	  if (this.ratioed) {
+	    width = this.denom_glyphs.reduce(addGlyphWidth, width);
+	    width += this.point * 0.32;
+	  }
+	
+	  var notation_center_x = this.x_pos + this.width / 2;
+	  var notation_start_x = notation_center_x - width / 2;
+	
+	  // draw bracket if the tuplet is not beamed
+	  if (this.bracketed && this.options.numbered !== false) {
+	    var line_width = this.width / 2 - width / 2 - 5;
+	
+	    // only draw the bracket if it has positive length
+	    if (line_width > 0) {
+	      this.context.fillRect(this.x_pos, this.y_pos, line_width, 1);
+	      this.context.fillRect(this.x_pos + this.width / 2 + width / 2 + 5, this.y_pos, line_width, 1);
+	      this.context.fillRect(this.x_pos, this.y_pos + (this.location === Tuplet.LOCATION_BOTTOM), 1, this.location * 10);
+	      this.context.fillRect(this.x_pos + this.width, this.y_pos + (this.location === Tuplet.LOCATION_BOTTOM), 1, this.location * 10);
+	    }
+	  }
+	
+	  if (this.options.numbered === false) return;
+	
+	  // draw numerator glyphs
+	  var x_offset = 0;
+	  this.num_glyphs.forEach(function (glyph) {
+	    glyph.render(_this2.context, notation_start_x + x_offset, _this2.y_pos + _this2.point / 3 - 2);
+	    x_offset += glyph.getMetrics().width;
+	  });
+	
+	  // display colon and denominator if the ratio is to be shown
+	  if (this.ratioed) {
+	    var colon_x = notation_start_x + x_offset + this.point * 0.16;
+	    var colon_radius = this.point * 0.06;
+	    this.context.beginPath();
+	    this.context.arc(colon_x, this.y_pos - this.point * 0.08, colon_radius, 0, Math.PI * 2, true);
+	    this.context.closePath();
+	    this.context.fill();
+	    this.context.beginPath();
+	    this.context.arc(colon_x, this.y_pos + this.point * 0.12, colon_radius, 0, Math.PI * 2, true);
+	    this.context.closePath();
+	    this.context.fill();
+	    x_offset += this.point * 0.32;
+	    this.denom_glyphs.forEach(function (glyph) {
+	      glyph.render(_this2.context, notation_start_x + x_offset, _this2.y_pos + _this2.point / 3 - 2);
+	      x_offset += glyph.getMetrics().width;
+	    });
+	  }
+	};
+	
 	var TextDynamics = _allegretto2.default.Flow.TextDynamics;
 	_allegretto2.default.Flow.TextDynamics.prototype.preFormat = function preFormat() {
-	  var _this2 = this;
+	  var _this3 = this;
 	
 	  if (this.preFormatted) return this; // ADDED
 	
@@ -8264,11 +8343,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var glyph_data = TextDynamics.GLYPHS[letter];
 	    if (!glyph_data) throw new _allegretto2.default.RERR('Invalid dynamics character: ' + letter);
 	
-	    var size = _this2.render_options.glyph_font_size;
+	    var size = _this3.render_options.glyph_font_size;
 	    var glyph = new Glyph(glyph_data.code, size);
 	
 	    // Add the glyph
-	    _this2.glyphs.push(glyph);
+	    _this3.glyphs.push(glyph);
 	
 	    total_width += glyph_data.width;
 	  });
@@ -33102,6 +33181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (node.hasAttribute('number')) tuplet.number = Number(node.getAttribute('number'));
 	    if (node.hasAttribute('placement')) tuplet.placement = node.getAttribute('placement');
 	    if (node.hasAttribute('bracket')) tuplet.bracket = node.getAttribute('bracket') === 'yes';
+	    if (node.hasAttribute('show-number')) tuplet.showNumber = node.getAttribute('show-number');
 	
 	    function getTupletNumber(_node) {
 	      return Number(_node.getElementsByTagName('tuplet-number')[0].textContent);
@@ -36409,7 +36489,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  numActual: tuplet.actual ? tuplet.actual.number : note.timeModification.actualNotes,
 	                  numNormal: tuplet.normal ? tuplet.normal.number : note.timeModification.normalNotes,
 	                  placement: tuplet.placement,
-	                  bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam
+	                  bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam,
+	                  showNumber: tuplet.showNumber !== undefined ? tuplet.showNumber : 'actual'
 	                });
 	
 	                break;
@@ -36421,6 +36502,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var numNormal = _tupletStack$pop.numNormal;
 	                var placement = _tupletStack$pop.placement;
 	                var bracket = _tupletStack$pop.bracket;
+	                var showNumber = _tupletStack$pop.showNumber;
 	
 	                var vfNotes = [];
 	                var vfLyricNotesMap = new Map();
@@ -36462,6 +36544,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  notes_occupied: numNormal,
 	                  bracketed: bracket
 	                };
+	
+	                switch (showNumber) {
+	                  case 'actual':
+	                    tupletOptions.ratioed = false;
+	                    tupletOptions.numbered = true;
+	                    break;
+	                  case 'both':
+	                    tupletOptions.ratioed = true;
+	                    tupletOptions.numbered = true;
+	                    break;
+	                  case 'none':
+	                    tupletOptions.ratioed = false;
+	                    tupletOptions.numbered = false;
+	                    break;
+	                  default:
+	                    console.warn('Formatter.formatTuplet, unexpected showNumber option', showNumber);
+	                }
 	
 	                var vfTuplet = new _allegretto2.default.Flow.Tuplet(vfNotes, tupletOptions);
 	
