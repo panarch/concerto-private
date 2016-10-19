@@ -52,6 +52,96 @@ class Wedge extends Vex.Flow.Element {
 
 Vex.Flow.Wedge = Wedge;
 
+// New options: numbered
+const Tuplet = Vex.Flow.Tuplet;
+Vex.Flow.Tuplet.prototype.draw = function draw() {
+  this.checkContext();
+  this.setRendered();
+
+  // determine x value of left bound of tuplet
+  const first_note = this.notes[0];
+  const last_note = this.notes[this.notes.length - 1];
+
+  if (!this.bracketed) {
+    this.x_pos = first_note.getStemX();
+    this.width = last_note.getStemX() - this.x_pos;
+  } else {
+    this.x_pos = first_note.getTieLeftX() - 5;
+    this.width = last_note.getTieRightX() - this.x_pos + 5;
+  }
+
+  // determine y value for tuplet
+  this.y_pos = this.getYPosition();
+
+  const addGlyphWidth = (width, glyph) => width + glyph.getMetrics().width;
+
+  // calculate total width of tuplet notation
+  let width = this.num_glyphs.reduce(addGlyphWidth, 0);
+  if (this.ratioed) {
+    width = this.denom_glyphs.reduce(addGlyphWidth, width);
+    width += this.point * 0.32;
+  }
+
+  const notation_center_x = this.x_pos + (this.width / 2);
+  const notation_start_x = notation_center_x - (width / 2);
+
+  // draw bracket if the tuplet is not beamed
+  if (this.bracketed && this.options.numbered !== false) {
+    const line_width = this.width / 2 - width / 2 - 5;
+
+    // only draw the bracket if it has positive length
+    if (line_width > 0) {
+      this.context.fillRect(this.x_pos, this.y_pos, line_width, 1);
+      this.context.fillRect(
+        this.x_pos + this.width / 2 + width / 2 + 5,
+        this.y_pos,
+        line_width,
+        1
+      );
+      this.context.fillRect(
+        this.x_pos,
+        this.y_pos + (this.location === Tuplet.LOCATION_BOTTOM),
+        1,
+        this.location * 10
+      );
+      this.context.fillRect(
+        this.x_pos + this.width,
+        this.y_pos + (this.location === Tuplet.LOCATION_BOTTOM),
+        1,
+        this.location * 10
+      );
+    }
+  }
+
+  if (this.options.numbered === false) return;
+
+  // draw numerator glyphs
+  let x_offset = 0;
+  this.num_glyphs.forEach(glyph => {
+    glyph.render(this.context, notation_start_x + x_offset, this.y_pos + (this.point / 3) - 2);
+    x_offset += glyph.getMetrics().width;
+  });
+
+  // display colon and denominator if the ratio is to be shown
+  if (this.ratioed) {
+    const colon_x = notation_start_x + x_offset + this.point * 0.16;
+    const colon_radius = this.point * 0.06;
+    this.context.beginPath();
+    this.context.arc(colon_x, this.y_pos - this.point * 0.08, colon_radius, 0, Math.PI * 2, true);
+    this.context.closePath();
+    this.context.fill();
+    this.context.beginPath();
+    this.context.arc(colon_x, this.y_pos + this.point * 0.12, colon_radius, 0, Math.PI * 2, true);
+    this.context.closePath();
+    this.context.fill();
+    x_offset += this.point * 0.32;
+    this.denom_glyphs.forEach(glyph => {
+      glyph.render(this.context, notation_start_x + x_offset, this.y_pos + (this.point / 3) - 2);
+      x_offset += glyph.getMetrics().width;
+    });
+  }
+}
+
 const TextDynamics = Vex.Flow.TextDynamics;
 Vex.Flow.TextDynamics.prototype.preFormat = function preFormat() {
   if (this.preFormatted) return this; // ADDED

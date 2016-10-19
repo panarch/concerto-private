@@ -1536,11 +1536,12 @@ export default class Formatter {
               tuplet.normal.number : note.timeModification.normalNotes),
             placement: tuplet.placement,
             bracket: tuplet.bracket !== undefined ? tuplet.bracket : !note.beam,
+            showNumber: tuplet.showNumber !== undefined ? tuplet.showNumber : 'actual',
           });
 
           break;
         case 'stop':
-          const { index, numActual, numNormal, placement, bracket } = tupletStack.pop();
+          const { index, numActual, numNormal, placement, bracket, showNumber } = tupletStack.pop();
           const vfNotes = [];
           const vfLyricNotesMap = new Map();
           // if placement value exists => use placement, no need to auto calculation
@@ -1579,6 +1580,23 @@ export default class Formatter {
             notes_occupied: numNormal,
             bracketed: bracket,
           };
+
+          switch (showNumber) {
+          case 'actual':
+            tupletOptions.ratioed = false;
+            tupletOptions.numbered = true;
+            break;
+          case 'both':
+            tupletOptions.ratioed = true;
+            tupletOptions.numbered = true;
+            break;
+          case 'none':
+            tupletOptions.ratioed = false;
+            tupletOptions.numbered = false;
+            break;
+          default:
+            console.warn('Formatter.formatTuplet, unexpected showNumber option', showNumber);
+          }
 
           const vfTuplet = new Vex.Flow.Tuplet(vfNotes, tupletOptions);
 
