@@ -14,19 +14,19 @@ filenames.forEach(function(filename) {
   const data = fs.read('./tests/' + filename);
   const domParser = new DOMParser();
   const doc = domParser.parseFromString(data, 'application/xml');
+  function getScore() { return Concerto.parse(doc); }
 
   try {
-    const score = Concerto.parse(doc);
     const formatters = [
-      ['original', new Concerto.Formatter(score)],
-      ['horizontal', new Concerto.HorizontalFormatter(score)],
-      ['vertical', new Concerto.VerticalFormatter(score, { infinite: true, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
-      ['responsive', new Concerto.VerticalFormatter(score, { infinite: false, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
+      ['original', new Concerto.Formatter(getScore())],
+      ['horizontal', new Concerto.HorizontalFormatter(getScore())],
+      ['vertical', new Concerto.VerticalFormatter(getScore(), { infinite: true, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
+      ['responsive', new Concerto.VerticalFormatter(getScore(), { infinite: false, zoomLevel: 100, innerWidth: 1000, innerHeight: 1000 })],
     ];
 
     formatters.forEach(function([type, formatter]) {
       formatter.format();
-      const renderer = new Concerto.Renderer(score, { element });
+      const renderer = new Concerto.Renderer(formatter.score, { element });
       renderer.render();
 
       filename = filename.split(/.xml$/)[0];
