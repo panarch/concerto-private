@@ -276,28 +276,71 @@ export default class VerticalFormatter extends AdvancedFormatter {
   @after
     - reflow
     - formatY
+
+  TODO: refactoring required... hmm
   */
   split() {
-    let offset = 0;
-    const pageTopMargin = this.defaults.getPageTopMargin(1);
-    const topSystemDistance = 60 - pageTopMargin;
+    const TOP_MARGIN = 70;
+    const BOTTOM_OFFSET = 40;
+    const MAX_SYSTEM_DISTANCE = 120;
 
+    const pageTopMargin = this.defaults.getPageTopMargin(1);
+    const topSystemDistance = TOP_MARGIN - pageTopMargin;
     const measurePacks = this.score.getMeasurePacks();
+    const firstSystemDistance = measurePacks[0].getTopMeasure().print.systemLayout.systemDistance;
+
+    let offset = 0;
+    let lastMeasurePacks = [measurePacks[0]];
+    let lastTopSystemDistance = topSystemDistance;
+
     measurePacks.forEach(measurePack => {
       const topMeasure = measurePack.getTopMeasure();
       if (!topMeasure.isNewLineStarting()) return;
 
-      const y = this.getMeasureBottomY(measurePack.getBottomMeasure()) - 40;
+      const y = this.getMeasureBottomY(measurePack.getBottomMeasure()) - BOTTOM_OFFSET;
       if (y - offset > this.height) {
-        offset = topMeasure.getY() - 60;
         topMeasure.print.systemLayout = { topSystemDistance };
 
-        measurePack.measures.forEach(measure => {
+        measurePack.getMeasures().forEach(measure => {
           measure.print.newSystem = false;
           measure.print.newPage = true;
         });
+
+        // distribute remaining height to measure packs of last page
+        const lastBottomMeasure = lastMeasurePacks[lastMeasurePacks.length - 1].getBottomMeasure();
+        const lastY  = this.getMeasureBottomY(lastBottomMeasure) - BOTTOM_OFFSET + 30;
+        const numMeasures = Math.max(lastMeasurePacks.length - 1, 1);
+        const remainingHeight = (this.height - (lastY - offset)) / numMeasures;
+        const systemDistance = firstSystemDistance + remainingHeight;
+
+        for (let mi = 1; mi < lastMeasurePacks.length; mi++) {
+          const measure = lastMeasurePacks[mi].getTopMeasure();
+          if (!measure.print.systemLayout) measure.print.systemLayout = {};
+
+          measure.print.systemLayout.systemDistance = Math.min(systemDistance, MAX_SYSTEM_DISTANCE);
+        }
+
+        // update top system distance
+        const lastTopMeasure = lastMeasurePacks[0].getTopMeasure();
+        if (lastTopMeasure.isNewLineStarting() && systemDistance > MAX_SYSTEM_DISTANCE) {
+          lastTopSystemDistance = (
+            topSystemDistance + (systemDistance - MAX_SYSTEM_DISTANCE) * numMeasures / 2
+          );
+
+          lastTopMeasure.getSystemLayout().topSystemDistance = lastTopSystemDistance;
+        }
+
+        offset = topMeasure.getY() - TOP_MARGIN;
+        lastMeasurePacks = [];
       }
+
+      lastMeasurePacks.push(measurePack);
     });
+
+    const lastTopMeasure = lastMeasurePacks[0].getTopMeasure();
+    if (lastTopMeasure.isNewLineStarting()) {
+      lastTopMeasure.getSystemLayout().topSystemDistance = lastTopSystemDistance;
+    }
   }
 
   // not used

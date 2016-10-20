@@ -14,6 +14,7 @@ export default class MeasurePack {
   getMeasure(i) { return this.measures[i]; }
   getTopMeasure() { return this.getMeasure(0); }
   getBottomMeasure() { return this.getMeasure(this.measures.length - 1); }
+  getMeasures() { return this.measures; }
 
   getWidth() { return this.width; }
   setWidth(width) { this.width = width; }
