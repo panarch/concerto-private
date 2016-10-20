@@ -532,7 +532,7 @@ export default class Formatter {
         if (words.fontSize !== undefined) {
           fontSize = words.fontSize;
           if (/\d+$/.test(fontSize)) {
-            fontSize = Number(fontSize) * 2.5; // TODO
+            fontSize = Number(fontSize) * 2.2; // TODO
             fontSize += 'px';
           }
 
