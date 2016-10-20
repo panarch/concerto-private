@@ -34628,6 +34628,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.getMeasure(this.measures.length - 1);
 	    }
 	  }, {
+	    key: "getMeasures",
+	    value: function getMeasures() {
+	      return this.measures;
+	    }
+	  }, {
 	    key: "getWidth",
 	    value: function getWidth() {
 	      return this.width;
@@ -35313,7 +35318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (words.fontSize !== undefined) {
 	            fontSize = words.fontSize;
 	            if (/\d+$/.test(fontSize)) {
-	              fontSize = Number(fontSize) * 2.5; // TODO
+	              fontSize = Number(fontSize) * 2.2; // TODO
 	              fontSize += 'px';
 	            }
 	
@@ -37119,6 +37124,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    @after
 	      - reflow
 	      - formatY
+	     TODO: refactoring required... hmm
 	    */
 	
 	  }, {
@@ -37126,26 +37132,65 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function split() {
 	      var _this5 = this;
 	
-	      var offset = 0;
-	      var pageTopMargin = this.defaults.getPageTopMargin(1);
-	      var topSystemDistance = 60 - pageTopMargin;
+	      var TOP_MARGIN = 70;
+	      var BOTTOM_OFFSET = 40;
+	      var MAX_SYSTEM_DISTANCE = 120;
 	
+	      var pageTopMargin = this.defaults.getPageTopMargin(1);
+	      var topSystemDistance = TOP_MARGIN - pageTopMargin;
 	      var measurePacks = this.score.getMeasurePacks();
+	      var firstSystemDistance = measurePacks[0].getTopMeasure().print.systemLayout.systemDistance;
+	
+	      var offset = 0;
+	      var lastMeasurePacks = [measurePacks[0]];
+	      var lastTopSystemDistance = topSystemDistance;
+	
 	      measurePacks.forEach(function (measurePack) {
 	        var topMeasure = measurePack.getTopMeasure();
 	        if (!topMeasure.isNewLineStarting()) return;
 	
-	        var y = _this5.getMeasureBottomY(measurePack.getBottomMeasure()) - 40;
+	        var y = _this5.getMeasureBottomY(measurePack.getBottomMeasure()) - BOTTOM_OFFSET;
 	        if (y - offset > _this5.height) {
-	          offset = topMeasure.getY() - 60;
 	          topMeasure.print.systemLayout = { topSystemDistance: topSystemDistance };
 	
-	          measurePack.measures.forEach(function (measure) {
+	          measurePack.getMeasures().forEach(function (measure) {
 	            measure.print.newSystem = false;
 	            measure.print.newPage = true;
 	          });
+	
+	          // distribute remaining height to measure packs of last page
+	          var lastBottomMeasure = lastMeasurePacks[lastMeasurePacks.length - 1].getBottomMeasure();
+	          var lastY = _this5.getMeasureBottomY(lastBottomMeasure) - BOTTOM_OFFSET + 30;
+	          var numMeasures = Math.max(lastMeasurePacks.length - 1, 1);
+	          var remainingHeight = (_this5.height - (lastY - offset)) / numMeasures;
+	          var systemDistance = firstSystemDistance + remainingHeight;
+	
+	          for (var mi = 1; mi < lastMeasurePacks.length; mi++) {
+	            var measure = lastMeasurePacks[mi].getTopMeasure();
+	            if (!measure.print.systemLayout) measure.print.systemLayout = {};
+	
+	            measure.print.systemLayout.systemDistance = Math.min(systemDistance, MAX_SYSTEM_DISTANCE);
+	          }
+	
+	          // update top system distance
+	          var _lastTopMeasure = lastMeasurePacks[0].getTopMeasure();
+	          if (_lastTopMeasure.isNewLineStarting() && systemDistance > MAX_SYSTEM_DISTANCE) {
+	            lastTopSystemDistance = topSystemDistance + (systemDistance - MAX_SYSTEM_DISTANCE) * numMeasures / 2;
+	
+	            _lastTopMeasure.getSystemLayout().topSystemDistance = lastTopSystemDistance;
+	          }
+	
+	          offset = topMeasure.getY() - TOP_MARGIN;
+	          lastMeasurePacks = [];
 	        }
+	
+	        lastMeasurePacks.push(measurePack);
 	      });
+	
+	      var lastTopMeasure = lastMeasurePacks[0].getTopMeasure();
+	      if (lastTopMeasure.isNewLineStarting()) {
+	        lastTopMeasure.getSystemLayout().topSystemDistance = lastTopSystemDistance;
+	      }
 	    }
 	
 	    // not used
