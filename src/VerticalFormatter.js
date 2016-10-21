@@ -289,6 +289,7 @@ export default class VerticalFormatter extends AdvancedFormatter {
     const measurePacks = this.score.getMeasurePacks();
     const firstSystemDistance = measurePacks[0].getTopMeasure().print.systemLayout.systemDistance;
 
+    let numPages = 1;
     let offset = 0;
     let lastMeasurePacks = [measurePacks[0]];
     let lastTopSystemDistance = topSystemDistance;
@@ -299,6 +300,7 @@ export default class VerticalFormatter extends AdvancedFormatter {
 
       const y = this.getMeasureBottomY(measurePack.getBottomMeasure()) - BOTTOM_OFFSET;
       if (y - offset > this.height) {
+        numPages++;
         topMeasure.print.systemLayout = { topSystemDistance };
 
         measurePack.getMeasures().forEach(measure => {
@@ -340,6 +342,9 @@ export default class VerticalFormatter extends AdvancedFormatter {
     const lastTopMeasure = lastMeasurePacks[0].getTopMeasure();
     if (lastTopMeasure.isNewLineStarting()) {
       lastTopMeasure.getSystemLayout().topSystemDistance = lastTopSystemDistance;
+      if (numPages < 3) {
+        lastTopMeasure.getSystemLayout().systemDistance = firstSystemDistance;
+      }
     }
   }
 
