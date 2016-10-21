@@ -37141,6 +37141,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var measurePacks = this.score.getMeasurePacks();
 	      var firstSystemDistance = measurePacks[0].getTopMeasure().print.systemLayout.systemDistance;
 	
+	      var numPages = 1;
 	      var offset = 0;
 	      var lastMeasurePacks = [measurePacks[0]];
 	      var lastTopSystemDistance = topSystemDistance;
@@ -37151,6 +37152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var y = _this5.getMeasureBottomY(measurePack.getBottomMeasure()) - BOTTOM_OFFSET;
 	        if (y - offset > _this5.height) {
+	          numPages++;
 	          topMeasure.print.systemLayout = { topSystemDistance: topSystemDistance };
 	
 	          measurePack.getMeasures().forEach(function (measure) {
@@ -37190,6 +37192,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var lastTopMeasure = lastMeasurePacks[0].getTopMeasure();
 	      if (lastTopMeasure.isNewLineStarting()) {
 	        lastTopMeasure.getSystemLayout().topSystemDistance = lastTopSystemDistance;
+	        if (numPages < 3) {
+	          lastTopMeasure.getSystemLayout().systemDistance = firstSystemDistance;
+	        }
 	      }
 	    }
 	
