@@ -1064,13 +1064,14 @@ export default class Formatter {
 
     }));
 
-    measures.forEach(measure => {
-      measure.getNotesMap().forEach((notes, voice) => {
-        const y = maxYMap.get(voice);
-        let line;
+    measures.forEach(measure => measure.getNotesMap().forEach((notes, voice) => {
+      const y = maxYMap.get(voice);
+      let line;
 
-        notes.forEach(note => {
-          note.getVFLyricNotesMap().forEach((vfLyricNotes, i) => vfLyricNotes.forEach(vfLyricNote => {
+      notes.forEach(note => {
+        let i = 1;
+        note.getVFLyricNotesMap().forEach(vfLyricNotes => {
+          vfLyricNotes.forEach(vfLyricNote => {
             if (vfLyricNote instanceof Vex.Flow.GhostNote) return;
 
             if (!line) {
@@ -1081,10 +1082,12 @@ export default class Formatter {
             }
 
             vfLyricNote.setLine(line + i * 2);
-          }));
+          });
+
+          i++;
         });
       });
-    });
+    }));
   }
 
   // @after formatDirection
