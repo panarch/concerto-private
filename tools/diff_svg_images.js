@@ -30,7 +30,7 @@ require('shelljs/global');
 const fs = require('fs');
 const process = require('process');
 
-const THRESHOLD = 0.001;
+const THRESHOLD = 0.00001;
 const BLESSED = './build/images/blessed';
 const CURRENT = './build/images/current';
 const DIFF = './build/images/diff';
