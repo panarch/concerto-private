@@ -172,9 +172,10 @@ export default class VerticalFormatter extends AdvancedFormatter {
       // find max width... although it should be same
       let maxClefWidth = 0;
       measure.staffs.forEach(staff => {
-        const clef = _measure.getClef(staff);
-        if (!clef) return;
+        const clefs = _measure.getClefs(staff);
+        if (!clefs || clefs.length === 0 || clefs[0].duration > 0) return;
 
+        const clef = clefs[0];
         const vfClef = new Vex.Flow.Clef(getVFClef(clef));
         vfClef.setStave(this._mockStave);
         const clefWidth = vfClef.getWidth() + vfClef.getPadding();

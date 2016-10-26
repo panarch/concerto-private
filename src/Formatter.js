@@ -274,7 +274,7 @@ export default class Formatter {
     this.parts.forEach(part => {
       const numStaffs = part.getNumStaffs();
       const measures = part.getMeasures();
-      const clef = measures[0].getClef();
+      const clef = measures[0].getClefs()[0];
       let printMeasure = measures[0];
 
       measures.forEach((measure, mi) => {
@@ -320,41 +320,64 @@ export default class Formatter {
 
   formatClef() {
     this.parts.forEach((part, pi) => {
-      const clefMap = new Map(); // {staff}
+      const clefsMap = new Map(); // {staff} -> clef[]
       const measures = part.getMeasures();
 
       measures.forEach((measure, mi) => {
-        measure.getClefMap().forEach((clef, staff) => clefMap.set(staff, clef));
+        // Reset existing clefsMap!
+        clefsMap.forEach((clefs, staff) => {
+          if (clefs.length === 1 && clefs[0].duration === 0) return;
+
+          const clef = Object.assign({}, clefs[clefs.length - 1]);
+          clef.duration = 0;
+          clefs.splice(0, clefs.length, clef);
+        });
+
+        measure.getClefsMap().forEach((clefs, staff) => {
+          clefs.forEach(clef => {
+            if (clef.duration === 0) clefsMap.set(staff, [clef]);
+            else clefsMap.get(staff).push(clef);
+          });
+        });
 
         if (mi === 0 || measure.isNewLineStarting()) {
           measure.getStaveMap().forEach((stave, staff) => {
-            const vfClef = getVFClef(clefMap.get(staff));
+            const vfClef = getVFClef(clefsMap.get(staff)[0]);
             if (vfClef) stave.addClef(vfClef);
           });
         }
 
-        // update cache
-        this.getMeasureCache(pi, mi).setClefMap(new Map(clefMap));
+        // check end-clef
+        clefsMap.forEach((clefs, staff) => {
+          const lastClef = clefs[clefs.length - 1];
+          if (lastClef.duration > 0 && lastClef.duration >= measure.getMaxDuration()) {
+            const vfClef = getVFClef(lastClef);
+            const vfStave = measure.getStave(staff);
+            if (vfStave) vfStave.addEndClef(vfClef, 'small');
+          }
+        })
 
-        const clefUpdated = new Map(); // {staff}
-        measure.getNotesMap().forEach(notes => {
-          let staff = 1;
-          notes.forEach(note => {
-            if (note.staff && note.staff !== staff) staff = note.staff;
-            if (note.tag === 'clef') {
-              clefMap.set(staff, note);
-              clefUpdated.set(staff, true);
-            }
-          });
-        });
+        // update cache
+        const cacheClefsMap = new Map();
+        clefsMap.forEach((clefs, staff) => cacheClefsMap.set(staff, clefs.slice()));
+        this.getMeasureCache(pi, mi).setClefsMap(cacheClefsMap);
 
         const nextMeasure = measures[mi + 1];
         if (!nextMeasure || !nextMeasure.isNewLineStarting()) return;
 
-        nextMeasure.getClefMap().forEach((clef, staff) => {
-          if (clefUpdated.has(staff)) return;
+        nextMeasure.getClefsMap().forEach((clefs, staff) => {
+          if (clefs[0].duration > 0) return;
 
-          const vfClef = getVFClef(clef);
+          // same clef with prev measure => pass!
+          const lastClefs = clefsMap.get(staff);
+          const lastClef = lastClefs[lastClefs.length - 1];
+          if (lastClef.sign === clefs[0].sign &&
+              lastClef.line === clefs[0].line &&
+              lastClef.clefOctaveChange === clefs[0].clefOctaveChange) {
+            return;
+          }
+
+          const vfClef = getVFClef(clefs[0]);
           const stave = measure.getStave(staff);
           if (stave) stave.addEndClef(vfClef, 'small');
         });
@@ -368,8 +391,7 @@ export default class Formatter {
       }
 
       function _getVFClef(vfStave) {
-        // TODO: update vexflow
-        const vfPosition = 5; //Vex.Flow.StaveModifier.Position.BEGIN;
+        const vfPosition = Vex.Flow.StaveModifier.Position.BEGIN;
         const vfCategory = Vex.Flow.Clef.CATEGORY;
         return vfStave.getModifiers(vfPosition, vfCategory)[0];
       }
@@ -910,6 +932,47 @@ export default class Formatter {
     vfNote.addModifier(0, vfGraceNoteGroup);
   }
 
+  _formatNoteClef(measure) {
+    const notesMap = measure.getNotesMap();
+    const maxDuration = measure.getMaxDuration();
+    const clefsMap = measure.getClefsMap();
+
+    clefsMap.forEach((clefs, staff) => clefs.forEach(clef => {
+      if (clef.duration === 0 || clef.duration >= maxDuration) return;
+
+      let clefNote;
+      let gap = Infinity;
+      notesMap.forEach((notes, voice) => {
+        let duration = 0;
+        for (const note of notes) {
+          if (!note.getDuration() || staff !== note.getStaff()) continue;
+
+          if (duration <= clef.duration &&
+              duration + note.getDuration() > clef.duration) {
+            const newGap = clef.duration - duration;
+            if (newGap < gap) {
+              gap = newGap;
+              clefNote = note;
+            }
+
+            break;
+          }
+
+          if (note.getDuration()) duration += note.getDuration();
+        }
+      });
+
+      if (!clefNote) console.warn('Failed to find note to add mid-measure clef!');
+
+      const vfClefNote = clefNote.getVFNote();
+      const clefModifier = new VF.NoteSubGroup([
+        new VF.ClefNote(getVFClef(clef), 'small').setStave(measure.getStave(staff)),
+      ]);
+
+      vfClefNote.addModifier(0, clefModifier);
+    }));
+  }
+
   _formatNotes(part, pi) {
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
@@ -925,14 +988,15 @@ export default class Formatter {
         const vfNotes = [];
         const vfLyricNotesMap = new Map(); // lyricName -> notes
         let graceNotes = [];
-        let staff = 1;
-        let clefModifier;
+        let duration = 0;
         const lyricNames = lyricNamesMap.has(voice) ? lyricNamesMap.get(voice) : [];
         const notes = notesMap.get(voice);
         notes.forEach(note => {
           switch (note.getTag()) {
             case 'note':
-              const clef = measureCache.getClef(note.getStaff());
+              const clefs =  measureCache.getClefs(note.getStaff())
+                                        .filter(clef => clef.duration <= duration);
+              const clef = clefs[clefs.length - 1];
               const divisions = measureCache.getDivisions();
               const {
                 vfNote,
@@ -948,11 +1012,6 @@ export default class Formatter {
                   vfLyricNote.setStave(vfStave)
                 });
               });
-
-              if (clefModifier) {
-                vfNote.addModifier(0, clefModifier);
-                clefModifier = null;
-              }
 
               note.setVFLyricNotesMap(_vfLyricNotesMap);
               note.setVFNote(vfNote);
@@ -972,21 +1031,10 @@ export default class Formatter {
                 vfLyricNotesMap.set(lyricName, vfLyricNotes);
               });
 
-              staff = note.staff;
-              break;
-            case 'clef':
-              const clefNote = new Vex.Flow.ClefNote(getVFClef(note), 'small');
-              clefNote.setStave(measure.getStave(staff));
-              measureCache.setClef(staff, note);
-
-              clefModifier = new Vex.Flow.NoteSubGroup([clefNote]);
+              if (note.getDuration()) duration += note.getDuration();
               break;
           }
         });
-
-        if (clefModifier) {
-          measure.getStave(staff).addEndClef(clefModifier.subNotes[0].type, 'small');
-        }
 
         vfTupletsMap.set(voice, this._formatTuplet(notes));
 
@@ -1014,6 +1062,8 @@ export default class Formatter {
 
         });
       });
+
+      this._formatNoteClef(measure);
 
       measure.setVFVoiceMap(vfVoiceMap);
       measure.setVFLyricVoicesMap(vfLyricVoicesMap);

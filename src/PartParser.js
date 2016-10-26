@@ -5,7 +5,6 @@ import { parseSystemLayout, parseStaffLayout } from './LayoutParser';
 import Part from './Part';
 import Measure from './Measure';
 import Note from './Note';
-import ClefNote from './ClefNote';
 import Direction from './Direction';
 import { sumNotesDuration, getMaxDuration } from './Util';
 
@@ -81,6 +80,7 @@ const parseAttributes = (data, attrNode, state) => {
         const clefOctaveChangeNode = node.getElementsByTagName('clef-octave-change')[0];
         const clef = {
           sign: node.getElementsByTagName('sign')[0].textContent,
+          duration: state.duration,
         };
 
         if (lineNode)
@@ -89,12 +89,8 @@ const parseAttributes = (data, attrNode, state) => {
         if (clefOctaveChangeNode)
           clef.clefOctaveChange = Number(clefOctaveChangeNode.textContent);
 
-        if (!state.noteBegin) {
-          data.clefMap.set(staff, clef);
-        } else {
-          clef.tag = 'clef';
-          data.notesMap.get(state.voice).push(new ClefNote(clef));
-        }
+        if (data.clefsMap.has(staff)) data.clefsMap.get(staff).push(clef);
+        else data.clefsMap.set(staff, [clef]);
 
         break;
       case 'staff-details':
@@ -470,6 +466,10 @@ const fillNotesMap = notesMap => {
   });
 };
 
+const sortClefsMap = clefsMap => {
+  clefsMap.forEach(clefs => clefs.sort((a, b) => a.duration > b.duration));
+};
+
 const _splitMultiMeasureDirection = ({ direction, measures, mi, staff }) => {
   if (['continue', 'stop'].includes(direction.getWedge().type)) return;
 
@@ -556,7 +556,7 @@ export const parsePart = partNode => {
       width: node.hasAttribute('width') ? Number(node.getAttribute('width')) : 100,
       notesMap: new Map(), // key is voice number
       directionsMap: new Map(), // key is staff number
-      clefMap: new Map(), // key is staff number
+      clefsMap: new Map(), // key is staff number -> clef[]
       voices: [],
       staffs: [],
       staffDetailsMap: new Map(), // key is staff number
@@ -568,6 +568,7 @@ export const parsePart = partNode => {
 
     parseNotes(data, [...node.childNodes]);
     fillNotesMap(data.notesMap);
+    sortClefsMap(data.clefsMap);
     return new Measure(data);
   });
 

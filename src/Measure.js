@@ -1,8 +1,9 @@
 // Copyright (c) Taehoon Moon 2015.
 // @author Taehoon Moon
+import { getMaxDuration } from './Util';
 
 export default class Measure {
-  constructor({ number, width, voices, staffs, notesMap, key, time, clefMap, print, divisions,
+  constructor({ number, width, voices, staffs, notesMap, key, time, clefsMap, print, divisions,
       barline, directionsMap, staffDetailsMap } = {}) {
     this.number = number;
     this.width = width;
@@ -12,11 +13,12 @@ export default class Measure {
     this.directionsMap = directionsMap; // staff -> Direction[]
     this.key = key;
     this.time = time;
-    this.clefMap = clefMap;
+    this.clefsMap = clefsMap; // staff -> clef[] (clef[] sorted based on duration: ascending)
     this.print = print;
     this.divisions = divisions;
     this.barline = barline; // left | right -> barline
     this.staffDetailsMap = staffDetailsMap;
+    this.maxDuration = notesMap ? getMaxDuration(notesMap) : 0;
 
     // variables
     this.x = null;
@@ -181,10 +183,13 @@ export default class Measure {
   hasTime() { return this.time !== undefined; }
   getTime() { return this.time; }
   setTime(time) { this.time = time; }
-  getClefMap() { return this.clefMap; }
-  setClefMap(clefMap) { this.clefMap = clefMap; }
-  getClef(staff = 1) { return this.clefMap.get(staff); }
-  setClef(staff, clef) { this.clefMap.set(staff, clef); }
+  getClefsMap() { return this.clefsMap; }
+  setClefsMap(clefsMap) { this.clefsMap = clefsMap; }
+  getClefs(staff = 1) { return this.clefsMap.get(staff); }
+  addClef(staff, clef) {
+    if (this.clefsMap.has(staff)) this.clefsMap.get(staff).push(clef);
+    else this.clefsMap.set(staff, [clef]);
+  }
   getDivisions() { return this.divisions; }
   setDivisions(divisions) { this.divisions = divisions; }
   getDirectionsMap() { return this.directionsMap; }
@@ -192,6 +197,7 @@ export default class Measure {
   getDirections() { return [...this.directionsMap.values()].reduce((a, b) => a.concat(b), []); }
 
   getNotesMap() { return this.notesMap; }
+  getMaxDuration() { return this.maxDuration; }
   getVoices() { return this.voices; }
   getStaffs() { return this.staffs; }
   getVFDirectionVoices() {
