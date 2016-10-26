@@ -52,7 +52,6 @@ console.log(`[${type}] ${Date()}`);
 console.log('');
 
 exec(`mkdir -p ${DIFF}`);
-exec(`rm ${DIFF}/*`);
 
 const results = [];
 

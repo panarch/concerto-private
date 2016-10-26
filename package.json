@@ -9,9 +9,9 @@
     "generate:current": "rm -f ./build/images/current/* && slimerjs ./tools/generate_svg_images.js build ./build/images/current",
     "generate:blessed": "rm -f ./build/images/blessed/* && slimerjs ./tools/generate_svg_images.js releases ./build/images/blessed",
     "generate": "npm run generate:current & npm run generate:blessed",
-    "diff:original": "node tools/diff_svg_images.js original",
-    "diff:responsive": "node tools/diff_svg_images.js responsive",
-    "diff:horizontal": "node tools/diff_svg_images.js horizontal",
+    "diff:original": "rm -f ./build/images/diff/* && node tools/diff_svg_images.js original",
+    "diff:responsive": "rm -f ./build/images/diff/* && node tools/diff_svg_images.js responsive",
+    "diff:horizontal": "rm -f ./build/images/diff/* && node tools/diff_svg_images.js horizontal",
     "diff": "npm run diff:original & npm run diff:responsive & npm run diff:horizontal",
     "test": "npm run lint && npm run build && npm run generate && npm run diff"
   },
