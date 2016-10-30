@@ -28,8 +28,8 @@ export default class Measure {
     this.staveMap = new Map();
     this.staffYMap = new Map();
     this.staffDisplayedMap = new Map();
-    this.vfVoiceMap = new Map(); // voice -> vfVoice
-    this.vfDirectionVoicesMap = new Map(); // staff -> vfVoice[] TODO
+    this.vfVoicesMap = new Map(); // staff -> vfVoice[]
+    this.vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
     this.vfLyricVoicesMap = new Map(); // voice -> vfVoice[]
     this.vfBeamsMap = new Map(); // voice -> vfBeams
     this.vfTupletsMap = new Map(); // voice -> vfTuplets
@@ -210,10 +210,12 @@ export default class Measure {
   }
   getVFLyricVoicesMap() { return this.vfLyricVoicesMap; }
   setVFLyricVoicesMap(vfLyricVoicesMap) { this.vfLyricVoicesMap = vfLyricVoicesMap; }
-  getVFVoice(voice) { return this.vfVoiceMap.get(voice); }
-  getVFVoices() { return [...this.vfVoiceMap.values()]; }
-  getVFVoiceMap() { return this.vfVoiceMap; }
-  setVFVoiceMap(vfVoiceMap) { this.vfVoiceMap = vfVoiceMap; }
+  getVFVoices(staff) {
+    if (staff) return this.vfVoicesMap.has(staff) ? this.vfVoicesMap.get(staff) : [];
+    else return [...this.vfVoicesMap.values()].reduce((a, b) => a.concat(b), []);
+  }
+  getVFVoicesMap() { return this.vfVoicesMap; }
+  setVFVoicesMap(vfVoicesMap) { this.vfVoicesMap = vfVoicesMap; }
   getVFBeams() { return [...this.vfBeamsMap.values()].reduce((a, b) => a.concat(b), []); }
   getVFBeamsMap() { return this.vfBeamsMap; }
   setVFBeamsMap(vfBeamsMap) { this.vfBeamsMap = vfBeamsMap; }
