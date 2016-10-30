@@ -32273,8 +32273,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.staveMap = new Map();
 	    this.staffYMap = new Map();
 	    this.staffDisplayedMap = new Map();
-	    this.vfVoiceMap = new Map(); // voice -> vfVoice
-	    this.vfDirectionVoicesMap = new Map(); // staff -> vfVoice[] TODO
+	    this.vfVoicesMap = new Map(); // staff -> vfVoice[]
+	    this.vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
 	    this.vfLyricVoicesMap = new Map(); // voice -> vfVoice[]
 	    this.vfBeamsMap = new Map(); // voice -> vfBeams
 	    this.vfTupletsMap = new Map(); // voice -> vfTuplets
@@ -32641,24 +32641,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.vfLyricVoicesMap = vfLyricVoicesMap;
 	    }
 	  }, {
-	    key: 'getVFVoice',
-	    value: function getVFVoice(voice) {
-	      return this.vfVoiceMap.get(voice);
-	    }
-	  }, {
 	    key: 'getVFVoices',
-	    value: function getVFVoices() {
-	      return [].concat(_toConsumableArray(this.vfVoiceMap.values()));
+	    value: function getVFVoices(staff) {
+	      if (staff) return this.vfVoicesMap.has(staff) ? this.vfVoicesMap.get(staff) : [];else return [].concat(_toConsumableArray(this.vfVoicesMap.values())).reduce(function (a, b) {
+	        return a.concat(b);
+	      }, []);
 	    }
 	  }, {
-	    key: 'getVFVoiceMap',
-	    value: function getVFVoiceMap() {
-	      return this.vfVoiceMap;
+	    key: 'getVFVoicesMap',
+	    value: function getVFVoicesMap() {
+	      return this.vfVoicesMap;
 	    }
 	  }, {
-	    key: 'setVFVoiceMap',
-	    value: function setVFVoiceMap(vfVoiceMap) {
-	      this.vfVoiceMap = vfVoiceMap;
+	    key: 'setVFVoicesMap',
+	    value: function setVFVoicesMap(vfVoicesMap) {
+	      this.vfVoicesMap = vfVoicesMap;
 	    }
 	  }, {
 	    key: 'getVFBeams',
@@ -35745,67 +35742,89 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var notesMap = measure.getNotesMap();
 	        var lyricNamesMap = measure.getLyricNamesMap();
 	        var measureCache = _this14.getMeasureCache(pi, mi);
-	        var vfVoiceMap = new Map();
+	        var vfVoicesMap = new Map(); // staff -> vfVoice[]
 	        var vfLyricVoicesMap = new Map();
 	        var vfTupletsMap = new Map();
 	
 	        measure.getVoices().forEach(function (voice) {
 	          if (measure.getStaves().length === 0) return;
 	
-	          var vfNotes = [];
+	          var vfNotesMap = new Map(); // staff -> vfNote[]
 	          var vfLyricNotesMap = new Map(); // lyricName -> notes
 	          var graceNotes = [];
 	          var duration = 0;
+	          var vfDurations = [];
 	          var lyricNames = lyricNamesMap.has(voice) ? lyricNamesMap.get(voice) : [];
 	          var notes = notesMap.get(voice);
 	          notes.forEach(function (note) {
-	            (function () {
-	              switch (note.getTag()) {
-	                case 'note':
-	                  var clefs = measureCache.getClefs(note.getStaff()).filter(function (clef) {
-	                    return clef.duration <= duration;
-	                  });
-	                  var clef = clefs[clefs.length - 1];
-	                  var divisions = measureCache.getDivisions();
+	            if (note.getTag() !== 'note') {
+	              console.error('Unexpected note type exists');
+	              return;
+	            }
 	
-	                  var _formatNote2 = _this14._formatNote(note, clef, divisions, lyricNames);
+	            var staff = note.getStaff();
+	            var clefs = measureCache.getClefs(staff).filter(function (clef) {
+	              return clef.duration <= duration;
+	            });
+	            var clef = clefs[clefs.length - 1];
+	            var divisions = measureCache.getDivisions();
 	
-	                  var vfNote = _formatNote2.vfNote;
-	                  var _formatNote2$vfLyricN = _formatNote2.vfLyricNotesMap;
+	            var _formatNote2 = _this14._formatNote(note, clef, divisions, lyricNames);
 	
-	                  var _vfLyricNotesMap = _formatNote2$vfLyricN === undefined ? new Map() : _formatNote2$vfLyricN;
+	            var vfNote = _formatNote2.vfNote;
+	            var _formatNote2$vfLyricN = _formatNote2.vfLyricNotesMap;
 	
-	                  var vfStave = measure.getStave(note.getStaff());
+	            var _vfLyricNotesMap = _formatNote2$vfLyricN === undefined ? new Map() : _formatNote2$vfLyricN;
 	
-	                  vfNote.setStave(vfStave);
-	                  _vfLyricNotesMap.forEach(function (vfLyricNotes) {
-	                    vfLyricNotes.forEach(function (vfLyricNote) {
-	                      vfLyricNote.setContext(_this14.context);
-	                      vfLyricNote.setStave(vfStave);
-	                    });
-	                  });
+	            var vfStave = measure.getStave(staff);
 	
-	                  note.setVFLyricNotesMap(_vfLyricNotesMap);
-	                  note.setVFNote(vfNote);
-	                  if (note.grace) {
-	                    graceNotes.push(note);
-	                  } else {
-	                    _this14._formatGraceNotes(vfNote, graceNotes);
-	                    vfNotes.push(vfNote);
-	                    graceNotes = [];
-	                  }
+	            vfNote.setStave(vfStave);
+	            _vfLyricNotesMap.forEach(function (vfLyricNotes) {
+	              vfLyricNotes.forEach(function (vfLyricNote) {
+	                vfLyricNote.setContext(_this14.context);
+	                vfLyricNote.setStave(vfStave);
+	              });
+	            });
 	
-	                  _vfLyricNotesMap.forEach(function (_vfLyricNotes, lyricName) {
-	                    var vfLyricNotes = vfLyricNotesMap.has(lyricName) ? vfLyricNotesMap.get(lyricName) : [];
+	            note.setVFLyricNotesMap(_vfLyricNotesMap);
+	            note.setVFNote(vfNote);
+	            if (note.grace) {
+	              graceNotes.push(note);
+	            } else {
+	              _this14._formatGraceNotes(vfNote, graceNotes);
+	              if (!vfNotesMap.has(staff)) {
+	                var ghostNotes = vfDurations.map(function (vfDuration) {
+	                  return new VF.GhostNote({ duration: vfDuration });
+	                });
 	
-	                    vfLyricNotes = vfLyricNotes.concat(_vfLyricNotes);
-	                    vfLyricNotesMap.set(lyricName, vfLyricNotes);
-	                  });
-	
-	                  if (note.getDuration()) duration += note.getDuration();
-	                  break;
+	                ghostNotes.forEach(function (ghostNote) {
+	                  return ghostNote.setStave(vfStave);
+	                });
+	                vfNotesMap.set(staff, ghostNotes);
 	              }
-	            })();
+	
+	              vfNotesMap.forEach(function (vfNotes, _staff) {
+	                if (_staff === staff) {
+	                  vfNotes.push(vfNote);
+	                } else {
+	                  var ghostNote = new VF.GhostNote({ duration: vfNote.getDuration() });
+	                  ghostNote.setStave(vfStave);
+	                  vfNotes.push(ghostNote);
+	                }
+	              });
+	
+	              vfDurations.push(vfNote.getDuration());
+	              graceNotes = [];
+	            }
+	
+	            _vfLyricNotesMap.forEach(function (_vfLyricNotes, lyricName) {
+	              var vfLyricNotes = vfLyricNotesMap.has(lyricName) ? vfLyricNotesMap.get(lyricName) : [];
+	
+	              vfLyricNotes = vfLyricNotes.concat(_vfLyricNotes);
+	              vfLyricNotesMap.set(lyricName, vfLyricNotes);
+	            });
+	
+	            if (note.getDuration()) duration += note.getDuration();
 	          });
 	
 	          vfTupletsMap.set(voice, _this14._formatTuplet(notes));
@@ -35818,10 +35837,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var beatType = _ref5$beatType === undefined ? 4 : _ref5$beatType;
 	
 	          var voiceOptions = { num_beats: beats, beat_value: beatType };
-	          var vfVoice = new _allegretto2.default.Flow.Voice(voiceOptions);
-	          vfVoice.setMode(_allegretto2.default.Flow.Voice.Mode.SOFT);
-	          vfVoice.addTickables(vfNotes);
-	          vfVoiceMap.set(voice, vfVoice);
+	          vfNotesMap.forEach(function (vfNotes, staff) {
+	            var vfVoice = new _allegretto2.default.Flow.Voice(voiceOptions);
+	            vfVoice.setMode(_allegretto2.default.Flow.Voice.Mode.SOFT);
+	            vfVoice.addTickables(vfNotes);
+	            if (!vfVoicesMap.has(staff)) vfVoicesMap.set(staff, []);
+	
+	            vfVoicesMap.get(staff).push(vfVoice);
+	          });
 	
 	          lyricNames.forEach(function (lyricName) {
 	            var vfLyricNotes = vfLyricNotesMap.get(lyricName).map(function (vfLyricNote) {
@@ -35842,7 +35865,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        _this14._formatNoteClef(measure);
 	
-	        measure.setVFVoiceMap(vfVoiceMap);
+	        measure.setVFVoicesMap(vfVoicesMap);
 	        measure.setVFLyricVoicesMap(vfLyricVoicesMap);
 	        measure.setVFTupletsMap(vfTupletsMap);
 	      });
@@ -35888,28 +35911,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: '_formatLyric',
 	    value: function _formatLyric(measures) {
 	      // calculate voice boundary first
-	      var maxYMap = new Map(); // voice -> maxY
+	      // staff -> maxY
+	      var maxYMap = new Map();
 	      measures.forEach(function (measure) {
-	        return measure.getVoices().forEach(function (voice) {
-	          var vfVoice = measure.getVFVoice(voice);
-	          if (!vfVoice) return; // empty measure
+	        return measure.getStaffs().forEach(function (staff) {
+	          var vfVoices = measure.getVFVoices(staff);
+	          if (vfVoices.length === 0) return;
 	
-	          var vfBoundingBox = vfVoice.getBoundingBox();
+	          var vfBoundingBox = void 0;
+	          vfVoices.forEach(function (vfVoice) {
+	            if (!vfBoundingBox) vfBoundingBox = vfVoice.getBoundingBox();else vfBoundingBox.mergeWith(vfVoice.getBoundingBox);
+	          });
+	
 	          if (!vfBoundingBox) return;
 	
-	          if (!maxYMap.has(voice)) maxYMap.set(voice, -Infinity);
+	          if (!maxYMap.has(staff)) maxYMap.set(staff, -Infinity);
 	
-	          var y = vfBoundingBox.y;
-	          var h = vfBoundingBox.h;
+	          var _vfBoundingBox = vfBoundingBox;
+	          var y = _vfBoundingBox.y;
+	          var h = _vfBoundingBox.h;
 	
 	          var maxY = y + h;
-	          if (maxY > maxYMap.get(voice)) maxYMap.set(voice, maxY);
+	          if (maxY > maxYMap.get(staff)) maxYMap.set(staff, maxY);
 	        });
 	      });
 	
 	      measures.forEach(function (measure) {
 	        return measure.getNotesMap().forEach(function (notes, voice) {
-	          var y = maxYMap.get(voice);
+	          var staff = notes[0].getStaff();
+	          var maxY = maxYMap.get(staff);
 	          var line = void 0;
 	
 	          notes.forEach(function (note) {
@@ -35920,7 +35950,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                if (!line) {
 	                  var vfStave = vfLyricNote.getStave();
-	                  var height = y - vfStave.getYForLine(0);
+	                  var height = maxY - vfStave.getYForLine(0);
 	                  line = height / vfStave.getSpacingBetweenLines();
 	                  line += 3 + 0.2;
 	                }
@@ -36367,8 +36397,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function formatVoices() {
 	      this.measurePacks.forEach(function (measurePack, mi) {
 	        var vfStaves = measurePack.getVFStaves();
+	        var vfVoices = measurePack.getVFVoices();
 	        var vfLyricVoices = measurePack.getVFLyricVoices();
-	        var vfVoices = measurePack.getVFVoices().concat(vfLyricVoices);
 	
 	        if (vfVoices.length === 0) return;
 	
@@ -36421,11 +36451,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var width = minEndX - maxStartX - 10;
 	        var vfFormatter = new _allegretto2.default.Flow.Formatter();
-	        vfVoices.forEach(function (_vfVoice) {
-	          return vfFormatter.joinVoices([_vfVoice]);
+	
+	        measurePack.getMeasures().forEach(function (measure) {
+	          measure.getVFVoicesMap().forEach(function (vfVoices) {
+	            if (vfVoices.length === 0) return;
+	
+	            vfFormatter.joinVoices(vfVoices);
+	          });
 	        });
 	
-	        minTotalWidth = Math.max(vfFormatter.preCalculateMinTotalWidth(vfVoices), minTotalWidth);
+	        minTotalWidth = Math.max(vfFormatter.preCalculateMinTotalWidth(vfVoices.concat(vfLyricVoices)), minTotalWidth);
 	
 	        //vfFormatter.format(vfVoices, width); -> runFormatter
 	        measurePack.setWidth(width);
