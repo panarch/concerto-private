@@ -297,8 +297,8 @@ const parseNote = (data, noteNode, state) => {
   const tieNodes = [...noteNode.getElementsByTagName('tie')];
   const timeModificationNode = noteNode.getElementsByTagName('time-modification')[0];
   const numDots = noteNode.getElementsByTagName('dot').length;
-  const staff = staffNode ? Number(staffNode.textContent) : 1;
-  const voice = voiceNode ? Number(voiceNode.textContent) : 1;
+  const staff = staffNode ? Number(staffNode.textContent) : state.staff;
+  const voice = voiceNode ? Number(voiceNode.textContent) : state.voice;
   //const { onGrace, onChord } = noteState;
   const isNewVoice = data.voices.indexOf(voice) === -1;
   const isNewStaff = data.staffs.indexOf(staff) === -1;
