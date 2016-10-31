@@ -1,6 +1,7 @@
 import Concerto from '../src/index';
 
 const URLS = [
+  './tests/CrossStaffBeam.xml',
   './tests/Sinfonia1.xml',
   './tests/Wedge.xml',
   './tests/Dynamics.xml',
