@@ -3,6 +3,7 @@
  */
 
 import Vex from '@panarch/allegretto';
+import './hotfix.beam.js';
 
 // New class!
 class Wedge extends Vex.Flow.Element {
