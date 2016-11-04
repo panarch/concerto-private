@@ -849,9 +849,11 @@ export default class Formatter {
     };
 
     const accidentals = [];
-    note.getHeads().forEach(({ step, octave, accidental, fret, string }) => {
+    const fingerings = [];
+    note.getHeads().forEach(({ step, octave, accidental, fret, string, fingering }) => {
       data.keys.push(`${step}/${octave}`);
       accidentals.push(accidental ? accidental : null);
+      fingerings.push(fingering ? fingering : null);
 
       if (data.clef === 'tab') data.positions.push({ str: string, fret });
     });
@@ -900,8 +902,20 @@ export default class Formatter {
     accidentals.forEach((accidental, index) => {
       if (!accidental) return;
 
-      const vfAccidental = new Vex.Flow.Accidental(Table.VF_ACCIDENTAL[accidental]);
+      const vfAccidental = new VF.Accidental(Table.VF_ACCIDENTAL[accidental]);
       staveNote.addAccidental(index, vfAccidental);
+    });
+
+    fingerings.forEach((fingering, index) => {
+      if (!fingering) return;
+
+      const vfFingering = new VF.Annotation(fingering.text);
+      vfFingering.setFont('times', 9, 'bold');
+      if (fingering.placement === 'below') {
+        vfFingering.setVerticalJustification(VF.Annotation.VerticalJustify.BELOW);
+      }
+
+      staveNote.addModifier(index, vfFingering);
     });
 
     for (let i = 0; i < note.dot; i++) {

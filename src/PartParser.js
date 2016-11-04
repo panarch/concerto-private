@@ -207,11 +207,21 @@ const parseNoteTuplets = (notations, tupletNodes) => {
 };
 
 const parseNoteTechnical = (note, head, technicalNode) => {
-  const fretNode = technicalNode.getElementsByTagName('fret')[0];
-  const stringNode = technicalNode.getElementsByTagName('string')[0];
+  const fretNode = technicalNode.querySelector('fret');
+  const stringNode = technicalNode.querySelector('string');
+  const fingeringNode = technicalNode.querySelector('fingering');
 
   if (fretNode) head.fret = Number(fretNode.textContent);
   if (stringNode) head.string = Number(stringNode.textContent);
+  if (fingeringNode) {
+    head.fingering = {
+      text: fingeringNode.textContent,
+    };
+
+    if (fingeringNode.hasAttribute('placement')) {
+      head.fingering.placement = fingeringNode.getAttribute('placement');
+    }
+  }
 };
 
 const parseNoteNotations = (note, head, notationsNode) => {
