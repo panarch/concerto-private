@@ -117,6 +117,7 @@ const parseAttributes = (data, attrNode, state) => {
 
 const parseDirection = (data, directionNode, state) => {
   const staffNode = directionNode.querySelector('staff');
+  const voiceNode = directionNode.querySelector('voice');
   const directionTypeNode = directionNode.querySelector('direction-type');
   const offsetNode = directionNode.querySelector('offset'); // number based on divisions
   const contentNode = directionTypeNode.firstElementChild;
@@ -126,6 +127,7 @@ const parseDirection = (data, directionNode, state) => {
     directionType: contentNode.tagName,
     beginDuration: state.duration,
     staff: staffNode ? Number(staffNode.textContent) : state.staff,
+    voice: voiceNode ? Number(voiceNode.textContent) : state.voice,
   };
 
   if (offsetNode) direction.beginDuration += Number(offsetNode.textContent);
@@ -140,6 +142,22 @@ const parseDirection = (data, directionNode, state) => {
     if (contentNode.hasAttribute('number')) {
       direction.wedge.number = contentNode.getAttribute('number');
     }
+  } else if (contentNode.tagName === 'words') {
+    direction.wordsList = [...directionTypeNode.children].map(wordsNode => {
+      const words = {
+        text: wordsNode.textContent,
+      };
+
+      const attrList = [
+        'justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-weight',
+      ];
+
+      for (const attr of attrList) {
+        if (wordsNode.hasAttribute('attr')) words[attr] = wordsNode.getAttribute(attr);
+      }
+
+      return words;
+    });
   }
 
   if (contentNode.hasAttribute('default-x')) {

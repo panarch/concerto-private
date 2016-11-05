@@ -3,6 +3,7 @@
 
 import { parsePart } from './PartParser';
 import { parseSystemLayout, parseStaffLayout, parsePageLayout } from './LayoutParser';
+import { rectify } from './rectifier';
 import Score from './Score';
 import Movement from './Movement';
 import Identification from './Identification';
@@ -217,7 +218,7 @@ export const parse = (doc) => {
   const parts = parseParts([...scorePartwise.getElementsByTagName('part')]);
   const measurePacks = createMeasurePacks(parts);
 
-  return new Score({
+  const score = new Score({
     version,
     movement,
     identification,
@@ -227,4 +228,7 @@ export const parse = (doc) => {
     parts,
     measurePacks,
   });
+
+  rectify(score);
+  return score;
 };

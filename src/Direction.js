@@ -2,14 +2,16 @@
 // @author Taehoon Moon
 
 export default class Direction {
-  constructor({ tag, directionType, wedge,
-      staff, placement, beginDuration, dynamicType, defaultX }) {
+  constructor({ tag, directionType, wedge, wordsList,
+      staff, voice, placement, beginDuration, dynamicType, defaultX }) {
     this.tag = tag;
     this.directionType = directionType;
     this.staff = staff;
+    this.voice = voice;
     this.placement = placement;
 
     this.wedge = wedge;
+    this.wordsList = wordsList;
     this.dynamicType = dynamicType;
 
     // mutable
@@ -50,9 +52,11 @@ export default class Direction {
   getTag() { return this.tag; }
   getDirectionType() { return this.directionType; }
   getStaff() { return this.staff; }
+  getVoice() { return this.voice; }
   getPlacement() { return this.placement ? this.placement : 'above'; }
 
   getWedge() { return this.wedge; }
+  getWordsList() { return this.wordsList; }
   getDynamicType() { return this.dynamicType; }
 
   getBeginDuration() { return this.beginDuration; }
