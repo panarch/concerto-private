@@ -64,49 +64,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Score = __webpack_require__(301);
+	var _Score = __webpack_require__(303);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Defaults = __webpack_require__(302);
+	var _Defaults = __webpack_require__(304);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Movement = __webpack_require__(303);
+	var _Movement = __webpack_require__(305);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(304);
+	var _Identification = __webpack_require__(306);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Part = __webpack_require__(305);
+	var _Part = __webpack_require__(307);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(306);
+	var _Measure = __webpack_require__(308);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Parser = __webpack_require__(309);
+	var _Parser = __webpack_require__(311);
 	
-	var _Formatter = __webpack_require__(318);
+	var _Formatter = __webpack_require__(320);
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _VerticalFormatter = __webpack_require__(319);
+	var _VerticalFormatter = __webpack_require__(321);
 	
 	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
 	
-	var _HorizontalFormatter = __webpack_require__(321);
+	var _HorizontalFormatter = __webpack_require__(323);
 	
 	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
 	
-	var _Renderer = __webpack_require__(322);
+	var _Renderer = __webpack_require__(324);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
-	var _Util = __webpack_require__(307);
+	var _Util = __webpack_require__(309);
 	
 	var _Util2 = _interopRequireDefault(_Util);
 	
@@ -8176,86 +8176,26 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
 	var _allegretto = __webpack_require__(299);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
 	__webpack_require__(300);
 	
+	__webpack_require__(301);
+	
+	__webpack_require__(302);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * hotfix script
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-	
-	// New class!
-	var Wedge = function (_Vex$Flow$Element) {
-	  _inherits(Wedge, _Vex$Flow$Element);
-	
-	  function Wedge(_ref) {
-	    var beginNote = _ref.beginNote;
-	    var beginStave = _ref.beginStave;
-	    var beginHeight = _ref.beginHeight;
-	    var endNote = _ref.endNote;
-	    var endStave = _ref.endStave;
-	    var endHeight = _ref.endHeight;
-	    var line = _ref.line;
-	
-	    _classCallCheck(this, Wedge);
-	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Wedge).call(this));
-	
-	    _this.beginNote = beginNote;
-	    _this.beginStave = beginStave;
-	    _this.beginHeight = beginHeight;
-	    _this.endNote = endNote;
-	    _this.endStave = endStave;
-	    _this.endHeight = endHeight;
-	    _this.line = line | 0;
-	    return _this;
-	  }
-	
-	  _createClass(Wedge, [{
-	    key: 'setLine',
-	    value: function setLine(line) {
-	      this.line = line;
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      var ctx = this.context;
-	      var stave = this.beginStave || this.endStave || (this.beginNote ? this.beginNote.getStave() : this.endNote.getStave());
-	      var y = stave.getYForLine(this.line + -3.5) + 1;
-	      var beginH = this.beginHeight / 2;
-	      var endH = this.endHeight / 2;
-	      var beginX = this.beginNote ? this.beginNote.getAbsoluteX() : this.beginStave.getX() + 10;
-	      var endX = -10 + (this.endNote ? this.endNote.getAbsoluteX() : this.endStave.getX() + this.endStave.getWidth());
-	
-	      ctx.beginPath();
-	      ctx.moveTo(beginX, y - beginH);
-	      ctx.lineTo(endX, y - endH);
-	      ctx.moveTo(beginX, y + beginH);
-	      ctx.lineTo(endX, y + endH);
-	      ctx.stroke();
-	      ctx.closePath();
-	    }
-	  }]);
-	
-	  return Wedge;
-	}(_allegretto2.default.Flow.Element);
-	
-	_allegretto2.default.Flow.Wedge = Wedge;
-	
 	// New options: numbered
+	/*
+	 * hotfix script
+	 */
+	
 	var Tuplet = _allegretto2.default.Flow.Tuplet;
 	_allegretto2.default.Flow.Tuplet.prototype.draw = function draw() {
-	  var _this2 = this;
+	  var _this = this;
 	
 	  this.checkContext();
 	  this.setRendered();
@@ -8307,7 +8247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // draw numerator glyphs
 	  var x_offset = 0;
 	  this.num_glyphs.forEach(function (glyph) {
-	    glyph.render(_this2.context, notation_start_x + x_offset, _this2.y_pos + _this2.point / 3 - 2);
+	    glyph.render(_this.context, notation_start_x + x_offset, _this.y_pos + _this.point / 3 - 2);
 	    x_offset += glyph.getMetrics().width;
 	  });
 	
@@ -8325,7 +8265,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.context.fill();
 	    x_offset += this.point * 0.32;
 	    this.denom_glyphs.forEach(function (glyph) {
-	      glyph.render(_this2.context, notation_start_x + x_offset, _this2.y_pos + _this2.point / 3 - 2);
+	      glyph.render(_this.context, notation_start_x + x_offset, _this.y_pos + _this.point / 3 - 2);
 	      x_offset += glyph.getMetrics().width;
 	    });
 	  }
@@ -8333,7 +8273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var TextDynamics = _allegretto2.default.Flow.TextDynamics;
 	_allegretto2.default.Flow.TextDynamics.prototype.preFormat = function preFormat() {
-	  var _this3 = this;
+	  var _this2 = this;
 	
 	  if (this.preFormatted) return this; // ADDED
 	
@@ -8345,11 +8285,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var glyph_data = TextDynamics.GLYPHS[letter];
 	    if (!glyph_data) throw new _allegretto2.default.RERR('Invalid dynamics character: ' + letter);
 	
-	    var size = _this3.render_options.glyph_font_size;
+	    var size = _this2.render_options.glyph_font_size;
 	    var glyph = new Glyph(glyph_data.code, size);
 	
 	    // Add the glyph
-	    _this3.glyphs.push(glyph);
+	    _this2.glyphs.push(glyph);
 	
 	    total_width += glyph_data.width;
 	  });
@@ -32789,6 +32729,261 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 301 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.StaveText = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	// [VexFlow](http://vexflow.com) - Copyright (c) Mohit Muthanna 2010.
+	// Author Taehoon Moon 2014
+	
+	var StaveModifier = _allegretto2.default.Flow.StaveModifier;
+	
+	var StaveText = exports.StaveText = function (_StaveModifier) {
+	  _inherits(StaveText, _StaveModifier);
+	
+	  _createClass(StaveText, null, [{
+	    key: 'CATEGORY',
+	    get: function get() {
+	      return 'stavetext';
+	    }
+	  }, {
+	    key: 'Justification',
+	    get: function get() {
+	      return {
+	        LEFT: 1,
+	        CENTER: 2,
+	        RIGHT: 3
+	      };
+	    }
+	  }]);
+	
+	  function StaveText(_ref) {
+	    var text = _ref.text;
+	    var position = _ref.position;
+	    var options = _ref.options;
+	    var line = _ref.line;
+	
+	    _classCallCheck(this, StaveText);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(StaveText).call(this));
+	
+	    _this.setAttribute('type', 'StaveText');
+	
+	    _this.setWidth(16);
+	    _this.line = line;
+	    _this.text = text;
+	    _this.position = position;
+	    _this.options = {
+	      shift_x: 0,
+	      shift_y: 0,
+	      justification: StaveText.Justification.CENTER
+	    };
+	    _allegretto2.default.Merge(_this.options, options);
+	
+	    _this.font = {
+	      family: 'times',
+	      size: 16,
+	      weight: 'normal'
+	    };
+	    return _this;
+	  }
+	
+	  _createClass(StaveText, [{
+	    key: 'getCategory',
+	    value: function getCategory() {
+	      return StaveText.CATEGORY;
+	    }
+	  }, {
+	    key: 'setShiftX',
+	    value: function setShiftX(x) {
+	      this.shift_x = x;return this;
+	    }
+	  }, {
+	    key: 'setShiftY',
+	    value: function setShiftY(y) {
+	      this.shift_y = y;return this;
+	    }
+	  }, {
+	    key: 'setText',
+	    value: function setText(text) {
+	      this.text = text;return this;
+	    }
+	  }, {
+	    key: 'setLine',
+	    value: function setLine(line) {
+	      this.line = line;return this;
+	    }
+	  }, {
+	    key: 'setFont',
+	    value: function setFont(font) {
+	      _allegretto2.default.Merge(this.font, font);return this;
+	    }
+	  }, {
+	    key: 'setJustification',
+	    value: function setJustification(justification) {
+	      this.justification = justification;
+	      return this;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw(stave) {
+	      if (!stave) stave = this.stave;
+	
+	      var ctx = stave.checkContext();
+	      this.setRendered();
+	
+	      ctx.save();
+	      ctx.lineWidth = 2;
+	      ctx.setFont(this.font.family, this.font.size, this.font.weight);
+	      var text_width = ctx.measureText('' + this.text).width;
+	
+	      var x = void 0;
+	      var y = void 0;
+	      var Position = StaveModifier.Position;
+	      var Justification = StaveText.Justification;
+	      switch (this.position) {
+	        case Position.LEFT:
+	        case Position.RIGHT:
+	          y = (stave.getYForLine(0) + stave.getBottomLineY()) / 2 + this.options.shift_y;
+	          if (this.position === Position.LEFT) {
+	            x = stave.getX() - text_width - 24 + this.options.shift_x;
+	          } else {
+	            x = stave.getX() + stave.getWidth() + 24 + this.options.shift_x;
+	          }
+	          break;
+	        case Position.ABOVE:
+	        case Position.BELOW:
+	          x = stave.getX() + this.options.shift_x;
+	          if (this.options.justification === Justification.CENTER) {
+	            x += stave.getWidth() / 2 - text_width / 2;
+	          } else if (this.options.justification === Justification.RIGHT) {
+	            x += stave.getWidth() - text_width;
+	          }
+	
+	          if (this.line) {
+	            y = stave.getYForLine(this.line);
+	          } else if (this.position === Position.ABOVE) {
+	            y = stave.getYForTopText(2);
+	          } else {
+	            y = stave.getYForBottomText(2);
+	          }
+	
+	          y += this.options.shift_y;
+	          break;
+	        default:
+	          throw new _allegretto2.default.RERR('InvalidPosition', 'Value Must be in StaveModifier.Position.');
+	      }
+	
+	      ctx.fillText('' + this.text, x, y + 4);
+	      ctx.restore();
+	      return this;
+	    }
+	  }]);
+	
+	  return StaveText;
+	}(StaveModifier);
+	
+	_allegretto2.default.Flow.StaveText = StaveText;
+
+/***/ },
+/* 302 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	// New class!
+	var Wedge = function (_Vex$Flow$Element) {
+	  _inherits(Wedge, _Vex$Flow$Element);
+	
+	  function Wedge(_ref) {
+	    var beginNote = _ref.beginNote;
+	    var beginStave = _ref.beginStave;
+	    var beginHeight = _ref.beginHeight;
+	    var endNote = _ref.endNote;
+	    var endStave = _ref.endStave;
+	    var endHeight = _ref.endHeight;
+	    var line = _ref.line;
+	
+	    _classCallCheck(this, Wedge);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Wedge).call(this));
+	
+	    _this.beginNote = beginNote;
+	    _this.beginStave = beginStave;
+	    _this.beginHeight = beginHeight;
+	    _this.endNote = endNote;
+	    _this.endStave = endStave;
+	    _this.endHeight = endHeight;
+	    _this.line = line;
+	    return _this;
+	  }
+	
+	  _createClass(Wedge, [{
+	    key: 'setLine',
+	    value: function setLine(line) {
+	      this.line = line;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      var ctx = this.context;
+	      var stave = this.beginStave || this.endStave || (this.beginNote ? this.beginNote.getStave() : this.endNote.getStave());
+	      var y = stave.getYForLine(this.line);
+	      var beginH = this.beginHeight / 2;
+	      var endH = this.endHeight / 2;
+	      var beginX = this.beginNote ? this.beginNote.getAbsoluteX() : this.beginStave.getX() + 10;
+	      var endX = -10 + (this.endNote ? this.endNote.getAbsoluteX() : this.endStave.getX() + this.endStave.getWidth());
+	
+	      ctx.beginPath();
+	      ctx.moveTo(beginX, y - beginH);
+	      ctx.lineTo(endX, y - endH);
+	      ctx.moveTo(beginX, y + beginH);
+	      ctx.lineTo(endX, y + endH);
+	      ctx.stroke();
+	      ctx.closePath();
+	    }
+	  }]);
+	
+	  return Wedge;
+	}(_allegretto2.default.Flow.Element);
+	
+	_allegretto2.default.Flow.Wedge = Wedge;
+
+/***/ },
+/* 303 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -32886,7 +33081,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Score;
 
 /***/ },
-/* 302 */
+/* 304 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -33039,7 +33234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Defaults.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 303 */
+/* 305 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33066,7 +33261,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Movement;
 
 /***/ },
-/* 304 */
+/* 306 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33095,7 +33290,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Identification;
 
 /***/ },
-/* 305 */
+/* 307 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33188,7 +33383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Part;
 
 /***/ },
-/* 306 */
+/* 308 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33201,7 +33396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	
-	var _Util = __webpack_require__(307);
+	var _Util = __webpack_require__(309);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -33684,7 +33879,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Measure.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 307 */
+/* 309 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33707,7 +33902,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Table = __webpack_require__(308);
+	var _Table = __webpack_require__(310);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
@@ -33993,7 +34188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 308 */
+/* 310 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -34043,7 +34238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Table;
 
 /***/ },
-/* 309 */
+/* 311 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34053,37 +34248,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parse = undefined;
 	
-	var _PartParser = __webpack_require__(310);
+	var _PartParser = __webpack_require__(312);
 	
-	var _LayoutParser = __webpack_require__(311);
+	var _LayoutParser = __webpack_require__(313);
 	
-	var _rectifier = __webpack_require__(314);
+	var _rectifier = __webpack_require__(316);
 	
-	var _Score = __webpack_require__(301);
+	var _Score = __webpack_require__(303);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Movement = __webpack_require__(303);
+	var _Movement = __webpack_require__(305);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(304);
+	var _Identification = __webpack_require__(306);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Defaults = __webpack_require__(302);
+	var _Defaults = __webpack_require__(304);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Credit = __webpack_require__(315);
+	var _Credit = __webpack_require__(317);
 	
 	var _Credit2 = _interopRequireDefault(_Credit);
 	
-	var _PartList = __webpack_require__(316);
+	var _PartList = __webpack_require__(318);
 	
 	var _PartList2 = _interopRequireDefault(_PartList);
 	
-	var _MeasurePack = __webpack_require__(317);
+	var _MeasurePack = __webpack_require__(319);
 	
 	var _MeasurePack2 = _interopRequireDefault(_MeasurePack);
 	
@@ -34315,7 +34510,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 310 */
+/* 312 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34325,25 +34520,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parsePart = undefined;
 	
-	var _LayoutParser = __webpack_require__(311);
+	var _LayoutParser = __webpack_require__(313);
 	
-	var _Part = __webpack_require__(305);
+	var _Part = __webpack_require__(307);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(306);
+	var _Measure = __webpack_require__(308);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Note = __webpack_require__(312);
+	var _Note = __webpack_require__(314);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Direction = __webpack_require__(313);
+	var _Direction = __webpack_require__(315);
 	
 	var _Direction2 = _interopRequireDefault(_Direction);
 	
-	var _Util = __webpack_require__(307);
+	var _Util = __webpack_require__(309);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -34458,6 +34653,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  if (offsetNode) direction.beginDuration += Number(offsetNode.textContent);
 	
+	  function _toCamel(str) {
+	    return str.replace(/\-\w/g, function (s) {
+	      return s[1].toUpperCase();
+	    });
+	  }
+	
 	  if (contentNode.tagName === 'dynamics') {
 	    direction.dynamicType = contentNode.firstElementChild.tagName;
 	  } else if (contentNode.tagName === 'wedge') {
@@ -34473,32 +34674,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        text: wordsNode.textContent
 	      };
 	
-	      var attrList = ['justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-weight'];
+	      var attrList = ['justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-style'];
 	
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	      attrList.filter(function (attr) {
+	        return wordsNode.hasAttribute(attr);
+	      }).forEach(function (attr) {
+	        words[_toCamel(attr)] = wordsNode.getAttribute(attr);
+	      });
 	
-	      try {
-	        for (var _iterator = attrList[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var attr = _step.value;
-	
-	          if (wordsNode.hasAttribute('attr')) words[attr] = wordsNode.getAttribute(attr);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
+	      /* VexFlow tweaks
+	        VexFlow handle font-style using font-weight,
+	        so font-weight should contain both font-style & font-weight
+	      */
+	      if (words.fontStyle) words.fontWeight += ' ' + words.fontStyle;
 	
 	      return words;
 	    });
@@ -34963,7 +35151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 311 */
+/* 313 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35033,7 +35221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 312 */
+/* 314 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35225,7 +35413,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Note;
 
 /***/ },
-/* 313 */
+/* 315 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35461,7 +35649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Direction;
 
 /***/ },
-/* 314 */
+/* 316 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35620,7 +35808,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	*/
 
 /***/ },
-/* 315 */
+/* 317 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35680,7 +35868,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Credit;
 
 /***/ },
-/* 316 */
+/* 318 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35727,7 +35915,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = PartList;
 
 /***/ },
-/* 317 */
+/* 319 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35858,7 +36046,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = MeasurePack;
 
 /***/ },
-/* 318 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35874,19 +36062,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(312);
+	var _Note = __webpack_require__(314);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Measure = __webpack_require__(306);
+	var _Measure = __webpack_require__(308);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Table = __webpack_require__(308);
+	var _Table = __webpack_require__(310);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
-	var _Util = __webpack_require__(307);
+	var _Util = __webpack_require__(309);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -37318,10 +37506,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            if (duration > endDuration) break;
 	
-	            duration += note.getDuration();
 	            if (note.getStaff() !== direction.getStaff() || duration < direction.getBeginDuration()) {
+	              duration += note.getDuration();
 	              continue;
 	            }
+	
+	            duration += note.getDuration();
 	
 	            var noteBoundingBox = note.getVFNote().getBoundingBox();
 	            if (boundingBox) boundingBox.mergeWith(noteBoundingBox);else boundingBox = noteBoundingBox;
@@ -37360,7 +37550,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      directionsMap.forEach(function (directions, staff) {
 	        return directions.forEach(function (direction) {
 	          var directionType = direction.getDirectionType();
-	          if (!['dynamics', 'wedge'].includes(directionType)) return;
+	          if (!['dynamics', 'wedge', 'words'].includes(directionType)) return;
 	
 	          var vfStave = measure.getStave(staff);
 	
@@ -37373,6 +37563,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                duration: (0, _Util.getVFDuration)(direction, divisions)
 	              });
 	              vfDirectionNote.setStave(vfStave).preFormat();
+	              break;
+	            case 'words':
+	              // StaveText will be used
+	              direction.setDuration(divisions * 2);
+	              vfDirectionNote = new VF.GhostNote({ duration: (0, _Util.getVFDuration)(direction, divisions) });
+	              vfDirectionNote.setStave(vfStave);
 	              break;
 	            case 'wedge':
 	              if (direction.getDuration() === 0) {
@@ -37404,14 +37600,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var boundingBox = _this18._calculateDirectionBoundingBox({ direction: direction, notesMap: notesMap, vfStave: vfStave });
 	
 	          if (placement === 'above') {
-	            var maxY = boundingBox.getY();
-	            var maxLine = 1.5 + Math.min(0, (maxY - vfStave.getYForLine(0)) / spacing);
+	            var vfStaveTopLineY = vfStave.getTopLineTopY();
+	            var maxY = boundingBox ? boundingBox.getY() : vfStaveTopLineY;
+	            var maxLine = -2 + Math.min(0, (maxY - vfStaveTopLineY) / spacing);
 	
 	            direction.setMaxLine(maxLine);
 	          } else {
+	            var vfStaveBottomLineY = vfStave.getBottomLineBottomY();
 	            var numLines = vfStave.getNumLines();
-	            var minY = boundingBox.getY() + boundingBox.getH();
-	            var minLine = numLines + 1 + Math.max(0, (minY - vfStave.getBottomLineY()) / spacing);
+	            var minY = boundingBox ? boundingBox.getY() + boundingBox.getH() : vfStaveBottomLineY;
+	            var minLine = numLines + 1 + Math.max(0, (minY - vfStaveBottomLineY) / spacing);
 	
 	            direction.setMinLine(minLine);
 	          }
@@ -37447,13 +37645,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var vfNote = direction.getVFNote();
 	          if (!vfNote) return;
 	
-	          var line = direction.getPlacement() === 'above' ? direction.getMaxLine() : direction.getMinLine() + 4;
+	          var line = direction.getPlacement() === 'above' ? direction.getMaxLine() : direction.getMinLine();
 	
 	          direction.setLine(line);
 	
 	          if (vfNote instanceof VF.GhostNote) return;
 	
-	          direction.getVFNote().setLine(line);
+	          direction.getVFNote().setLine(line + 3.5);
 	        });
 	
 	        // TODO: Join multiple directions into same voice
@@ -37491,9 +37689,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
 	    }
+	
+	    /*
+	     * wedge
+	     */
+	
 	  }, {
-	    key: '_createVFElementFromDirection',
-	    value: function _createVFElementFromDirection(_ref8) {
+	    key: '_createMultiMeasureDirectionVFElement',
+	    value: function _createMultiMeasureDirectionVFElement(_ref8) {
 	      var _this19 = this;
 	
 	      var measure = _ref8.measure;
@@ -37518,7 +37721,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var isCrescendo = direction.getWedge().type === 'crescendo';
 	        var line = direction.getLine();
-	
 	        var lineDirection = direction; // first direction of line
 	        var lastDirection = direction;
 	        var nextDirection = direction.getNextDirection();
@@ -37542,6 +37744,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            lineDirection = nextDirection;
 	          }
+	
+	          line = line > 0 ? Math.max(line, nextDirection.getLine()) : Math.min(line, nextDirection.getLine());
 	
 	          lastDirection = nextDirection;
 	          nextDirection = lastDirection.getNextDirection();
@@ -37570,6 +37774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    // @before formatLyric
+	    // @after formatVoices: measure width
 	
 	  }, {
 	    key: 'formatDirection',
@@ -37597,7 +37802,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // create VFElement from GhostNote (Wedge...)
 	      this.parts.forEach(function (part, pi) {
 	        part.getMeasures().forEach(function (measure, mi) {
-	          _this20._createVFElementFromDirection({ measure: measure, mi: mi, pi: pi });
+	          _this20._createMultiMeasureDirectionVFElement({ measure: measure, mi: mi, pi: pi });
 	        });
 	      });
 	
@@ -37607,6 +37812,59 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (vfDirectionVoices.length === 0) return;
 	
 	        measurePack.getVFFormatter().joinVoices(vfDirectionVoices);
+	      });
+	    }
+	  }, {
+	    key: '_postFormatDirection',
+	    value: function _postFormatDirection(measure) {
+	      var directions = measure.getDirections().filter(function (direction) {
+	        return direction.getDirectionType() === 'words';
+	      });
+	
+	      directions.forEach(function (direction) {
+	        var vfStave = measure.getStave(direction.getStaff());
+	        var vfNote = direction.getVFNote();
+	        var shiftX = vfNote.getAbsoluteX() - vfStave.getX();
+	        var shiftY = vfStave.getYForLine(direction.getLine()) - vfStave.getYForLine(0);
+	
+	        var words = direction.getWordsList()[0];
+	        var font = {};
+	        if (words.fontFamily) font.family = words.fontFamily;
+	        if (words.fontWeight) font.weight = words.fontWeight;
+	        if (words.fontSize) {
+	          font.size = isNaN(Number(words.fontSize)) ? words.fontSize : Math.min(Number(words.fontSize) * 1.3, 14);
+	        }
+	
+	        var vfStaveText = new VF.StaveText({
+	          text: words.text,
+	          line: direction.getLine(),
+	          position: VF.StaveModifier.Position.ABOVE,
+	          options: {
+	            shift_x: shiftX,
+	            shift_y: -shiftY * 0,
+	            justification: VF.StaveText.Justification.LEFT
+	          }
+	        });
+	
+	        vfStaveText.setFont(font);
+	        vfStave.addModifier(vfStaveText);
+	      });
+	    }
+	
+	    /*
+	     * Format VF.StaveModifier type directions!
+	     * words
+	     */
+	
+	  }, {
+	    key: 'postFormatDirection',
+	    value: function postFormatDirection() {
+	      var _this21 = this;
+	
+	      this.parts.forEach(function (part, pi) {
+	        part.getMeasures().forEach(function (measure, mi) {
+	          _this21._postFormatDirection(measure);
+	        });
 	      });
 	    }
 	  }, {
@@ -37735,11 +37993,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatBeam',
 	    value: function formatBeam() {
-	      var _this21 = this;
+	      var _this22 = this;
 	
 	      this.parts.forEach(function (part) {
 	        part.getMeasures().forEach(function (measure) {
-	          return _this21._formatBeam(measure);
+	          return _this22._formatBeam(measure);
 	        });
 	      });
 	    }
@@ -37938,10 +38196,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatTie',
 	    value: function formatTie() {
-	      var _this22 = this;
+	      var _this23 = this;
 	
 	      this.parts.forEach(function (part) {
-	        return _this22._formatTie(part);
+	        return _this23._formatTie(part);
 	      });
 	    }
 	  }, {
@@ -38011,10 +38269,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatSlur',
 	    value: function formatSlur() {
-	      var _this23 = this;
+	      var _this24 = this;
 	
 	      this.parts.forEach(function (part) {
-	        return _this23._formatSlur(part);
+	        return _this24._formatSlur(part);
 	      });
 	    }
 	  }, {
@@ -38038,6 +38296,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatDirection();
 	      this.formatLyric();
 	      this.runFormatter();
+	      this.postFormatDirection();
 	      this.formatTie();
 	      this.formatSlur();
 	    }
@@ -38049,7 +38308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Formatter;
 
 /***/ },
-/* 319 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38066,11 +38325,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _AdvancedFormatter2 = __webpack_require__(320);
+	var _AdvancedFormatter2 = __webpack_require__(322);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
-	var _Util = __webpack_require__(307);
+	var _Util = __webpack_require__(309);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -38608,7 +38867,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = VerticalFormatter;
 
 /***/ },
-/* 320 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38621,7 +38880,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Formatter2 = __webpack_require__(318);
+	var _Formatter2 = __webpack_require__(320);
 	
 	var _Formatter3 = _interopRequireDefault(_Formatter2);
 	
@@ -38864,7 +39123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = AdvancedFormatter;
 
 /***/ },
-/* 321 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38877,7 +39136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _AdvancedFormatter2 = __webpack_require__(320);
+	var _AdvancedFormatter2 = __webpack_require__(322);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -38974,7 +39233,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HorizontalFormatter;
 
 /***/ },
-/* 322 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
