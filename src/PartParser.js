@@ -132,6 +132,8 @@ const parseDirection = (data, directionNode, state) => {
 
   if (offsetNode) direction.beginDuration += Number(offsetNode.textContent);
 
+  function _toCamel(str) { return str.replace(/\-\w/g, s => s[1].toUpperCase()); }
+
   if (contentNode.tagName === 'dynamics') {
     direction.dynamicType = contentNode.firstElementChild.tagName;
   } else if (contentNode.tagName === 'wedge') {
@@ -149,12 +151,18 @@ const parseDirection = (data, directionNode, state) => {
       };
 
       const attrList = [
-        'justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-weight',
+        'justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-style',
       ];
 
-      for (const attr of attrList) {
-        if (wordsNode.hasAttribute('attr')) words[attr] = wordsNode.getAttribute(attr);
-      }
+      attrList.filter(attr => wordsNode.hasAttribute(attr)).forEach(attr => {
+        words[_toCamel(attr)] = wordsNode.getAttribute(attr);
+      });
+
+      /* VexFlow tweaks
+        VexFlow handle font-style using font-weight,
+        so font-weight should contain both font-style & font-weight
+      */
+      if (words.fontStyle) words.fontWeight += ` ${words.fontStyle}`;
 
       return words;
     });
