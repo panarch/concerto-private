@@ -1262,11 +1262,13 @@ export default class Formatter {
       for (const note of notes) {
         if (duration > endDuration) break;
 
-        duration += note.getDuration();
         if (note.getStaff() !== direction.getStaff() ||
               duration < direction.getBeginDuration()) {
+          duration += note.getDuration();
           continue;
         }
+
+        duration += note.getDuration();
 
         const noteBoundingBox = note.getVFNote().getBoundingBox();
         if (boundingBox) boundingBox.mergeWith(noteBoundingBox);
@@ -1286,7 +1288,7 @@ export default class Formatter {
 
     directionsMap.forEach((directions, staff) => directions.forEach(direction => {
       const directionType = direction.getDirectionType();
-      if (!['dynamics', 'wedge'].includes(directionType)) return;
+      if (!['dynamics', 'wedge', 'words'].includes(directionType)) return;
 
       const vfStave = measure.getStave(staff);
 
@@ -1299,6 +1301,11 @@ export default class Formatter {
           duration: getVFDuration(direction, divisions),
         });
         vfDirectionNote.setStave(vfStave).preFormat();
+        break;
+      case 'words': // StaveText will be used
+        direction.setDuration(divisions * 2);
+        vfDirectionNote = new VF.GhostNote({ duration: getVFDuration(direction, divisions) });
+        vfDirectionNote.setStave(vfStave);
         break;
       case 'wedge':
         if (direction.getDuration() === 0) {
@@ -1330,14 +1337,16 @@ export default class Formatter {
       const boundingBox = this._calculateDirectionBoundingBox({ direction, notesMap, vfStave });
 
       if (placement === 'above') {
-        const maxY = boundingBox.getY();
-        const maxLine = 1.5 + Math.min(0, (maxY - vfStave.getYForLine(0)) / spacing);
+        const vfStaveTopLineY = vfStave.getTopLineTopY();
+        const maxY = boundingBox ? boundingBox.getY() : vfStaveTopLineY;
+        const maxLine = -2 + Math.min(0, (maxY - vfStaveTopLineY) / spacing);
 
         direction.setMaxLine(maxLine);
       } else {
+        const vfStaveBottomLineY = vfStave.getBottomLineBottomY();
         const numLines = vfStave.getNumLines();
-        const minY = boundingBox.getY() + boundingBox.getH();
-        const minLine = numLines + 1 + Math.max(0, (minY - vfStave.getBottomLineY()) / spacing);
+        const minY = boundingBox ? boundingBox.getY() + boundingBox.getH() : vfStaveBottomLineY;
+        const minLine = numLines + 1 + Math.max(0, (minY - vfStaveBottomLineY) / spacing);
 
         direction.setMinLine(minLine);
       }
@@ -1366,13 +1375,13 @@ export default class Formatter {
         if (!vfNote) return;
 
         const line = direction.getPlacement() === 'above' ?
-          direction.getMaxLine() : direction.getMinLine() + 4;
+          direction.getMaxLine() : direction.getMinLine();
 
         direction.setLine(line);
 
         if (vfNote instanceof VF.GhostNote) return;
 
-        direction.getVFNote().setLine(line);
+        direction.getVFNote().setLine(line + 3.5);
       });
 
       // TODO: Join multiple directions into same voice
@@ -1412,7 +1421,10 @@ export default class Formatter {
     measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
   }
 
-  _createVFElementFromDirection({ measure, mi, pi }) {
+  /*
+   * wedge
+   */
+  _createMultiMeasureDirectionVFElement({ measure, mi, pi }) {
     const directions = measure.getDirections().filter(direction => (
       direction.getDirectionType() === 'wedge' &&
       !['continue'].includes(direction.getWedge().type)
@@ -1429,8 +1441,7 @@ export default class Formatter {
       if (!vfNote) return;
 
       const isCrescendo = direction.getWedge().type === 'crescendo';
-      const line = direction.getLine();
-
+      let line = direction.getLine();
       let lineDirection = direction; // first direction of line
       let lastDirection = direction;
       let nextDirection = direction.getNextDirection();
@@ -1453,6 +1464,10 @@ export default class Formatter {
 
           lineDirection = nextDirection;
         }
+
+        line = line > 0 ?
+          Math.max(line, nextDirection.getLine()) :
+          Math.min(line, nextDirection.getLine());
 
         lastDirection = nextDirection;
         nextDirection = lastDirection.getNextDirection();
@@ -1482,6 +1497,7 @@ export default class Formatter {
   }
 
   // @before formatLyric
+  // @after formatVoices: measure width
   formatDirection() {
     // reset
     this.parts.forEach(part => part.getMeasures().forEach(measure => {
@@ -1502,7 +1518,7 @@ export default class Formatter {
     // create VFElement from GhostNote (Wedge...)
     this.parts.forEach((part, pi) => {
       part.getMeasures().forEach((measure, mi) => {
-        this._createVFElementFromDirection({ measure, mi, pi });
+        this._createMultiMeasureDirectionVFElement({ measure, mi, pi });
       });
     });
 
@@ -1512,6 +1528,55 @@ export default class Formatter {
       if (vfDirectionVoices.length === 0) return;
 
       measurePack.getVFFormatter().joinVoices(vfDirectionVoices);
+    });
+  }
+
+  _postFormatDirection(measure) {
+    const directions = measure.getDirections().filter(direction => (
+      direction.getDirectionType() === 'words'
+    ));
+
+    directions.forEach(direction => {
+      const vfStave = measure.getStave(direction.getStaff());
+      const vfNote = direction.getVFNote();
+      const shiftX = vfNote.getAbsoluteX() - vfStave.getX();
+      const shiftY = vfStave.getYForLine(direction.getLine()) - vfStave.getYForLine(0);
+
+      const words = direction.getWordsList()[0];
+      const font = {};
+      if (words.fontFamily) font.family = words.fontFamily;
+      if (words.fontWeight) font.weight = words.fontWeight;
+      if (words.fontSize) {
+        font.size = isNaN(Number(words.fontSize)) ?
+          words.fontSize :
+          Math.min(Number(words.fontSize) * 1.3, 14);
+      }
+
+      const vfStaveText = new VF.StaveText({
+        text: words.text,
+        line: direction.getLine(),
+        position: VF.StaveModifier.Position.ABOVE,
+        options: {
+          shift_x: shiftX,
+          shift_y: -shiftY * 0,
+          justification: VF.StaveText.Justification.LEFT,
+        },
+      });
+
+      vfStaveText.setFont(font);
+      vfStave.addModifier(vfStaveText);
+    });
+  }
+
+  /*
+   * Format VF.StaveModifier type directions!
+   * words
+   */
+  postFormatDirection() {
+    this.parts.forEach((part, pi) => {
+      part.getMeasures().forEach((measure, mi) => {
+        this._postFormatDirection(measure);
+      });
     });
   }
 
@@ -1894,6 +1959,7 @@ export default class Formatter {
     this.formatDirection();
     this.formatLyric();
     this.runFormatter();
+    this.postFormatDirection();
     this.formatTie();
     this.formatSlur();
   }
