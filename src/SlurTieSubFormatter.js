@@ -1,6 +1,8 @@
 import Vex from '@panarch/allegretto';
 const VF = Vex.Flow;
 
+import Note from './Note';
+
 export default class SlurTieSubFormatter {
   constructor({ formatter, score }) {
     this.formatter = formatter;
@@ -85,6 +87,14 @@ export default class SlurTieSubFormatter {
     const tieStartIndicesMap = new Map();
     const tieStopIndicesMap = new Map();
 
+    function setPlacement(vfTie, placement) {
+      if (placement === Note.Placement.ABOVE) {
+        vfTie.setDirection(-1);
+      } else if (placement !== Note.Placement.SINGLE){
+        vfTie.setDirection(1);
+      }
+    }
+
     part.getMeasures().forEach((measure, mi) => {
       const notesMap = measure.getNotesMap();
 
@@ -94,12 +104,15 @@ export default class SlurTieSubFormatter {
         if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
 
         if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
-          vfTiesMap.get(`${mi - 1}/${voice}`).push(new Vex.Flow.StaveTie({
-            first_note: tieNotesMap.get(voice)[0],
+          const firstNote = tieNotesMap.get(voice)[0];
+          const vfTie = new VF.StaveTie({
+            first_note: firstNote.getVFNote(),
             first_indices: tieStartIndicesMap.get(voice),
             last_indices: tieStartIndicesMap.get(voice),
-          }));
+          });
 
+          setPlacement(vfTie, firstNote.getPlacement());
+          vfTiesMap.get(`${mi - 1}/${voice}`).push(vfTie);
           tieNotesMap.get(voice)[0] = undefined;
         }
 
@@ -108,13 +121,11 @@ export default class SlurTieSubFormatter {
           if (note.getTag() !== 'note') return;
           if (note.getGrace()) return; // TODO
 
-          const staveNote = note.getVFNote();
-
           // 1. stop tie
           if (note.heads &&
               note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
             let tieNotes = tieNotesMap.get(voice);
-            tieNotes.push(staveNote);
+            tieNotes.push(note);
 
             note.heads.forEach((head, index) => {
               if (!/^stop/.test(head.tied)) return;
@@ -123,13 +134,19 @@ export default class SlurTieSubFormatter {
               tieStopIndicesMap.get(voice).push(index);
             });
 
-            vfTies.push(new Vex.Flow.StaveTie({
-              first_note: tieNotes[0],
-              last_note: tieNotes[1],
+            const vfTie = new VF.StaveTie({
+              first_note: tieNotes[0] ? tieNotes[0].getVFNote() : undefined,
+              last_note: tieNotes[1].getVFNote(),
               first_indices: tieStartIndicesMap.get(voice),
               last_indices: tieStopIndicesMap.get(voice),
-            }));
+            });
 
+            const placement = tieNotes[0] ?
+              tieNotes[0].getPlacement() :
+              tieNotes[1].getPlacement();
+
+            setPlacement(vfTie, placement);
+            vfTies.push(vfTie);
             tieNotesMap.set(voice, []);
             tieStartIndicesMap.set(voice, []);
             tieStopIndicesMap.set(voice, []);
@@ -138,7 +155,7 @@ export default class SlurTieSubFormatter {
           // 2. start tie
           if (note.heads &&
               note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
-            tieNotesMap.set(voice, [staveNote]);
+            tieNotesMap.set(voice, [note]);
             note.heads.forEach((head, index) => {
               if (!/start$/.test(head.tied)) return;
 
