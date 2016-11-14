@@ -64,49 +64,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Score = __webpack_require__(303);
+	var _Score = __webpack_require__(304);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Defaults = __webpack_require__(304);
+	var _Defaults = __webpack_require__(305);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Movement = __webpack_require__(305);
+	var _Movement = __webpack_require__(306);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(306);
+	var _Identification = __webpack_require__(307);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Part = __webpack_require__(307);
+	var _Part = __webpack_require__(308);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(308);
+	var _Measure = __webpack_require__(309);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Parser = __webpack_require__(311);
+	var _Parser = __webpack_require__(312);
 	
-	var _Formatter = __webpack_require__(320);
+	var _Formatter = __webpack_require__(321);
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _VerticalFormatter = __webpack_require__(321);
+	var _VerticalFormatter = __webpack_require__(323);
 	
 	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
 	
-	var _HorizontalFormatter = __webpack_require__(323);
+	var _HorizontalFormatter = __webpack_require__(325);
 	
 	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
 	
-	var _Renderer = __webpack_require__(324);
+	var _Renderer = __webpack_require__(326);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
-	var _Util = __webpack_require__(309);
+	var _Util = __webpack_require__(310);
 	
 	var _Util2 = _interopRequireDefault(_Util);
 	
@@ -8186,14 +8186,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(302);
 	
+	__webpack_require__(303);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// New options: numbered
-	/*
-	 * hotfix script
-	 */
+	var Tuplet = _allegretto2.default.Flow.Tuplet; /*
+	                                                * hotfix script
+	                                                */
 	
-	var Tuplet = _allegretto2.default.Flow.Tuplet;
 	_allegretto2.default.Flow.Tuplet.prototype.draw = function draw() {
 	  var _this = this;
 	
@@ -32984,6 +32985,202 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 303 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.Curve = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } // VexFlow - Music Engraving for HTML5
+	// Copyright Mohit Muthanna 2010
+	//
+	// This class implements curves (for slurs)
+	
+	var Element = _allegretto2.default.Flow.Element;
+	
+	var Curve = exports.Curve = function (_Element) {
+	  _inherits(Curve, _Element);
+	
+	  _createClass(Curve, null, [{
+	    key: 'Position',
+	    get: function get() {
+	      return {
+	        NEAR_HEAD: 1,
+	        NEAR_TOP: 2
+	      };
+	    }
+	  }, {
+	    key: 'PositionString',
+	    get: function get() {
+	      return {
+	        nearHead: Curve.Position.NEAR_HEAD,
+	        nearTop: Curve.Position.NEAR_TOP
+	      };
+	    }
+	
+	    // from: Start note
+	    // to: End note
+	    // options:
+	    //    cps: List of control points
+	    //    x_shift: pixels to shift
+	    //    y_shift: pixels to shift
+	
+	  }]);
+	
+	  function Curve(from, to, options) {
+	    _classCallCheck(this, Curve);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Curve).call(this));
+	
+	    _this.setAttribute('type', 'Curve');
+	
+	    _this.render_options = {
+	      spacing: 2,
+	      thickness: 2,
+	      x_shift: 0,
+	      y_shift: 10,
+	      position: Curve.Position.NEAR_HEAD,
+	      position_end: Curve.Position.NEAR_HEAD,
+	      invert: false,
+	      cps: [{ x: 0, y: 10 }, { x: 0, y: 10 }]
+	    };
+	
+	    _allegretto2.default.Merge(_this.render_options, options);
+	    _this.setNotes(from, to);
+	    return _this;
+	  }
+	
+	  _createClass(Curve, [{
+	    key: 'setNotes',
+	    value: function setNotes(from, to) {
+	      if (!from && !to) {
+	        throw new _allegretto2.default.RuntimeError('BadArguments', 'Curve needs to have either first_note or last_note set.');
+	      }
+	
+	      this.from = from;
+	      this.to = to;
+	      return this;
+	    }
+	
+	    /**
+	     * @return {boolean} Returns true if this is a partial bar.
+	     */
+	
+	  }, {
+	    key: 'isPartial',
+	    value: function isPartial() {
+	      return !this.from || !this.to;
+	    }
+	  }, {
+	    key: 'renderCurve',
+	    value: function renderCurve(params) {
+	      var ctx = this.context;
+	      var cps = this.render_options.cps;
+	
+	      var x_shift = this.render_options.x_shift;
+	      var y_shift = this.render_options.y_shift * params.direction;
+	
+	      var first_x = params.first_x + x_shift;
+	      var first_y = params.first_y + y_shift;
+	      var last_x = params.last_x - x_shift;
+	      var last_y = params.last_y + y_shift;
+	      var thickness = this.render_options.thickness;
+	
+	      var cp_spacing = (last_x - first_x) / (cps.length + 2);
+	
+	      ctx.beginPath();
+	      ctx.moveTo(first_x, first_y);
+	      ctx.bezierCurveTo(first_x + cp_spacing + cps[0].x, first_y + cps[0].y * params.direction, last_x - cp_spacing + cps[1].x, last_y + cps[1].y * params.direction, last_x, last_y);
+	      ctx.bezierCurveTo(last_x - cp_spacing + cps[1].x, last_y + (cps[1].y + thickness) * params.direction, first_x + cp_spacing + cps[0].x, first_y + (cps[0].y + thickness) * params.direction, first_x, first_y);
+	      ctx.stroke();
+	      ctx.closePath();
+	      ctx.fill();
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      this.checkContext();
+	      this.setRendered();
+	
+	      var first_note = this.from;
+	      var last_note = this.to;
+	      var first_x = void 0;
+	      var last_x = void 0;
+	      var first_y = void 0;
+	      var last_y = void 0;
+	      var stem_direction = void 0;
+	
+	      var metric = 'baseY';
+	      var end_metric = 'baseY';
+	
+	      function getPosition(position) {
+	        return typeof position === 'string' ? Curve.PositionString[position] : position;
+	      }
+	      var position = getPosition(this.render_options.position);
+	      var position_end = getPosition(this.render_options.position_end);
+	
+	      if (position === Curve.Position.NEAR_TOP) {
+	        metric = 'topY';
+	        end_metric = 'topY';
+	      }
+	
+	      if (position_end === Curve.Position.NEAR_HEAD) {
+	        end_metric = 'baseY';
+	      } else if (position_end === Curve.Position.NEAR_TOP) {
+	        end_metric = 'topY';
+	      }
+	
+	      if (first_note) {
+	        first_x = first_note.getTieRightX();
+	        stem_direction = first_note.getStemDirection();
+	        first_y = first_note.getStemExtents()[metric];
+	      } else {
+	        first_x = last_note.getStave().getTieStartX();
+	        first_y = last_note.getStemExtents()[metric];
+	      }
+	
+	      if (last_note) {
+	        last_x = last_note.getTieLeftX();
+	        stem_direction = last_note.getStemDirection();
+	        last_y = last_note.getStemExtents()[end_metric];
+	      } else {
+	        last_x = first_note.getStave().getTieEndX();
+	        last_y = first_note.getStemExtents()[end_metric];
+	      }
+	
+	      this.renderCurve({
+	        first_x: first_x,
+	        last_x: last_x,
+	        first_y: first_y,
+	        last_y: last_y,
+	        direction: stem_direction * (this.render_options.invert === true ? -1 : 1)
+	      });
+	      return true;
+	    }
+	  }]);
+	
+	  return Curve;
+	}(Element);
+	
+	_allegretto2.default.Flow.Curve = Curve;
+
+/***/ },
+/* 304 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33081,7 +33278,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Score;
 
 /***/ },
-/* 304 */
+/* 305 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -33234,7 +33431,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Defaults.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 305 */
+/* 306 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33261,7 +33458,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Movement;
 
 /***/ },
-/* 306 */
+/* 307 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33290,7 +33487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Identification;
 
 /***/ },
-/* 307 */
+/* 308 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33383,7 +33580,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Part;
 
 /***/ },
-/* 308 */
+/* 309 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33396,7 +33593,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	
-	var _Util = __webpack_require__(309);
+	var _Util = __webpack_require__(310);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -33879,7 +34076,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Measure.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 309 */
+/* 310 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33902,7 +34099,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Table = __webpack_require__(310);
+	var _Table = __webpack_require__(311);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
@@ -34188,7 +34385,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 310 */
+/* 311 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -34238,7 +34435,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Table;
 
 /***/ },
-/* 311 */
+/* 312 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34248,37 +34445,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parse = undefined;
 	
-	var _PartParser = __webpack_require__(312);
+	var _PartParser = __webpack_require__(313);
 	
-	var _LayoutParser = __webpack_require__(313);
+	var _LayoutParser = __webpack_require__(314);
 	
-	var _rectifier = __webpack_require__(316);
+	var _rectifier = __webpack_require__(317);
 	
-	var _Score = __webpack_require__(303);
+	var _Score = __webpack_require__(304);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Movement = __webpack_require__(305);
+	var _Movement = __webpack_require__(306);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(306);
+	var _Identification = __webpack_require__(307);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Defaults = __webpack_require__(304);
+	var _Defaults = __webpack_require__(305);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Credit = __webpack_require__(317);
+	var _Credit = __webpack_require__(318);
 	
 	var _Credit2 = _interopRequireDefault(_Credit);
 	
-	var _PartList = __webpack_require__(318);
+	var _PartList = __webpack_require__(319);
 	
 	var _PartList2 = _interopRequireDefault(_PartList);
 	
-	var _MeasurePack = __webpack_require__(319);
+	var _MeasurePack = __webpack_require__(320);
 	
 	var _MeasurePack2 = _interopRequireDefault(_MeasurePack);
 	
@@ -34510,7 +34707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 312 */
+/* 313 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34520,25 +34717,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parsePart = undefined;
 	
-	var _LayoutParser = __webpack_require__(313);
+	var _LayoutParser = __webpack_require__(314);
 	
-	var _Part = __webpack_require__(307);
+	var _Part = __webpack_require__(308);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(308);
+	var _Measure = __webpack_require__(309);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Note = __webpack_require__(314);
+	var _Note = __webpack_require__(315);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Direction = __webpack_require__(315);
+	var _Direction = __webpack_require__(316);
 	
 	var _Direction2 = _interopRequireDefault(_Direction);
 	
-	var _Util = __webpack_require__(309);
+	var _Util = __webpack_require__(310);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35031,6 +35228,157 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
+	var setNotePlacements = function setNotePlacements(_ref) {
+	  var _notesMap = _ref.notesMap;
+	  var staffs = _ref.staffs;
+	  var voices = _ref.voices;
+	
+	  if (voices.length === 1) return; // ALL SINGLE
+	
+	  var notesMap = new Map(); // clone
+	  _notesMap.forEach(function (notes, voice) {
+	    return notesMap.set(voice, notes.filter(function (note) {
+	      return !note.getGrace();
+	    }));
+	  });
+	
+	  var count = 0; // backup for preventing infinite-loop bug
+	  var duration = 0;
+	  var notesDurationMap = new Map();
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
+	
+	  try {
+	    for (var _iterator = voices[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var voice = _step.value;
+	      notesDurationMap.set(voice, 0);
+	    }
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator.return) {
+	        _iterator.return();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
+	  }
+	
+	  var noteMap = new Map(); // voice -> note
+	
+	  var _loop = function _loop() {
+	    if (count++ > 100) {
+	      console.warn('setNotePlacements error');
+	      return 'break';
+	    }
+	
+	    var minDuration = voices.reduce(function (min, voice) {
+	      var n = notesMap.get(voice)[0];
+	      var d = n ? n.getDuration() : Infinity;
+	      return d < min ? d : min;
+	    }, Infinity);
+	
+	    duration += minDuration;
+	
+	    var _iteratorNormalCompletion2 = true;
+	    var _didIteratorError2 = false;
+	    var _iteratorError2 = undefined;
+	
+	    try {
+	      for (var _iterator2 = voices[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	        var _voice = _step2.value;
+	
+	        var notes = notesMap.get(_voice);
+	        if (notes.length === 0) continue;
+	
+	        var notesDuration = notesDurationMap.get(_voice);
+	        if (notesDuration < duration) {
+	          noteMap.set(_voice, notes[0]);
+	          notesDuration += notes[0].getDuration();
+	          notes.splice(0, 1);
+	        }
+	
+	        notesDurationMap.set(_voice, notesDuration);
+	      }
+	    } catch (err) {
+	      _didIteratorError2 = true;
+	      _iteratorError2 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	          _iterator2.return();
+	        }
+	      } finally {
+	        if (_didIteratorError2) {
+	          throw _iteratorError2;
+	        }
+	      }
+	    }
+	
+	    var STEPS = 'CDEFGAB';
+	    function _compare(note, note2) {
+	      var heads = note.getHeads();
+	      var heads2 = note2.getHeads();
+	      if (heads.length === 0 || heads2.length === 0) {
+	        return note.getVoice() < note2.getVoice();
+	      }
+	
+	      var head = heads[0];
+	      var head2 = heads2[0];
+	
+	      if (head.octave !== head2.octave) {
+	        return head.octave > head2.octave;
+	      }
+	
+	      return STEPS.indexOf(head.step) > STEPS.indexOf(head2.step);
+	    }
+	
+	    // find staff top/bottom note
+	    var staffNoteMap = new Map(); // {staff}/(top|bottom) -> Note
+	    noteMap.forEach(function (note, voice) {
+	      var staff = note.getStaff();
+	      var topKey = staff + '/top';
+	      var bottomKey = staff + '/bottom';
+	
+	      var topNote = staffNoteMap.get(topKey);
+	      var bottomNote = staffNoteMap.get(bottomKey);
+	
+	      if (!topNote) staffNoteMap.set(topKey, note);else if (_compare(note, topNote)) staffNoteMap.set(topKey, note);
+	
+	      if (!bottomNote) staffNoteMap.set(bottomKey, note);else if (_compare(bottomNote, note)) staffNoteMap.set(bottomKey, note);
+	    });
+	
+	    noteMap.forEach(function (note, voice) {
+	      if (note.getPlacement() !== _Note2.default.Placement.SINGLE) return;
+	
+	      var staff = note.getStaff();
+	      var topKey = staff + '/top';
+	      var bottomKey = staff + '/bottom';
+	
+	      var topNote = staffNoteMap.get(topKey);
+	      var bottomNote = staffNoteMap.get(bottomKey);
+	      var placement = void 0;
+	
+	      if (note === topNote && note === bottomNote) placement = staff === 1 ? _Note2.default.Placement.ABOVE : _Note2.default.Placement.BELOW;else if (note === topNote) placement = _Note2.default.Placement.ABOVE;else if (note === bottomNote) placement = _Note2.default.Placement.BELOW;else placement = _Note2.default.Placement.MID;
+	
+	      note.setPlacement(placement);
+	    });
+	  };
+	
+	  while (voices.some(function (voice) {
+	    return notesMap.get(voice).length > 0;
+	  })) {
+	    var _ret = _loop();
+	
+	    if (_ret === 'break') break;
+	  }
+	};
+	
 	var sortClefsMap = function sortClefsMap(clefsMap) {
 	  clefsMap.forEach(function (clefs) {
 	    return clefs.sort(function (a, b) {
@@ -35039,11 +35387,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
-	var _splitMultiMeasureDirection = function _splitMultiMeasureDirection(_ref) {
-	  var direction = _ref.direction;
-	  var measures = _ref.measures;
-	  var mi = _ref.mi;
-	  var staff = _ref.staff;
+	var _splitMultiMeasureDirection = function _splitMultiMeasureDirection(_ref2) {
+	  var direction = _ref2.direction;
+	  var measures = _ref2.measures;
+	  var mi = _ref2.mi;
+	  var staff = _ref2.staff;
 	
 	  if (['continue', 'stop'].includes(direction.getWedge().type)) return;
 	
@@ -35138,6 +35486,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    parseNotes(data, [].concat(_toConsumableArray(node.childNodes)));
 	    fillNotesMap(data.notesMap);
+	    setNotePlacements(data);
 	    sortClefsMap(data.clefsMap);
 	    return new _Measure2.default(data);
 	  });
@@ -35151,7 +35500,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 313 */
+/* 314 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35221,7 +35570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 314 */
+/* 315 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35238,6 +35587,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	var Note = function () {
+	  _createClass(Note, null, [{
+	    key: "Placement",
+	    get: function get() {
+	      return {
+	        ABOVE: 1,
+	        BELOW: 2,
+	        MID: 3,
+	        SINGLE: 4
+	      };
+	    }
+	  }]);
+	
 	  function Note(_ref) {
 	    var tag = _ref.tag;
 	    var rest = _ref.rest;
@@ -35279,6 +35640,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.notations = notations;
 	    this.lyrics = lyrics;
 	    this.timeModification = timeModification;
+	    this.placement = Note.Placement.SINGLE;
 	
 	    // extra read-only
 	    this.defaultX = defaultX;
@@ -35377,6 +35739,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function getTimeModification() {
 	      return this.timeModification;
 	    }
+	  }, {
+	    key: "getPlacement",
+	    value: function getPlacement() {
+	      return this.placement;
+	    }
+	  }, {
+	    key: "setPlacement",
+	    value: function setPlacement(placement) {
+	      this.placement = placement;
+	    }
 	
 	    // extra read-only
 	
@@ -35413,7 +35785,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Note;
 
 /***/ },
-/* 315 */
+/* 316 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35649,7 +36021,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Direction;
 
 /***/ },
-/* 316 */
+/* 317 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35808,7 +36180,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	*/
 
 /***/ },
-/* 317 */
+/* 318 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35868,7 +36240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Credit;
 
 /***/ },
-/* 318 */
+/* 319 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35915,7 +36287,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = PartList;
 
 /***/ },
-/* 319 */
+/* 320 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36046,7 +36418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = MeasurePack;
 
 /***/ },
-/* 320 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36062,19 +36434,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(314);
+	var _Note = __webpack_require__(315);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Measure = __webpack_require__(308);
+	var _Measure = __webpack_require__(309);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Table = __webpack_require__(310);
+	var _Table = __webpack_require__(311);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
-	var _Util = __webpack_require__(309);
+	var _Util = __webpack_require__(310);
+	
+	var _SlurTieSubFormatter = __webpack_require__(322);
+	
+	var _SlurTieSubFormatter2 = _interopRequireDefault(_SlurTieSubFormatter);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -36089,7 +36465,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Formatter(score) {
 	    _classCallCheck(this, Formatter);
 	
+	    this.slurTieSubFormatter = new _SlurTieSubFormatter2.default({ this: this, score: score });
 	    this.score = score;
+	
 	    this.defaults = this.score.getDefaults();
 	    this.credits = this.score.getCredits();
 	    this.parts = this.score.getParts();
@@ -38112,168 +38490,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return vfTuplets;
 	    }
 	  }, {
-	    key: '_formatTie',
-	    value: function _formatTie(part) {
-	      var vfTiesMap = new Map();
-	      // key: voice
-	      var tieNotesMap = new Map();
-	      var tieStartIndicesMap = new Map();
-	      var tieStopIndicesMap = new Map();
-	
-	      part.getMeasures().forEach(function (measure, mi) {
-	        var notesMap = measure.getNotesMap();
-	
-	        measure.getVoices().forEach(function (voice) {
-	          if (measure.getStaves().length === 0) return;
-	
-	          if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
-	
-	          if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
-	            vfTiesMap.get(mi - 1 + '/' + voice).push(new _allegretto2.default.Flow.StaveTie({
-	              first_note: tieNotesMap.get(voice)[0],
-	              first_indices: tieStartIndicesMap.get(voice),
-	              last_indices: tieStartIndicesMap.get(voice)
-	            }));
-	
-	            tieNotesMap.get(voice)[0] = undefined;
-	          }
-	
-	          var vfTies = [];
-	          notesMap.get(voice).forEach(function (note) {
-	            if (note.getTag() !== 'note') return;
-	            if (note.getGrace()) return; // TODO
-	
-	            var staveNote = note.getVFNote();
-	
-	            // 1. stop tie
-	            if (note.heads && note.heads.filter(function (head) {
-	              return (/^stop/.test(head.tied)
-	              );
-	            }).length > 0) {
-	              var tieNotes = tieNotesMap.get(voice);
-	              tieNotes.push(staveNote);
-	
-	              note.heads.forEach(function (head, index) {
-	                if (!/^stop/.test(head.tied)) return;
-	
-	                if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
-	                tieStopIndicesMap.get(voice).push(index);
-	              });
-	
-	              vfTies.push(new _allegretto2.default.Flow.StaveTie({
-	                first_note: tieNotes[0],
-	                last_note: tieNotes[1],
-	                first_indices: tieStartIndicesMap.get(voice),
-	                last_indices: tieStopIndicesMap.get(voice)
-	              }));
-	
-	              tieNotesMap.set(voice, []);
-	              tieStartIndicesMap.set(voice, []);
-	              tieStopIndicesMap.set(voice, []);
-	            }
-	
-	            // 2. start tie
-	            if (note.heads && note.heads.filter(function (head) {
-	              return (/start$/.test(head.tied)
-	              );
-	            }).length > 0) {
-	              tieNotesMap.set(voice, [staveNote]);
-	              note.heads.forEach(function (head, index) {
-	                if (!/start$/.test(head.tied)) return;
-	
-	                if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
-	                tieStartIndicesMap.get(voice).push(index);
-	              });
-	            }
-	          });
-	
-	          vfTiesMap.set(mi + '/' + voice, vfTies);
-	        });
-	
-	        part.setVFTiesMap(vfTiesMap);
-	      });
-	    }
-	  }, {
 	    key: 'formatTie',
 	    value: function formatTie() {
-	      var _this23 = this;
-	
-	      this.parts.forEach(function (part) {
-	        return _this23._formatTie(part);
-	      });
-	    }
-	  }, {
-	    key: '_formatSlur',
-	    value: function _formatSlur(part) {
-	      var vfSlursMap = new Map();
-	      // key: voice
-	      var slurStateMap = new Map();
-	
-	      part.getMeasures().forEach(function (measure, mi) {
-	        var notesMap = measure.getNotesMap();
-	
-	        measure.getVoices().forEach(function (voice) {
-	          if (measure.getStaves().length === 0) return;
-	
-	          if (!slurStateMap.has(voice)) slurStateMap.set(voice, {});
-	
-	          var slurState = slurStateMap.get(voice);
-	          if (measure.isNewLineStarting() && slurState.from) {
-	            var curve = new _allegretto2.default.Flow.Curve(slurState.from, undefined);
-	            vfSlursMap.get(mi - 1 + '/' + voice).push(curve);
-	            slurState.from = undefined;
-	            slurState.partial = true;
-	          }
-	
-	          var vfSlurs = [];
-	          notesMap.get(voice).forEach(function (note) {
-	            if (note.getTag() !== 'note') return;
-	            if (note.getGrace()) return; // TODO
-	            if (!note.getSlur()) return;
-	
-	            var slur = note.getSlur();
-	            var staveNote = note.getVFNote();
-	
-	            switch (slur.type) {
-	              case 'start':
-	                var options = {};
-	                /* TODO: slur Position.NEAR_BOTTOM required
-	                if (slur.placement) {
-	                  options.position = slur.placement === 'below' ?
-	                    Vex.Flow.Curve.Position.NEAR_HEAD :
-	                    Vex.Flow.Curve.Position.NEAR_TOP;
-	                }
-	                */
-	
-	                slurStateMap.set(voice, { from: staveNote, options: options });
-	                break;
-	              case 'stop':
-	                var _slurState = slurStateMap.get(voice);
-	                _slurState.to = staveNote;
-	
-	                if (_slurState.from === undefined && !_slurState.partial) return; // TODO: grace note
-	
-	                vfSlurs.push(new _allegretto2.default.Flow.Curve(_slurState.from, _slurState.to, _slurState.options));
-	
-	                slurStateMap.set(voice, {});
-	                break;
-	            }
-	          });
-	
-	          vfSlursMap.set(mi + '/' + voice, vfSlurs);
-	        });
-	
-	        part.setVFSlursMap(vfSlursMap);
-	      });
+	      this.slurTieSubFormatter.formatTie();
 	    }
 	  }, {
 	    key: 'formatSlur',
 	    value: function formatSlur() {
-	      var _this24 = this;
-	
-	      this.parts.forEach(function (part) {
-	        return _this24._formatSlur(part);
-	      });
+	      this.slurTieSubFormatter.formatSlur();
 	    }
 	  }, {
 	    key: 'format',
@@ -38308,7 +38532,228 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Formatter;
 
 /***/ },
-/* 321 */
+/* 322 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	var _Note = __webpack_require__(315);
+	
+	var _Note2 = _interopRequireDefault(_Note);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var VF = _allegretto2.default.Flow;
+	
+	var SlurTieSubFormatter = function () {
+	  function SlurTieSubFormatter(_ref) {
+	    var formatter = _ref.formatter;
+	    var score = _ref.score;
+	
+	    _classCallCheck(this, SlurTieSubFormatter);
+	
+	    this.formatter = formatter;
+	    this.score = score;
+	  }
+	
+	  _createClass(SlurTieSubFormatter, [{
+	    key: '_formatSlur',
+	    value: function _formatSlur(part) {
+	      var vfSlursMap = new Map();
+	      // key: voice
+	      var slurStateMap = new Map();
+	
+	      part.getMeasures().forEach(function (measure, mi) {
+	        var notesMap = measure.getNotesMap();
+	
+	        measure.getVoices().forEach(function (voice) {
+	          if (measure.getStaves().length === 0) return;
+	
+	          if (!slurStateMap.has(voice)) slurStateMap.set(voice, {});
+	
+	          var slurState = slurStateMap.get(voice);
+	          if (measure.isNewLineStarting() && slurState.from) {
+	            var curve = new VF.Curve(slurState.from, undefined);
+	            vfSlursMap.get(mi - 1 + '/' + voice).push(curve);
+	            slurState.from = undefined;
+	            slurState.partial = true;
+	          }
+	
+	          var vfSlurs = [];
+	          notesMap.get(voice).forEach(function (note) {
+	            if (note.getTag() !== 'note') return;
+	            if (note.getGrace()) return; // TODO
+	            if (!note.getSlur()) return;
+	
+	            var slur = note.getSlur();
+	            var staveNote = note.getVFNote();
+	
+	            switch (slur.type) {
+	              case 'start':
+	                var options = {};
+	                /* TODO: slur Position.NEAR_BOTTOM required
+	                if (slur.placement) {
+	                  options.position = slur.placement === 'below' ?
+	                    Vex.Flow.Curve.Position.NEAR_HEAD :
+	                    Vex.Flow.Curve.Position.NEAR_TOP;
+	                }
+	                */
+	
+	                slurStateMap.set(voice, { from: staveNote, options: options });
+	                break;
+	              case 'stop':
+	                var _slurState = slurStateMap.get(voice);
+	                _slurState.to = staveNote;
+	
+	                if (_slurState.from === undefined && !_slurState.partial) return; // TODO: grace note
+	
+	                vfSlurs.push(new VF.Curve(_slurState.from, _slurState.to, _slurState.options));
+	
+	                slurStateMap.set(voice, {});
+	                break;
+	            }
+	          });
+	
+	          vfSlursMap.set(mi + '/' + voice, vfSlurs);
+	        });
+	
+	        part.setVFSlursMap(vfSlursMap);
+	      });
+	    }
+	  }, {
+	    key: 'formatSlur',
+	    value: function formatSlur() {
+	      var _this = this;
+	
+	      this.score.getParts().forEach(function (part) {
+	        return _this._formatSlur(part);
+	      });
+	    }
+	  }, {
+	    key: '_formatTie',
+	    value: function _formatTie(part) {
+	      var vfTiesMap = new Map();
+	      // key: voice
+	      var tieNotesMap = new Map();
+	      var tieStartIndicesMap = new Map();
+	      var tieStopIndicesMap = new Map();
+	
+	      function setPlacement(vfTie, placement) {
+	        if (placement === _Note2.default.Placement.ABOVE) {
+	          vfTie.setDirection(-1);
+	        } else if (placement !== _Note2.default.Placement.SINGLE) {
+	          vfTie.setDirection(1);
+	        }
+	      }
+	
+	      part.getMeasures().forEach(function (measure, mi) {
+	        var notesMap = measure.getNotesMap();
+	
+	        measure.getVoices().forEach(function (voice) {
+	          if (measure.getStaves().length === 0) return;
+	
+	          if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
+	
+	          if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
+	            var firstNote = tieNotesMap.get(voice)[0];
+	            var vfTie = new VF.StaveTie({
+	              first_note: firstNote.getVFNote(),
+	              first_indices: tieStartIndicesMap.get(voice),
+	              last_indices: tieStartIndicesMap.get(voice)
+	            });
+	
+	            setPlacement(vfTie, firstNote.getPlacement());
+	            vfTiesMap.get(mi - 1 + '/' + voice).push(vfTie);
+	            tieNotesMap.get(voice)[0] = undefined;
+	          }
+	
+	          var vfTies = [];
+	          notesMap.get(voice).forEach(function (note) {
+	            if (note.getTag() !== 'note') return;
+	            if (note.getGrace()) return; // TODO
+	
+	            // 1. stop tie
+	            if (note.heads && note.heads.filter(function (head) {
+	              return (/^stop/.test(head.tied)
+	              );
+	            }).length > 0) {
+	              var tieNotes = tieNotesMap.get(voice);
+	              tieNotes.push(note);
+	
+	              note.heads.forEach(function (head, index) {
+	                if (!/^stop/.test(head.tied)) return;
+	
+	                if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
+	                tieStopIndicesMap.get(voice).push(index);
+	              });
+	
+	              var _vfTie = new VF.StaveTie({
+	                first_note: tieNotes[0] ? tieNotes[0].getVFNote() : undefined,
+	                last_note: tieNotes[1].getVFNote(),
+	                first_indices: tieStartIndicesMap.get(voice),
+	                last_indices: tieStopIndicesMap.get(voice)
+	              });
+	
+	              var placement = tieNotes[0] ? tieNotes[0].getPlacement() : tieNotes[1].getPlacement();
+	
+	              setPlacement(_vfTie, placement);
+	              vfTies.push(_vfTie);
+	              tieNotesMap.set(voice, []);
+	              tieStartIndicesMap.set(voice, []);
+	              tieStopIndicesMap.set(voice, []);
+	            }
+	
+	            // 2. start tie
+	            if (note.heads && note.heads.filter(function (head) {
+	              return (/start$/.test(head.tied)
+	              );
+	            }).length > 0) {
+	              tieNotesMap.set(voice, [note]);
+	              note.heads.forEach(function (head, index) {
+	                if (!/start$/.test(head.tied)) return;
+	
+	                if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
+	                tieStartIndicesMap.get(voice).push(index);
+	              });
+	            }
+	          });
+	
+	          vfTiesMap.set(mi + '/' + voice, vfTies);
+	        });
+	
+	        part.setVFTiesMap(vfTiesMap);
+	      });
+	    }
+	  }, {
+	    key: 'formatTie',
+	    value: function formatTie() {
+	      var _this2 = this;
+	
+	      this.score.getParts().forEach(function (part) {
+	        return _this2._formatTie(part);
+	      });
+	    }
+	  }]);
+	
+	  return SlurTieSubFormatter;
+	}();
+	
+	exports.default = SlurTieSubFormatter;
+
+/***/ },
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38325,11 +38770,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _AdvancedFormatter2 = __webpack_require__(322);
+	var _AdvancedFormatter2 = __webpack_require__(324);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
-	var _Util = __webpack_require__(309);
+	var _Util = __webpack_require__(310);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -38867,7 +39312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = VerticalFormatter;
 
 /***/ },
-/* 322 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38880,7 +39325,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Formatter2 = __webpack_require__(320);
+	var _Formatter2 = __webpack_require__(321);
 	
 	var _Formatter3 = _interopRequireDefault(_Formatter2);
 	
@@ -39123,7 +39568,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = AdvancedFormatter;
 
 /***/ },
-/* 323 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39136,7 +39581,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _AdvancedFormatter2 = __webpack_require__(322);
+	var _AdvancedFormatter2 = __webpack_require__(324);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -39233,7 +39678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HorizontalFormatter;
 
 /***/ },
-/* 324 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
