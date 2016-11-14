@@ -502,6 +502,104 @@ const fillNotesMap = notesMap => {
   });
 };
 
+const setNotePlacements = ({ notesMap: _notesMap, staffs, voices }) => {
+  if (voices.length === 1) return; // ALL SINGLE
+
+  const notesMap = new Map(); // clone
+  _notesMap.forEach((notes, voice) => (
+    notesMap.set(
+      voice,
+      notes.filter(note => !note.getGrace())
+    )
+  ));
+
+  let count = 0; // backup for preventing infinite-loop bug
+  let duration = 0;
+  const notesDurationMap = new Map();
+  for (const voice of voices) { notesDurationMap.set(voice, 0); }
+
+  const noteMap = new Map(); // voice -> note
+  while (voices.some(voice => notesMap.get(voice).length > 0)) {
+    if (count++ > 100) {
+      console.warn('setNotePlacements error');
+      break;
+    }
+
+    const minDuration = voices.reduce((min, voice) => {
+      const n = notesMap.get(voice)[0];
+      const d = n ? n.getDuration() : Infinity;
+      return d < min ? d : min;
+    }, Infinity);
+
+    duration += minDuration;
+
+    for (const voice of voices) {
+      const notes = notesMap.get(voice);
+      if (notes.length === 0) continue;
+
+      let notesDuration = notesDurationMap.get(voice);
+      if (notesDuration < duration) {
+        noteMap.set(voice, notes[0]);
+        notesDuration += notes[0].getDuration();
+        notes.splice(0, 1);
+      }
+
+      notesDurationMap.set(voice, notesDuration);
+    }
+
+    const STEPS = 'CDEFGAB';
+    function _compare(note, note2) {
+      const heads = note.getHeads();
+      const heads2 = note2.getHeads();
+      if (heads.length === 0 || heads2.length === 0) {
+        return note.getVoice() < note2.getVoice();
+      }
+
+      const head = heads[0];
+      const head2 = heads2[0];
+
+      if (head.octave !== head2.octave) {
+        return head.octave > head2.octave;
+      }
+
+      return STEPS.indexOf(head.step) > STEPS.indexOf(head2.step);
+    }
+
+    // find staff top/bottom note
+    const staffNoteMap = new Map(); // {staff}/(top|bottom) -> Note
+    noteMap.forEach((note, voice) => {
+      const staff = note.getStaff();
+      const [topKey, bottomKey] = [`${staff}/top`, `${staff}/bottom`];
+      const topNote = staffNoteMap.get(topKey);
+      const bottomNote = staffNoteMap.get(bottomKey);
+
+      if (!topNote) staffNoteMap.set(topKey, note);
+      else if (_compare(note, topNote)) staffNoteMap.set(topKey, note);
+
+      if (!bottomNote) staffNoteMap.set(bottomKey, note);
+      else if (_compare(bottomNote, note)) staffNoteMap.set(bottomKey, note);
+    });
+
+    noteMap.forEach((note, voice) => {
+      if (note.getPlacement() !== Note.Placement.SINGLE) return;
+
+      const staff = note.getStaff();
+      const [topKey, bottomKey] = [`${staff}/top`, `${staff}/bottom`];
+      const topNote = staffNoteMap.get(topKey);
+      const bottomNote = staffNoteMap.get(bottomKey);
+      let placement;
+
+      if (note === topNote && note === bottomNote)
+        placement = staff === 1 ? Note.Placement.ABOVE : Note.Placement.BELOW;
+      else if (note === topNote) placement = Note.Placement.ABOVE;
+      else if (note === bottomNote) placement = Note.Placement.BELOW;
+      else placement = Note.Placement.MID;
+
+      note.setPlacement(placement);
+    });
+  }
+};
+
 const sortClefsMap = clefsMap => {
   clefsMap.forEach(clefs => clefs.sort((a, b) => a.duration > b.duration));
 };
@@ -604,6 +702,7 @@ export const parsePart = partNode => {
 
     parseNotes(data, [...node.childNodes]);
     fillNotesMap(data.notesMap);
+    setNotePlacements(data);
     sortClefsMap(data.clefsMap);
     return new Measure(data);
   });

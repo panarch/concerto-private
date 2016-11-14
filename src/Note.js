@@ -2,6 +2,15 @@
 // @author Taehoon Moon
 
 export default class Note {
+  static get Placement() {
+    return {
+      ABOVE: 1,
+      BELOW: 2,
+      MID: 3,
+      SINGLE: 4,
+    };
+  }
+
   constructor({ tag, rest, full, grace, staff, voice, dot, duration, hidden,
       heads, stem, type, beam, chord, slur, notations, lyrics, timeModification,
       defaultX }) {
@@ -23,6 +32,7 @@ export default class Note {
     this.notations = notations;
     this.lyrics = lyrics;
     this.timeModification = timeModification;
+    this.placement = Note.Placement.SINGLE;
 
     // extra read-only
     this.defaultX = defaultX;
@@ -49,6 +59,9 @@ export default class Note {
   getNotations() { return this.notations; }
   getLyrics() { return this.lyrics; }
   getTimeModification() { return this.timeModification; }
+
+  getPlacement() { return this.placement; }
+  setPlacement(placement) { this.placement = placement; }
 
   // extra read-only
   getDefaultX() { return this.defaultX; }
