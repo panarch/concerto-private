@@ -9,6 +9,37 @@ export default class SlurTieSubFormatter {
     this.score = score;
   }
 
+  _getSlurPosition(note, placement) {
+    if (!note) return;
+    else if (!placement) placement = note.getPlacement();
+
+    let position;
+
+    switch (placement) {
+    case Note.Placement.ABOVE:
+      position = note.getStem() === 'up' ?
+        VF.Curve.Position.NEAR_TOP : VF.Curve.Position.NEAR_HEAD;
+      break;
+    case Note.Placement.BELOW:
+      position = note.getStem() === 'up' ?
+        VF.Curve.Position.NEAR_HEAD : VF.Curve.Position.NEAR_TOP;
+      break;
+    }
+
+    return position;
+  }
+
+  _getSlurInvert({ from, to, placement }) {
+    const note = to ? to : from;
+    const stem = note.getStem();
+    const invert = (
+      (stem === 'up' && placement === Note.Placement.ABOVE) ||
+      (stem === 'down' && placement === Note.Placement.BELOW)
+    );
+
+    return invert;
+  }
+
   _formatSlur(part) {
     const vfSlursMap = new Map();
     // key: voice
@@ -24,12 +55,27 @@ export default class SlurTieSubFormatter {
 
         const slurState = slurStateMap.get(voice);
         if (measure.isNewLineStarting() && slurState.from) {
+          const options = {};
+          const placement = slurState.from.getPlacement();
+          const position = this._getSlurPosition(slurState.from, placement);
+          if (position) {
+            options.position = position;
+            options.position_end = position;
+          }
+
+          options.invert = this._getSlurInvert({
+            from: slurState.from,
+            to: undefined,
+            placement,
+          });
+
           const curve = new VF.Curve(
-            slurState.from, undefined
+            slurState.from.getVFNote(), undefined, options
           );
           vfSlursMap.get(`${mi - 1}/${voice}`).push(curve);
           slurState.from = undefined;
           slurState.partial = true;
+          slurState.placement = placement;
         }
 
         const vfSlurs = [];
@@ -39,29 +85,31 @@ export default class SlurTieSubFormatter {
           if (!note.getSlur()) return;
 
           const slur = note.getSlur();
-          const staveNote = note.getVFNote();
 
           switch (slur.type) {
             case 'start':
-              const options = {};
-              /* TODO: slur Position.NEAR_BOTTOM required
-              if (slur.placement) {
-                options.position = slur.placement === 'below' ?
-                  Vex.Flow.Curve.Position.NEAR_HEAD :
-                  Vex.Flow.Curve.Position.NEAR_TOP;
-              }
-              */
-
-              slurStateMap.set(voice, { from: staveNote, options });
+              slurStateMap.set(voice, { from: note });
               break;
             case 'stop':
               const slurState = slurStateMap.get(voice);
-              slurState.to = staveNote;
+              slurState.to = note;
 
               if (slurState.from === undefined && !slurState.partial) return; // TODO: grace note
+              let { from, to, placement } = slurState;
+              placement = placement ?
+                placement :
+                (from ? from.getPlacement() : to.getPlacement());
+              const options = {};
+              const position = this._getSlurPosition(from, placement);
+              const positionEnd = this._getSlurPosition(to, placement);
+              options.position_end = positionEnd;
+              options.position = position ? position : positionEnd;
+              options.invert = this._getSlurInvert({ from, to, placement });
 
               vfSlurs.push(new VF.Curve(
-                slurState.from, slurState.to, slurState.options
+                from ? from.getVFNote() : undefined,
+                to ? to.getVFNote() : undefined,
+                options
               ));
 
               slurStateMap.set(voice, {});
