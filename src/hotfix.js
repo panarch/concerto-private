@@ -6,6 +6,7 @@ import Vex from '@panarch/allegretto';
 import './hotfix.beam.js';
 import './hotfix.stavetext.js';
 import './hotfix.wedge.js';
+import './hotfix.curve.js';
 
 // New options: numbered
 const Tuplet = Vex.Flow.Tuplet;
