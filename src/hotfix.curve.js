@@ -32,8 +32,8 @@ export class Curve extends Element {
     super();
     this.setAttribute('type', 'Curve');
 
+    this.preFormatted = false;
     this.render_options = {
-      spacing: 2,
       thickness: 2,
       x_shift: 0,
       y_shift: 10,
@@ -66,36 +66,31 @@ export class Curve extends Element {
     return (!this.from || !this.to);
   }
 
-  renderCurve(params) {
+  renderCurve() {
     const ctx = this.context;
     const cps = this.render_options.cps;
 
-    const x_shift = this.render_options.x_shift;
-    const y_shift = this.render_options.y_shift * params.direction;
-
-    const first_x = params.first_x + x_shift;
-    const first_y = params.first_y + y_shift;
-    const last_x = params.last_x - x_shift;
-    const last_y = params.last_y + y_shift;
+    const first_x = this.first_x;
+    const first_y = this.first_y;
+    const last_x = this.last_x;
+    const last_y = this.last_y;
     const thickness = this.render_options.thickness;
-
-    const cp_spacing = (last_x - first_x) / (cps.length + 2);
 
     ctx.beginPath();
     ctx.moveTo(first_x, first_y);
     ctx.bezierCurveTo(
-      first_x + cp_spacing + cps[0].x,
-      first_y + (cps[0].y * params.direction),
-      last_x - cp_spacing + cps[1].x,
-      last_y + (cps[1].y * params.direction),
+      first_x + cps[0].x,
+      first_y + (cps[0].y * this.direction),
+      last_x + cps[1].x,
+      last_y + (cps[1].y * this.direction),
       last_x,
       last_y
     );
     ctx.bezierCurveTo(
-      last_x - cp_spacing + cps[1].x,
-      last_y + ((cps[1].y + thickness) * params.direction),
-      first_x + cp_spacing + cps[0].x,
-      first_y + ((cps[0].y + thickness) * params.direction),
+      last_x + cps[1].x,
+      last_y + ((cps[1].y + thickness) * this.direction),
+      first_x + cps[0].x,
+      first_y + ((cps[0].y + thickness) * this.direction),
       first_x,
       first_y
     );
@@ -104,10 +99,7 @@ export class Curve extends Element {
     ctx.fill();
   }
 
-  draw() {
-    this.checkContext();
-    this.setRendered();
-
+  preFormat() {
     const first_note = this.from;
     const last_note = this.to;
     let first_x;
@@ -166,13 +158,22 @@ export class Curve extends Element {
       last_y = first_note.getStemExtents()[end_metric];
     }
 
-    this.renderCurve({
-      first_x,
-      last_x,
-      first_y,
-      last_y,
-      direction: stem_direction * (this.render_options.invert === true ? -1 : 1),
-    });
+    this.direction = stem_direction * (this.render_options.invert === true ? -1 : 1);
+    const x_shift = this.render_options.x_shift;
+    const y_shift = this.render_options.y_shift * this.direction;
+
+    this.first_x = first_x + x_shift;
+    this.first_y = first_y + y_shift;
+    this.last_x = last_x - x_shift;
+    this.last_y = last_y + y_shift;
+    this.preFormatted = true;
+  }
+
+  draw() {
+    if (!this.preFormatted) this.preFormat();
+    this.checkContext();
+    this.setRendered();
+    this.renderCurve();
     return true;
   }
 }
