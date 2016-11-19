@@ -4,12 +4,17 @@
 import Vex from '@panarch/allegretto';
 
 export default class Renderer {
+  static get COLOR_SLUR() { return 'rgba(0, 0, 0, 0.4)'}
+  static get COLOR_TIE() { return 'rgba(0, 0, 0, 0.8)'}
+
   constructor(score, { element }) {
     this.score = score;
     this.element = element;
     this.numPages = score.getNumPages();
     this.pageSize = this.score.getDefaults().getPageSize();
     this.contexts = [];
+
+    this._color = null;
   }
 
   getContexts() { return this.contexts; }
@@ -26,6 +31,20 @@ export default class Renderer {
       const context = this.createContext(this.element, width, height);
       this.contexts.push(context);
     }
+  }
+
+  saveColor(context) { this._color = context.attributes.fill; }
+  restoreColor(context) {
+    context.attributes.fill = this._color;
+    context.attributes.stroke = this._color;
+  }
+  applyColor(context, color) {
+    context.attributes.fill = color;
+    context.attributes.stroke = color;
+  }
+  saveAndApplyColor(context, color) {
+    this.saveColor(context);
+    this.applyColor(context, color);
   }
 
   renderStaves() {
@@ -127,17 +146,22 @@ export default class Renderer {
     this.score.getParts().forEach((part, pi) => {
       let index = 0;
       let context = this.contexts[index];
+      this.saveAndApplyColor(context, Renderer.COLOR_TIE);
 
       part.getMeasures().forEach((measure, mi) => {
         if (mi > 0 && measure.hasNewPage()) {
           index++;
+          this.restoreColor(context);
           context = this.contexts[index];
+          this.saveAndApplyColor(context, Renderer.COLOR_TIE);
         }
 
         measure.getVoices().forEach(voice => {
           part.getVFTies(`${mi}/${voice}`).forEach(tie => tie.setContext(context).draw());
         });
       });
+
+      this.restoreColor(context);
     });
   }
 
@@ -145,17 +169,22 @@ export default class Renderer {
     this.score.getParts().forEach((part, pi) => {
       let index = 0;
       let context = this.contexts[index];
+      this.saveAndApplyColor(context, Renderer.COLOR_SLUR);
 
       part.getMeasures().forEach((measure, mi) => {
         if (mi > 0 && measure.hasNewPage()) {
           index++;
+          this.restoreColor(context);
           context = this.contexts[index];
+          this.saveAndApplyColor(context, Renderer.COLOR_SLUR);
         }
 
         measure.getVoices().forEach(voice => {
           part.getVFSlurs(`${mi}/${voice}`).forEach(slur => slur.setContext(context).draw());
         });
       });
+
+      this.restoreColor(context);
     });
   }
 
