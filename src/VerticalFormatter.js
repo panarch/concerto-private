@@ -461,6 +461,8 @@ export default class VerticalFormatter extends AdvancedFormatter {
     this.formatDirection();
     this.formatLyric();
     this.runFormatter();
+    this.postFormatDirection();
+    this.postFormatBeam();
     this.formatTie();
     this.formatSlur();
     // END
