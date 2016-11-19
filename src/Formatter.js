@@ -1794,6 +1794,16 @@ export default class Formatter {
   formatTie() { this.slurTieSubFormatter.formatTie(); }
   formatSlur() { this.slurTieSubFormatter.formatSlur(); }
 
+  postFormatBeam() {
+    this.parts.forEach(part => part.getMeasures().forEach(measure => {
+      const vfBeams = measure.getVFBeams();
+      for (const vfBeam of vfBeams) {
+        vfBeam.postFormat();
+      }
+
+    }));
+  }
+
   format() {
     this.resetState();
     this.formatStaffDisplayed();
@@ -1814,6 +1824,7 @@ export default class Formatter {
     this.formatLyric();
     this.runFormatter();
     this.postFormatDirection();
+    this.postFormatBeam();
     this.formatTie();
     this.formatSlur();
   }
