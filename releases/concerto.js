@@ -33012,6 +33012,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// This class implements curves (for slurs)
 	
 	var Element = _allegretto2.default.Flow.Element;
+	var Stem = _allegretto2.default.Flow.Stem;
 	
 	var Curve = exports.Curve = function (_Element) {
 	  _inherits(Curve, _Element);
@@ -33049,8 +33050,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this.setAttribute('type', 'Curve');
 	
+	    _this.preFormatted = false;
 	    _this.render_options = {
-	      spacing: 2,
 	      thickness: 2,
 	      x_shift: 0,
 	      y_shift: 10,
@@ -33088,35 +33089,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'renderCurve',
-	    value: function renderCurve(params) {
+	    value: function renderCurve() {
 	      var ctx = this.context;
 	      var cps = this.render_options.cps;
 	
-	      var x_shift = this.render_options.x_shift;
-	      var y_shift = this.render_options.y_shift * params.direction;
-	
-	      var first_x = params.first_x + x_shift;
-	      var first_y = params.first_y + y_shift;
-	      var last_x = params.last_x - x_shift;
-	      var last_y = params.last_y + y_shift;
+	      var first_x = this.first_x;
+	      var first_y = this.first_y;
+	      var last_x = this.last_x;
+	      var last_y = this.last_y;
 	      var thickness = this.render_options.thickness;
-	
-	      var cp_spacing = (last_x - first_x) / (cps.length + 2);
 	
 	      ctx.beginPath();
 	      ctx.moveTo(first_x, first_y);
-	      ctx.bezierCurveTo(first_x + cp_spacing + cps[0].x, first_y + cps[0].y * params.direction, last_x - cp_spacing + cps[1].x, last_y + cps[1].y * params.direction, last_x, last_y);
-	      ctx.bezierCurveTo(last_x - cp_spacing + cps[1].x, last_y + (cps[1].y + thickness) * params.direction, first_x + cp_spacing + cps[0].x, first_y + (cps[0].y + thickness) * params.direction, first_x, first_y);
+	      ctx.bezierCurveTo(first_x + cps[0].x, first_y + cps[0].y * this.direction, last_x + cps[1].x, last_y + cps[1].y * this.direction, last_x, last_y);
+	      ctx.bezierCurveTo(last_x + cps[1].x, last_y + (cps[1].y + thickness) * this.direction, first_x + cps[0].x, first_y + (cps[0].y + thickness) * this.direction, first_x, first_y);
 	      ctx.stroke();
 	      ctx.closePath();
 	      ctx.fill();
 	    }
 	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      this.checkContext();
-	      this.setRendered();
-	
+	    key: 'preFormat',
+	    value: function preFormat() {
 	      var first_note = this.from;
 	      var last_note = this.to;
 	      var first_x = void 0;
@@ -33146,30 +33139,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      if (first_note) {
-	        first_x = first_note.getTieRightX();
 	        stem_direction = first_note.getStemDirection();
+	        first_x = first_note.getTieRightX();
 	        first_y = first_note.getStemExtents()[metric];
+	        // --- UPDATED ---
+	        if (metric === 'topY' && stem_direction === Stem.DOWN) {
+	          first_x += first_note.getTieLeftX();
+	          first_x /= 2;
+	        }
 	      } else {
 	        first_x = last_note.getStave().getTieStartX();
 	        first_y = last_note.getStemExtents()[metric];
 	      }
 	
 	      if (last_note) {
-	        last_x = last_note.getTieLeftX();
 	        stem_direction = last_note.getStemDirection();
+	        last_x = last_note.getTieLeftX();
 	        last_y = last_note.getStemExtents()[end_metric];
+	        // --- UPDATED ---
+	        if (end_metric === 'topY' && stem_direction === Stem.UP) {
+	          last_x += last_note.getTieRightX();
+	          last_x /= 2;
+	        }
 	      } else {
 	        last_x = first_note.getStave().getTieEndX();
 	        last_y = first_note.getStemExtents()[end_metric];
 	      }
 	
-	      this.renderCurve({
-	        first_x: first_x,
-	        last_x: last_x,
-	        first_y: first_y,
-	        last_y: last_y,
-	        direction: stem_direction * (this.render_options.invert === true ? -1 : 1)
-	      });
+	      this.direction = stem_direction * (this.render_options.invert === true ? -1 : 1);
+	      var x_shift = this.render_options.x_shift;
+	      var y_shift = this.render_options.y_shift * this.direction;
+	
+	      this.first_x = first_x + x_shift;
+	      this.first_y = first_y + y_shift;
+	      this.last_x = last_x - x_shift;
+	      this.last_y = last_y + y_shift;
+	      this.preFormatted = true;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      if (!this.preFormatted) this.preFormat();
+	      this.checkContext();
+	      this.setRendered();
+	      this.renderCurve();
 	      return true;
 	    }
 	  }]);
@@ -38225,7 +38238,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        vfStaveText.setFont(font);
-	        vfStave.addModifier(vfStaveText);
+	        vfStaveText.setStave(vfStave);
+	        vfStave.modifiers.push(vfStaveText);
+	        // Prevent vfStave not to cancel formatted
+	        //vfStave.addModifier(vfStaveText);
 	      });
 	    }
 	
@@ -38500,6 +38516,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.slurTieSubFormatter.formatSlur();
 	    }
 	  }, {
+	    key: 'postFormatBeam',
+	    value: function postFormatBeam() {
+	      this.parts.forEach(function (part) {
+	        return part.getMeasures().forEach(function (measure) {
+	          var vfBeams = measure.getVFBeams();
+	          var _iteratorNormalCompletion6 = true;
+	          var _didIteratorError6 = false;
+	          var _iteratorError6 = undefined;
+	
+	          try {
+	            for (var _iterator6 = vfBeams[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	              var vfBeam = _step6.value;
+	
+	              vfBeam.postFormat();
+	            }
+	          } catch (err) {
+	            _didIteratorError6 = true;
+	            _iteratorError6 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	                _iterator6.return();
+	              }
+	            } finally {
+	              if (_didIteratorError6) {
+	                throw _iteratorError6;
+	              }
+	            }
+	          }
+	        });
+	      });
+	    }
+	  }, {
 	    key: 'format',
 	    value: function format() {
 	      this.resetState();
@@ -38521,6 +38570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatLyric();
 	      this.runFormatter();
 	      this.postFormatDirection();
+	      this.postFormatBeam();
 	      this.formatTie();
 	      this.formatSlur();
 	    }
@@ -38569,8 +38619,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(SlurTieSubFormatter, [{
+	    key: '_calculateSlurControlPoints',
+	    value: function _calculateSlurControlPoints(vfSlur) {
+	      vfSlur.preFormat();
+	
+	      var x1 = vfSlur.first_x;
+	      var x2 = vfSlur.last_x;
+	      var y1 = vfSlur.first_y;
+	      var y2 = vfSlur.last_y;
+	
+	      var dx = x2 - x1;
+	      var dy = y2 - y1;
+	      var s = Math.sqrt(dx * dx + dy * dy);
+	      var l = Math.min(2 + s * 0.1, 20);
+	      var r = 0.2; // 20%
+	
+	      var p1 = { x: -vfSlur.direction * l * dy / s, y: l * dx / s };
+	      var p2 = { x: p1.x, y: p1.y };
+	
+	      p1.x += dx * r;
+	      p2.x -= dx * r;
+	      p1.y += dy * r * vfSlur.direction;
+	      p2.y -= dy * r * vfSlur.direction;
+	
+	      vfSlur.render_options.cps = [p1, p2];
+	      vfSlur.render_options.thickness = 1.5;
+	    }
+	  }, {
+	    key: '_getSlurPosition',
+	    value: function _getSlurPosition(note, placement) {
+	      if (!note) return;else if (!placement) placement = note.getPlacement();
+	
+	      var position = void 0;
+	
+	      switch (placement) {
+	        case _Note2.default.Placement.ABOVE:
+	          position = note.getStem() === 'up' ? VF.Curve.Position.NEAR_TOP : VF.Curve.Position.NEAR_HEAD;
+	          break;
+	        case _Note2.default.Placement.BELOW:
+	          position = note.getStem() === 'up' ? VF.Curve.Position.NEAR_HEAD : VF.Curve.Position.NEAR_TOP;
+	          break;
+	      }
+	
+	      return position;
+	    }
+	  }, {
+	    key: '_getSlurInvert',
+	    value: function _getSlurInvert(_ref2) {
+	      var from = _ref2.from;
+	      var to = _ref2.to;
+	      var placement = _ref2.placement;
+	
+	      var note = to ? to : from;
+	      var stem = note.getStem();
+	      var invert = stem === 'up' && placement === _Note2.default.Placement.ABOVE || stem === 'down' && placement === _Note2.default.Placement.BELOW;
+	
+	      return invert;
+	    }
+	  }, {
 	    key: '_formatSlur',
 	    value: function _formatSlur(part) {
+	      var _this = this;
+	
 	      var vfSlursMap = new Map();
 	      // key: voice
 	      var slurStateMap = new Map();
@@ -38585,10 +38695,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var slurState = slurStateMap.get(voice);
 	          if (measure.isNewLineStarting() && slurState.from) {
-	            var curve = new VF.Curve(slurState.from, undefined);
+	            var options = {};
+	            var placement = slurState.from.getPlacement();
+	
+	            var position = _this._getSlurPosition(slurState.from, placement);
+	            if (position) {
+	              options.position = position;
+	              options.position_end = position;
+	            }
+	
+	            options.invert = _this._getSlurInvert({
+	              from: slurState.from,
+	              to: undefined,
+	              placement: placement
+	            });
+	
+	            var curve = new VF.Curve(slurState.from.getVFNote(), undefined, options);
 	            vfSlursMap.get(mi - 1 + '/' + voice).push(curve);
 	            slurState.from = undefined;
 	            slurState.partial = true;
+	            slurState.placement = placement;
 	          }
 	
 	          var vfSlurs = [];
@@ -38598,29 +38724,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (!note.getSlur()) return;
 	
 	            var slur = note.getSlur();
-	            var staveNote = note.getVFNote();
 	
 	            switch (slur.type) {
 	              case 'start':
-	                var options = {};
-	                /* TODO: slur Position.NEAR_BOTTOM required
-	                if (slur.placement) {
-	                  options.position = slur.placement === 'below' ?
-	                    Vex.Flow.Curve.Position.NEAR_HEAD :
-	                    Vex.Flow.Curve.Position.NEAR_TOP;
-	                }
-	                */
-	
-	                slurStateMap.set(voice, { from: staveNote, options: options });
+	                slurStateMap.set(voice, { from: note });
 	                break;
 	              case 'stop':
 	                var _slurState = slurStateMap.get(voice);
-	                _slurState.to = staveNote;
+	                _slurState.to = note;
 	
 	                if (_slurState.from === undefined && !_slurState.partial) return; // TODO: grace note
+	                var from = _slurState.from;
+	                var to = _slurState.to;
+	                var _placement = _slurState.placement;
 	
-	                vfSlurs.push(new VF.Curve(_slurState.from, _slurState.to, _slurState.options));
+	                _placement = _placement ? _placement : from ? from.getPlacement() : to.getPlacement();
 	
+	                var _options = {};
+	                var _position = _this._getSlurPosition(from, _placement);
+	                var positionEnd = _this._getSlurPosition(to, _placement);
+	                _options.position_end = positionEnd;
+	                _options.position = _position ? _position : positionEnd;
+	                _options.invert = _this._getSlurInvert({ from: from, to: to, placement: _placement });
+	
+	                var vfSlur = new VF.Curve(from ? from.getVFNote() : undefined, to ? to.getVFNote() : undefined, _options);
+	                _this._calculateSlurControlPoints(vfSlur);
+	
+	                vfSlurs.push(vfSlur);
 	                slurStateMap.set(voice, {});
 	                break;
 	            }
@@ -38635,10 +38765,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatSlur',
 	    value: function formatSlur() {
-	      var _this = this;
+	      var _this2 = this;
 	
 	      this.score.getParts().forEach(function (part) {
-	        return _this._formatSlur(part);
+	        return _this2._formatSlur(part);
 	      });
 	    }
 	  }, {
@@ -38739,10 +38869,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatTie',
 	    value: function formatTie() {
-	      var _this2 = this;
+	      var _this3 = this;
 	
 	      this.score.getParts().forEach(function (part) {
-	        return _this2._formatTie(part);
+	        return _this3._formatTie(part);
 	      });
 	    }
 	  }]);
@@ -39297,6 +39427,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.formatDirection();
 	      this.formatLyric();
 	      this.runFormatter();
+	      this.postFormatDirection();
+	      this.postFormatBeam();
 	      this.formatTie();
 	      this.formatSlur();
 	      // END
@@ -39699,6 +39831,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var Renderer = function () {
+	  _createClass(Renderer, null, [{
+	    key: 'COLOR_SLUR',
+	    get: function get() {
+	      return 'rgba(0, 0, 0, 0.4)';
+	    }
+	  }, {
+	    key: 'COLOR_TIE',
+	    get: function get() {
+	      return 'rgba(0, 0, 0, 0.8)';
+	    }
+	  }]);
+	
 	  function Renderer(score, _ref) {
 	    var element = _ref.element;
 	
@@ -39709,6 +39853,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.numPages = score.getNumPages();
 	    this.pageSize = this.score.getDefaults().getPageSize();
 	    this.contexts = [];
+	
+	    this._color = null;
 	  }
 	
 	  _createClass(Renderer, [{
@@ -39734,6 +39880,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var context = this.createContext(this.element, width, height);
 	        this.contexts.push(context);
 	      }
+	    }
+	  }, {
+	    key: 'saveColor',
+	    value: function saveColor(context) {
+	      this._color = context.attributes.fill;
+	    }
+	  }, {
+	    key: 'restoreColor',
+	    value: function restoreColor(context) {
+	      context.attributes.fill = this._color;
+	      context.attributes.stroke = this._color;
+	    }
+	  }, {
+	    key: 'applyColor',
+	    value: function applyColor(context, color) {
+	      context.attributes.fill = color;
+	      context.attributes.stroke = color;
+	    }
+	  }, {
+	    key: 'saveAndApplyColor',
+	    value: function saveAndApplyColor(context, color) {
+	      this.saveColor(context);
+	      this.applyColor(context, color);
 	    }
 	  }, {
 	    key: 'renderStaves',
@@ -39884,11 +40053,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.score.getParts().forEach(function (part, pi) {
 	        var index = 0;
 	        var context = _this6.contexts[index];
+	        _this6.saveAndApplyColor(context, Renderer.COLOR_TIE);
 	
 	        part.getMeasures().forEach(function (measure, mi) {
 	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
+	            _this6.restoreColor(context);
 	            context = _this6.contexts[index];
+	            _this6.saveAndApplyColor(context, Renderer.COLOR_TIE);
 	          }
 	
 	          measure.getVoices().forEach(function (voice) {
@@ -39897,6 +40069,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	          });
 	        });
+	
+	        _this6.restoreColor(context);
 	      });
 	    }
 	  }, {
@@ -39907,11 +40081,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.score.getParts().forEach(function (part, pi) {
 	        var index = 0;
 	        var context = _this7.contexts[index];
+	        _this7.saveAndApplyColor(context, Renderer.COLOR_SLUR);
 	
 	        part.getMeasures().forEach(function (measure, mi) {
 	          if (mi > 0 && measure.hasNewPage()) {
 	            index++;
+	            _this7.restoreColor(context);
 	            context = _this7.contexts[index];
+	            _this7.saveAndApplyColor(context, Renderer.COLOR_SLUR);
 	          }
 	
 	          measure.getVoices().forEach(function (voice) {
@@ -39920,6 +40097,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	          });
 	        });
+	
+	        _this7.restoreColor(context);
 	      });
 	    }
 	  }, {
