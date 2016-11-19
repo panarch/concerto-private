@@ -9,6 +9,30 @@ export default class SlurTieSubFormatter {
     this.score = score;
   }
 
+  _calculateSlurControlPoints(vfSlur) {
+    vfSlur.preFormat();
+
+    const [x1, x2, y1, y2] = [
+      vfSlur.first_x, vfSlur.last_x, vfSlur.first_y, vfSlur.last_y,
+    ];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const s = Math.sqrt(dx * dx + dy * dy);
+    const l = Math.min(2 + s * 0.1, 20);
+    const r = 0.2; // 20%
+
+    const p1 = { x: -vfSlur.direction * l * dy / s, y: l * dx / s };
+    const p2 = { x: p1.x, y: p1.y };
+
+    p1.x += dx * r;
+    p2.x -= dx * r;
+    p1.y += dy * r * vfSlur.direction;
+    p2.y -= dy * r * vfSlur.direction;
+
+    vfSlur.render_options.cps = [p1, p2];
+    vfSlur.render_options.thickness = 1.5;
+  }
+
   _getSlurPosition(note, placement) {
     if (!note) return;
     else if (!placement) placement = note.getPlacement();
@@ -57,6 +81,7 @@ export default class SlurTieSubFormatter {
         if (measure.isNewLineStarting() && slurState.from) {
           const options = {};
           const placement = slurState.from.getPlacement();
+
           const position = this._getSlurPosition(slurState.from, placement);
           if (position) {
             options.position = position;
@@ -99,6 +124,7 @@ export default class SlurTieSubFormatter {
               placement = placement ?
                 placement :
                 (from ? from.getPlacement() : to.getPlacement());
+
               const options = {};
               const position = this._getSlurPosition(from, placement);
               const positionEnd = this._getSlurPosition(to, placement);
@@ -106,12 +132,14 @@ export default class SlurTieSubFormatter {
               options.position = position ? position : positionEnd;
               options.invert = this._getSlurInvert({ from, to, placement });
 
-              vfSlurs.push(new VF.Curve(
+              const vfSlur = new VF.Curve(
                 from ? from.getVFNote() : undefined,
                 to ? to.getVFNote() : undefined,
                 options
-              ));
+              );
+              this._calculateSlurControlPoints(vfSlur);
 
+              vfSlurs.push(vfSlur);
               slurStateMap.set(voice, {});
               break;
           }
