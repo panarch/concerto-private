@@ -1567,7 +1567,10 @@ export default class Formatter {
       });
 
       vfStaveText.setFont(font);
-      vfStave.addModifier(vfStaveText);
+      vfStaveText.setStave(vfStave);
+      vfStave.modifiers.push(vfStaveText);
+      // Prevent vfStave not to cancel formatted
+      //vfStave.addModifier(vfStaveText);
     });
   }
 
