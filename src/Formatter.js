@@ -509,6 +509,8 @@ export default class Formatter {
   }
 
   formatCredits() {
+    const DEFAULT_FONT_SIZE = 16;
+
     const getTextAnchor = value => {
       switch (value) {
         case 'left': return 'start';
@@ -558,11 +560,14 @@ export default class Formatter {
           fontSize = words.fontSize;
           if (/\d+$/.test(fontSize)) {
             fontSize = Number(fontSize) * 2.2; // TODO
-            fontSize += 'px';
+            //fontSize += 'px'; svgcontext uses pt
           }
 
           text.attributes.set('font-size', fontSize);
           this.context.attributes['font-size'] = fontSize; // svgcontext only
+        } else {
+          text.attributes.set('font-size', DEFAULT_FONT_SIZE);
+          this.context.attributes['font-size'] = DEFAULT_FONT_SIZE;
         }
 
         // default font: "times", no custom font support
