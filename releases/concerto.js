@@ -37007,6 +37007,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function formatCredits() {
 	      var _this11 = this;
 	
+	      var DEFAULT_FONT_SIZE = 16;
+	
 	      var getTextAnchor = function getTextAnchor(value) {
 	        switch (value) {
 	          case 'left':
@@ -37062,11 +37064,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            fontSize = words.fontSize;
 	            if (/\d+$/.test(fontSize)) {
 	              fontSize = Number(fontSize) * 2.2; // TODO
-	              fontSize += 'px';
+	              //fontSize += 'px'; svgcontext uses pt
 	            }
 	
 	            text.attributes.set('font-size', fontSize);
 	            _this11.context.attributes['font-size'] = fontSize; // svgcontext only
+	          } else {
+	            text.attributes.set('font-size', DEFAULT_FONT_SIZE);
+	            _this11.context.attributes['font-size'] = DEFAULT_FONT_SIZE;
 	          }
 	
 	          // default font: "times", no custom font support
