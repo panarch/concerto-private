@@ -32,7 +32,10 @@ export default class Note {
     this.notations = notations;
     this.lyrics = lyrics;
     this.timeModification = timeModification;
+
+    // editable
     this.placement = Note.Placement.SINGLE;
+    this.octaveChange = 0;
 
     // extra read-only
     this.defaultX = defaultX;
@@ -62,6 +65,8 @@ export default class Note {
 
   getPlacement() { return this.placement; }
   setPlacement(placement) { this.placement = placement; }
+  getOctaveChange() { return this.octaveChange; }
+  setOctaveChange(octaveChange) { this.octaveChange = octaveChange; }
 
   // extra read-only
   getDefaultX() { return this.defaultX; }

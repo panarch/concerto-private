@@ -2,7 +2,7 @@
 // @author Taehoon Moon
 
 export default class Direction {
-  constructor({ tag, directionType, wedge, wordsList,
+  constructor({ tag, directionType, wedge, wordsList, octaveShift,
       staff, voice, placement, beginDuration, dynamicType, defaultX }) {
     this.tag = tag;
     this.directionType = directionType;
@@ -13,6 +13,7 @@ export default class Direction {
     this.wedge = wedge;
     this.wordsList = wordsList;
     this.dynamicType = dynamicType;
+    this.octaveShift = octaveShift;
 
     // mutable
     this.beginDuration = beginDuration;
@@ -38,6 +39,7 @@ export default class Direction {
       staff: this.staff,
       placement: this.placement,
       wedge: Object.assign({}, this.wedge),
+      octaveShift: Object.assign({}, this.octaveShift),
       dynamicType: this.dynamicType,
       beginDuration: this.beginDuration,
       defaultX: this.defaultX,
@@ -58,6 +60,16 @@ export default class Direction {
   getWedge() { return this.wedge; }
   getWordsList() { return this.wordsList; }
   getDynamicType() { return this.dynamicType; }
+  getOctaveShift() { return this.octaveShift; }
+
+  getContent() {
+    switch (this.directionType) {
+      case 'wedge': return this.wedge;
+      case 'words': return this.wordsList;
+      case 'dynamics': return this.dynamicType;
+      case 'octave-shift': return this.octaveShift;
+    }
+  }
 
   getBeginDuration() { return this.beginDuration; }
   setBeginDuration(beginDuration) { this.beginDuration = beginDuration; }

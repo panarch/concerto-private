@@ -134,9 +134,11 @@ const parseDirection = (data, directionNode, state) => {
 
   function _toCamel(str) { return str.replace(/\-\w/g, s => s[1].toUpperCase()); }
 
-  if (contentNode.tagName === 'dynamics') {
+  switch (contentNode.tagName) {
+  case 'dynamics':
     direction.dynamicType = contentNode.firstElementChild.tagName;
-  } else if (contentNode.tagName === 'wedge') {
+    break;
+  case 'wedge':
     direction.wedge = {
       type: contentNode.getAttribute('type'), // crescendo | diminuendo | stop
     };
@@ -144,7 +146,9 @@ const parseDirection = (data, directionNode, state) => {
     if (contentNode.hasAttribute('number')) {
       direction.wedge.number = contentNode.getAttribute('number');
     }
-  } else if (contentNode.tagName === 'words') {
+
+    break;
+  case 'words':
     direction.wordsList = [...directionTypeNode.children].map(wordsNode => {
       const words = {
         text: wordsNode.textContent,
@@ -166,6 +170,20 @@ const parseDirection = (data, directionNode, state) => {
 
       return words;
     });
+
+    break;
+  case 'octave-shift':
+    direction.octaveShift = {
+      type: contentNode.getAttribute('type'),
+      size: contentNode.hasAttribute('size') ?
+        Number(contentNode.getAttribute('size')) : 8,
+    };
+
+    if (contentNode.hasAttribute('number')) {
+      direction.octaveShift.number = contentNode.getAttribute('number');
+    }
+
+    break;
   }
 
   if (contentNode.hasAttribute('default-x')) {
@@ -604,8 +622,69 @@ const sortClefsMap = clefsMap => {
   clefsMap.forEach(clefs => clefs.sort((a, b) => a.duration > b.duration));
 };
 
+const _applyOctaveShift = ({ direction, measures, mi, staff }) => {
+  const octaveShift = direction.getOctaveShift();
+
+  let beginDuration = direction.getBeginDuration();
+  for (; mi < measures.length; mi++) {
+    const measure = measures[mi];
+    // check end direction
+
+    let endDuration = Infinity;
+    const directions = (measure.getDirectionsMap().has(staff) ?
+      measure.getDirectionsMap().get(staff).filter(d => (
+        d.getDirectionType() === 'octave-shift' &&
+        d.getOctaveShift().type === 'stop' &&
+        d.getOctaveShift().number === direction.getOctaveShift().number
+      )) : []
+    );
+
+    if (directions.length > 0) {
+      endDuration = directions[0].getBeginDuration();
+    }
+
+    const notesMap = measure.getNotesMap();
+    notesMap.forEach(notes => {
+      let duration = 0;
+      for (const note of notes) {
+        if (duration < beginDuration) {
+          duration += note.getDuration();
+          continue;
+        } else if (duration >= endDuration) {
+          break;
+        }
+
+        duration += note.getDuration();
+        if (note.getStaff() !== staff) continue;
+
+        let octaveChange = (octaveShift.size / 7) | 0;
+        if (octaveShift.type === 'down') octaveChange = -octaveChange;
+
+        note.setOctaveChange(octaveChange);
+      }
+    });
+
+    beginDuration = 0;
+    if (endDuration < Infinity) break;
+  }
+};
+
+// direction-type: octave-shift
+const applyOctaveShift = measures => {
+  measures.forEach((measure, mi) => {
+    const directionsMap = measure.getDirectionsMap();
+
+    directionsMap.forEach((directions, staff) => directions.forEach(direction => {
+      if (direction.getDirectionType() !== 'octave-shift' ||
+          direction.getOctaveShift().type === 'stop') return;
+
+      _applyOctaveShift({ direction, measures, mi, staff });
+    }));
+  });
+};
+
 const _splitMultiMeasureDirection = ({ direction, measures, mi, staff }) => {
-  if (['continue', 'stop'].includes(direction.getWedge().type)) return;
+  if (['continue', 'stop'].includes(direction.getContent().type)) return;
 
   const maxDuration = getMaxDuration(measures[mi].getNotesMap());
   if (direction.getBeginDuration() >= maxDuration) {
@@ -628,7 +707,7 @@ const _splitMultiMeasureDirection = ({ direction, measures, mi, staff }) => {
     if (started) { // replace next
       nextDirection.setNextDirection(direction.clone());
       nextDirection = nextDirection.getNextDirection();
-      nextDirection.getWedge().type = 'continue';
+      nextDirection.getContent().type = 'continue';
       nextDirection.setBeginDuration(0);
 
       directions.splice(0, 0, nextDirection);
@@ -645,8 +724,8 @@ const _splitMultiMeasureDirection = ({ direction, measures, mi, staff }) => {
 
       // stop found!
       if (stopDirection.getDirectionType() === direction.getDirectionType() &&
-          stopDirection.getWedge().number === direction.getWedge().number &&
-          stopDirection.getWedge().type === 'stop') {
+          stopDirection.getContent().number === direction.getContent().number &&
+          stopDirection.getContent().type === 'stop') {
         stopped = true;
         stopDirectionIndex = i;
 
@@ -671,11 +750,13 @@ const _splitMultiMeasureDirection = ({ direction, measures, mi, staff }) => {
 
 // split multi-measure directions
 const splitMultiMeasureDirection = measures => {
+  const DIRECTIONS = ['wedge', 'octave-shift'];
+
   measures.forEach((measure, mi) => {
     const directionsMap = measure.getDirectionsMap();
 
     directionsMap.forEach((directions, staff) => directions.forEach(direction => {
-      if (direction.getDirectionType() !== 'wedge') return;
+      if (!DIRECTIONS.includes(direction.getDirectionType())) return;
 
       _splitMultiMeasureDirection({ direction, measures, mi, staff });
     }));
@@ -707,6 +788,7 @@ export const parsePart = partNode => {
     return new Measure(data);
   });
 
+  applyOctaveShift(measures);
   splitMultiMeasureDirection(measures);
 
   return new Part({
