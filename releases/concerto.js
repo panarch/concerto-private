@@ -94,15 +94,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _VerticalFormatter = __webpack_require__(323);
+	var _VerticalFormatter = __webpack_require__(324);
 	
 	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
 	
-	var _HorizontalFormatter = __webpack_require__(325);
+	var _HorizontalFormatter = __webpack_require__(326);
 	
 	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
 	
-	var _Renderer = __webpack_require__(326);
+	var _Renderer = __webpack_require__(327);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
@@ -34869,37 +34869,54 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	  }
 	
-	  if (contentNode.tagName === 'dynamics') {
-	    direction.dynamicType = contentNode.firstElementChild.tagName;
-	  } else if (contentNode.tagName === 'wedge') {
-	    direction.wedge = {
-	      type: contentNode.getAttribute('type') };
+	  switch (contentNode.tagName) {
+	    case 'dynamics':
+	      direction.dynamicType = contentNode.firstElementChild.tagName;
+	      break;
+	    case 'wedge':
+	      direction.wedge = {
+	        type: contentNode.getAttribute('type') };
 	
-	    if (contentNode.hasAttribute('number')) {
-	      direction.wedge.number = contentNode.getAttribute('number');
-	    }
-	  } else if (contentNode.tagName === 'words') {
-	    direction.wordsList = [].concat(_toConsumableArray(directionTypeNode.children)).map(function (wordsNode) {
-	      var words = {
-	        text: wordsNode.textContent
-	      };
+	      if (contentNode.hasAttribute('number')) {
+	        direction.wedge.number = contentNode.getAttribute('number');
+	      }
 	
-	      var attrList = ['justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-style'];
+	      break;
+	    case 'words':
+	      direction.wordsList = [].concat(_toConsumableArray(directionTypeNode.children)).map(function (wordsNode) {
+	        var words = {
+	          text: wordsNode.textContent
+	        };
 	
-	      attrList.filter(function (attr) {
-	        return wordsNode.hasAttribute(attr);
-	      }).forEach(function (attr) {
-	        words[_toCamel(attr)] = wordsNode.getAttribute(attr);
+	        var attrList = ['justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-style'];
+	
+	        attrList.filter(function (attr) {
+	          return wordsNode.hasAttribute(attr);
+	        }).forEach(function (attr) {
+	          words[_toCamel(attr)] = wordsNode.getAttribute(attr);
+	        });
+	
+	        /* VexFlow tweaks
+	          VexFlow handle font-style using font-weight,
+	          so font-weight should contain both font-style & font-weight
+	        */
+	        if (words.fontStyle) words.fontWeight += ' ' + words.fontStyle;
+	
+	        return words;
 	      });
 	
-	      /* VexFlow tweaks
-	        VexFlow handle font-style using font-weight,
-	        so font-weight should contain both font-style & font-weight
-	      */
-	      if (words.fontStyle) words.fontWeight += ' ' + words.fontStyle;
+	      break;
+	    case 'octave-shift':
+	      direction.octaveShift = {
+	        type: contentNode.getAttribute('type'),
+	        size: contentNode.hasAttribute('size') ? Number(contentNode.getAttribute('size')) : 8
+	      };
 	
-	      return words;
-	    });
+	      if (contentNode.hasAttribute('number')) {
+	        direction.octaveShift.number = contentNode.getAttribute('number');
+	      }
+	
+	      break;
 	  }
 	
 	  if (contentNode.hasAttribute('default-x')) {
@@ -35400,13 +35417,104 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
-	var _splitMultiMeasureDirection = function _splitMultiMeasureDirection(_ref2) {
+	var _applyOctaveShift = function _applyOctaveShift(_ref2) {
 	  var direction = _ref2.direction;
 	  var measures = _ref2.measures;
 	  var mi = _ref2.mi;
 	  var staff = _ref2.staff;
 	
-	  if (['continue', 'stop'].includes(direction.getWedge().type)) return;
+	  var octaveShift = direction.getOctaveShift();
+	
+	  var beginDuration = direction.getBeginDuration();
+	
+	  var _loop2 = function _loop2() {
+	    var measure = measures[mi];
+	    // check end direction
+	
+	    var endDuration = Infinity;
+	    var directions = measure.getDirectionsMap().has(staff) ? measure.getDirectionsMap().get(staff).filter(function (d) {
+	      return d.getDirectionType() === 'octave-shift' && d.getOctaveShift().type === 'stop' && d.getOctaveShift().number === direction.getOctaveShift().number;
+	    }) : [];
+	
+	    if (directions.length > 0) {
+	      endDuration = directions[0].getBeginDuration();
+	    }
+	
+	    var notesMap = measure.getNotesMap();
+	    notesMap.forEach(function (notes) {
+	      var duration = 0;
+	      var _iteratorNormalCompletion3 = true;
+	      var _didIteratorError3 = false;
+	      var _iteratorError3 = undefined;
+	
+	      try {
+	        for (var _iterator3 = notes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var note = _step3.value;
+	
+	          if (duration < beginDuration) {
+	            duration += note.getDuration();
+	            continue;
+	          } else if (duration >= endDuration) {
+	            break;
+	          }
+	
+	          duration += note.getDuration();
+	          if (note.getStaff() !== staff) continue;
+	
+	          var octaveChange = octaveShift.size / 7 | 0;
+	          if (octaveShift.type === 'down') octaveChange = -octaveChange;
+	
+	          note.setOctaveChange(octaveChange);
+	        }
+	      } catch (err) {
+	        _didIteratorError3 = true;
+	        _iteratorError3 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	            _iterator3.return();
+	          }
+	        } finally {
+	          if (_didIteratorError3) {
+	            throw _iteratorError3;
+	          }
+	        }
+	      }
+	    });
+	
+	    beginDuration = 0;
+	    if (endDuration < Infinity) return 'break';
+	  };
+	
+	  for (; mi < measures.length; mi++) {
+	    var _ret2 = _loop2();
+	
+	    if (_ret2 === 'break') break;
+	  }
+	};
+	
+	// direction-type: octave-shift
+	var applyOctaveShift = function applyOctaveShift(measures) {
+	  measures.forEach(function (measure, mi) {
+	    var directionsMap = measure.getDirectionsMap();
+	
+	    directionsMap.forEach(function (directions, staff) {
+	      return directions.forEach(function (direction) {
+	        if (direction.getDirectionType() !== 'octave-shift' || direction.getOctaveShift().type === 'stop') return;
+	
+	        _applyOctaveShift({ direction: direction, measures: measures, mi: mi, staff: staff });
+	      });
+	    });
+	  });
+	};
+	
+	var _splitMultiMeasureDirection = function _splitMultiMeasureDirection(_ref3) {
+	  var direction = _ref3.direction;
+	  var measures = _ref3.measures;
+	  var mi = _ref3.mi;
+	  var staff = _ref3.staff;
+	
+	  if (['continue', 'stop'].includes(direction.getContent().type)) return;
 	
 	  var maxDuration = (0, _Util.getMaxDuration)(measures[mi].getNotesMap());
 	  if (direction.getBeginDuration() >= maxDuration) {
@@ -35421,22 +35529,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  for (; mi < measures.length; mi++) {
 	    var measure = measures[mi];
-	    var directions = measure.getDirectionsMap().has(staff) ? measure.getDirectionsMap().get(staff) : [];
+	    var _directions = measure.getDirectionsMap().has(staff) ? measure.getDirectionsMap().get(staff) : [];
 	
-	    if (directions.length === 0) measure.setDirections(staff, directions);
+	    if (_directions.length === 0) measure.setDirections(staff, _directions);
 	
 	    if (started) {
 	      // replace next
 	      nextDirection.setNextDirection(direction.clone());
 	      nextDirection = nextDirection.getNextDirection();
-	      nextDirection.getWedge().type = 'continue';
+	      nextDirection.getContent().type = 'continue';
 	      nextDirection.setBeginDuration(0);
 	
-	      directions.splice(0, 0, nextDirection);
+	      _directions.splice(0, 0, nextDirection);
 	    }
 	
-	    for (var i = 0; i < directions.length; i++) {
-	      stopDirection = directions[i];
+	    for (var i = 0; i < _directions.length; i++) {
+	      stopDirection = _directions[i];
 	
 	      if (!started) {
 	        // find starting direction first
@@ -35446,7 +35554,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      // stop found!
-	      if (stopDirection.getDirectionType() === direction.getDirectionType() && stopDirection.getWedge().number === direction.getWedge().number && stopDirection.getWedge().type === 'stop') {
+	      if (stopDirection.getDirectionType() === direction.getDirectionType() && stopDirection.getContent().number === direction.getContent().number && stopDirection.getContent().type === 'stop') {
 	        stopped = true;
 	        stopDirectionIndex = i;
 	
@@ -35457,7 +35565,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    if (stopped) {
-	      directions.splice(stopDirectionIndex, 1);
+	      _directions.splice(stopDirectionIndex, 1);
 	      break;
 	    }
 	
@@ -35468,12 +35576,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	// split multi-measure directions
 	var splitMultiMeasureDirection = function splitMultiMeasureDirection(measures) {
+	  var DIRECTIONS = ['wedge', 'octave-shift'];
+	
 	  measures.forEach(function (measure, mi) {
 	    var directionsMap = measure.getDirectionsMap();
 	
 	    directionsMap.forEach(function (directions, staff) {
 	      return directions.forEach(function (direction) {
-	        if (direction.getDirectionType() !== 'wedge') return;
+	        if (!DIRECTIONS.includes(direction.getDirectionType())) return;
 	
 	        _splitMultiMeasureDirection({ direction: direction, measures: measures, mi: mi, staff: staff });
 	      });
@@ -35504,6 +35614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new _Measure2.default(data);
 	  });
 	
+	  applyOctaveShift(measures);
 	  splitMultiMeasureDirection(measures);
 	
 	  return new _Part2.default({
@@ -35653,7 +35764,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.notations = notations;
 	    this.lyrics = lyrics;
 	    this.timeModification = timeModification;
+	
+	    // editable
 	    this.placement = Note.Placement.SINGLE;
+	    this.octaveChange = 0;
 	
 	    // extra read-only
 	    this.defaultX = defaultX;
@@ -35762,6 +35876,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function setPlacement(placement) {
 	      this.placement = placement;
 	    }
+	  }, {
+	    key: "getOctaveChange",
+	    value: function getOctaveChange() {
+	      return this.octaveChange;
+	    }
+	  }, {
+	    key: "setOctaveChange",
+	    value: function setOctaveChange(octaveChange) {
+	      this.octaveChange = octaveChange;
+	    }
 	
 	    // extra read-only
 	
@@ -35820,6 +35944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var directionType = _ref.directionType;
 	    var wedge = _ref.wedge;
 	    var wordsList = _ref.wordsList;
+	    var octaveShift = _ref.octaveShift;
 	    var staff = _ref.staff;
 	    var voice = _ref.voice;
 	    var placement = _ref.placement;
@@ -35838,6 +35963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.wedge = wedge;
 	    this.wordsList = wordsList;
 	    this.dynamicType = dynamicType;
+	    this.octaveShift = octaveShift;
 	
 	    // mutable
 	    this.beginDuration = beginDuration;
@@ -35865,6 +35991,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        staff: this.staff,
 	        placement: this.placement,
 	        wedge: Object.assign({}, this.wedge),
+	        octaveShift: Object.assign({}, this.octaveShift),
 	        dynamicType: this.dynamicType,
 	        beginDuration: this.beginDuration,
 	        defaultX: this.defaultX
@@ -35927,6 +36054,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'getDynamicType',
 	    value: function getDynamicType() {
 	      return this.dynamicType;
+	    }
+	  }, {
+	    key: 'getOctaveShift',
+	    value: function getOctaveShift() {
+	      return this.octaveShift;
+	    }
+	  }, {
+	    key: 'getContent',
+	    value: function getContent() {
+	      switch (this.directionType) {
+	        case 'wedge':
+	          return this.wedge;
+	        case 'words':
+	          return this.wordsList;
+	        case 'dynamics':
+	          return this.dynamicType;
+	        case 'octave-shift':
+	          return this.octaveShift;
+	      }
 	    }
 	  }, {
 	    key: 'getBeginDuration',
@@ -36447,10 +36593,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(315);
-	
-	var _Note2 = _interopRequireDefault(_Note);
-	
 	var _Measure = __webpack_require__(309);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
@@ -36465,6 +36607,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _SlurTieSubFormatter2 = _interopRequireDefault(_SlurTieSubFormatter);
 	
+	var _DirectionSubFormatter = __webpack_require__(323);
+	
+	var _DirectionSubFormatter2 = _interopRequireDefault(_DirectionSubFormatter);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -36478,7 +36624,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Formatter(score) {
 	    _classCallCheck(this, Formatter);
 	
-	    this.slurTieSubFormatter = new _SlurTieSubFormatter2.default({ this: this, score: score });
+	    this.slurTieSubFormatter = new _SlurTieSubFormatter2.default({ formatter: this, score: score });
+	    this.directionSubFormatter = new _DirectionSubFormatter2.default({ formatter: this, score: score });
 	    this.score = score;
 	
 	    this.defaults = this.score.getDefaults();
@@ -37368,7 +37515,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var accidentals = [];
 	      var fingerings = [];
-	      note.getHeads().forEach(function (_ref4) {
+	      note.getHeads().map(function (head) {
+	        // Notice that it is not hard copy
+	        var headSoftClone = Object.assign({}, head);
+	        headSoftClone.octave += note.getOctaveChange();
+	        return headSoftClone;
+	      }).forEach(function (_ref4) {
 	        var step = _ref4.step;
 	        var octave = _ref4.octave;
 	        var accidental = _ref4.accidental;
@@ -37811,462 +37963,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: '_formatDirectionBeginDurations',
-	    value: function _formatDirectionBeginDurations(measure, measureCache) {
-	      var directionsMap = measure.getDirectionsMap();
-	      var notesMap = measure.getNotesMap();
-	
-	      directionsMap.forEach(function (directions, staff) {
-	        return directions.forEach(function (direction) {
-	          // 1. if begin duration >= measure duration
-	          // => set begin duration as measure duration / 2
-	          var duration = (0, _Util.getMaxDuration)(notesMap);
-	          if (direction.getBeginDuration() >= duration) {
-	            direction.setBeginDuration(duration / 2);
-	            return;
-	          }
-	
-	          if (direction.getDirectionType() !== 'dynamics') return; // TODO
-	          else if (direction.getBeginDuration() > 0 || direction.getDefaultX() == null) return;
-	
-	          var defaultX = direction.getDefaultX();
-	          var maxDuration = 0;
-	
-	          // Ensure all notes have defaultX
-	          notesMap.forEach(function (notes) {
-	            if (notes.length === 0 || notes[0].getDefaultX() == null) return;
-	
-	            var lastDuration = 0;
-	            var sumDuration = 0;
-	            var gap = Infinity;
-	
-	            var _iteratorNormalCompletion3 = true;
-	            var _didIteratorError3 = false;
-	            var _iteratorError3 = undefined;
-	
-	            try {
-	              for (var _iterator3 = notes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	                var note = _step3.value;
-	
-	                if (note.getDefaultX() == null) return; // not break, return
-	
-	                var newGap = Math.abs(note.getDefaultX() - defaultX);
-	
-	                if (gap < newGap) break;else gap = newGap;
-	
-	                sumDuration += lastDuration;
-	                lastDuration = note.getDuration();
-	              }
-	            } catch (err) {
-	              _didIteratorError3 = true;
-	              _iteratorError3 = err;
-	            } finally {
-	              try {
-	                if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	                  _iterator3.return();
-	                }
-	              } finally {
-	                if (_didIteratorError3) {
-	                  throw _iteratorError3;
-	                }
-	              }
-	            }
-	
-	            if (sumDuration > maxDuration) maxDuration = sumDuration;
-	          });
-	
-	          if (maxDuration > direction.getBeginDuration()) direction.setBeginDuration(maxDuration);
-	        });
-	      });
-	    }
-	  }, {
-	    key: '_calculateDirectionBoundingBox',
-	    value: function _calculateDirectionBoundingBox(_ref6) {
-	      var direction = _ref6.direction;
-	      var notesMap = _ref6.notesMap;
-	      var vfStave = _ref6.vfStave;
-	
-	      var boundingBox = void 0;
-	      var endDuration = direction.getBeginDuration() + direction.getDuration();
-	
-	      notesMap.forEach(function (notes) {
-	        var duration = 0;
-	
-	        var _iteratorNormalCompletion4 = true;
-	        var _didIteratorError4 = false;
-	        var _iteratorError4 = undefined;
-	
-	        try {
-	          for (var _iterator4 = notes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	            var note = _step4.value;
-	
-	            if (duration > endDuration) break;
-	
-	            if (note.getStaff() !== direction.getStaff() || duration < direction.getBeginDuration()) {
-	              duration += note.getDuration();
-	              continue;
-	            }
-	
-	            duration += note.getDuration();
-	
-	            var noteBoundingBox = note.getVFNote().getBoundingBox();
-	            if (boundingBox) boundingBox.mergeWith(noteBoundingBox);else boundingBox = noteBoundingBox;
-	          }
-	        } catch (err) {
-	          _didIteratorError4 = true;
-	          _iteratorError4 = err;
-	        } finally {
-	          try {
-	            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	              _iterator4.return();
-	            }
-	          } finally {
-	            if (_didIteratorError4) {
-	              throw _iteratorError4;
-	            }
-	          }
-	        }
-	      });
-	
-	      return boundingBox;
-	    }
-	
-	    // @support dynamics
-	
-	  }, {
-	    key: '_formatDirectionDurations',
-	    value: function _formatDirectionDurations(measure, measureCache) {
-	      var _this18 = this;
-	
-	      var directionsMap = measure.getDirectionsMap();
-	      var notesMap = measure.getNotesMap();
-	      var divisions = measureCache.getDivisions();
-	      var maxDuration = (0, _Util.getMaxDuration)(notesMap);
-	
-	      directionsMap.forEach(function (directions, staff) {
-	        return directions.forEach(function (direction) {
-	          var directionType = direction.getDirectionType();
-	          if (!['dynamics', 'wedge', 'words'].includes(directionType)) return;
-	
-	          var vfStave = measure.getStave(staff);
-	
-	          var vfDirectionNote = void 0;
-	          switch (directionType) {
-	            case 'dynamics':
-	              direction.setDuration(divisions);
-	              vfDirectionNote = new VF.TextDynamics({
-	                text: direction.getDynamicType(),
-	                duration: (0, _Util.getVFDuration)(direction, divisions)
-	              });
-	              vfDirectionNote.setStave(vfStave).preFormat();
-	              break;
-	            case 'words':
-	              // StaveText will be used
-	              direction.setDuration(divisions * 2);
-	              vfDirectionNote = new VF.GhostNote({ duration: (0, _Util.getVFDuration)(direction, divisions) });
-	              vfDirectionNote.setStave(vfStave);
-	              break;
-	            case 'wedge':
-	              if (direction.getDuration() === 0) {
-	                console.warn('[warn] measure number ' + measure.number + ', found duration 0 direction');
-	                return;
-	              }
-	
-	              var vfDuration = (0, _Util.getVFDuration)(direction, divisions);
-	              var sumDuration = direction.getBeginDuration() + direction.getDuration();
-	              vfDirectionNote = new VF.GhostNote({ duration: vfDuration });
-	
-	              if (sumDuration < maxDuration) {
-	                var vfDirectionEndNote = new VF.GhostNote({
-	                  duration: (0, _Util.getVFDuration)(new _Note2.default({ duration: maxDuration - sumDuration }), divisions)
-	                });
-	
-	                vfDirectionEndNote.setStave(vfStave);
-	                direction.setVFEndNote(vfDirectionEndNote);
-	              }
-	
-	              vfDirectionNote.setStave(vfStave);
-	              break;
-	          }
-	
-	          direction.setVFNote(vfDirectionNote);
-	
-	          var spacing = vfStave.getSpacingBetweenLines();
-	          var placement = direction.getPlacement();
-	          var boundingBox = _this18._calculateDirectionBoundingBox({ direction: direction, notesMap: notesMap, vfStave: vfStave });
-	
-	          if (placement === 'above') {
-	            var vfStaveTopLineY = vfStave.getTopLineTopY();
-	            var maxY = boundingBox ? boundingBox.getY() : vfStaveTopLineY;
-	            var maxLine = -2 + Math.min(0, (maxY - vfStaveTopLineY) / spacing);
-	
-	            direction.setMaxLine(maxLine);
-	          } else {
-	            var vfStaveBottomLineY = vfStave.getBottomLineBottomY();
-	            var numLines = vfStave.getNumLines();
-	            var minY = boundingBox ? boundingBox.getY() + boundingBox.getH() : vfStaveBottomLineY;
-	            var minLine = numLines + 1 + Math.max(0, (minY - vfStaveBottomLineY) / spacing);
-	
-	            direction.setMinLine(minLine);
-	          }
-	        });
-	      });
-	    }
-	  }, {
-	    key: '_formatDirection',
-	    value: function _formatDirection(measure, measureCache) {
-	      var directionsMap = measure.getDirectionsMap();
-	      var divisions = measureCache.getDivisions();
-	
-	      var _ref7 = measureCache.hasTime() ? measureCache.getTime() : {};
-	
-	      var _ref7$beats = _ref7.beats;
-	      var beats = _ref7$beats === undefined ? 4 : _ref7$beats;
-	      var _ref7$beatType = _ref7.beatType;
-	      var beatType = _ref7$beatType === undefined ? 4 : _ref7$beatType;
-	
-	      var voiceOptions = { num_beats: beats, beat_value: beatType };
-	
-	      // 1. calculate begin duration of directions.
-	      this._formatDirectionBeginDurations(measure, measureCache);
-	
-	      // 2. calculate duration of directions.(make [beginDuration, duration] pairs)
-	      this._formatDirectionDurations(measure, measureCache);
-	
-	      // 3. Fill vfDirectionVoicesMap
-	      var vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
-	
-	      directionsMap.forEach(function (directions, staff) {
-	        directions.forEach(function (direction) {
-	          var vfNote = direction.getVFNote();
-	          if (!vfNote) return;
-	
-	          var line = direction.getPlacement() === 'above' ? direction.getMaxLine() : direction.getMinLine();
-	
-	          direction.setLine(line);
-	
-	          if (vfNote instanceof VF.GhostNote) return;
-	
-	          direction.getVFNote().setLine(line + 3.5);
-	        });
-	
-	        // TODO: Join multiple directions into same voice
-	        directions.forEach(function (direction) {
-	          var vfNote = direction.getVFNote();
-	          var vfEndNote = direction.getVFEndNote();
-	          if (!vfNote) return;
-	
-	          var vfDirectionVoice = new VF.Voice(voiceOptions);
-	          vfDirectionVoice.setMode(VF.Voice.Mode.SOFT);
-	
-	          var vfTickables = [];
-	
-	          if (direction.getBeginDuration() > 0) {
-	            var vfDuration = (0, _Util.getVFDuration)(new _Note2.default({ duration: direction.getBeginDuration() }), divisions);
-	            var ghostNote = new VF.GhostNote(vfDuration);
-	            var vfStave = measure.getStave(direction.getStaff());
-	            ghostNote.setStave(vfStave);
-	            vfTickables.push(ghostNote);
-	          }
-	
-	          vfTickables.push(vfNote);
-	          if (vfEndNote) vfTickables.push(vfEndNote);
-	
-	          vfDirectionVoice.addTickables(vfTickables);
-	          vfDirectionVoice.setStave(measure.getStave(staff));
-	
-	          if (vfDirectionVoicesMap.has(staff)) {
-	            vfDirectionVoicesMap.get(staff).push(vfDirectionVoice);
-	          } else {
-	            vfDirectionVoicesMap.set(staff, [vfDirectionVoice]);
-	          }
-	        });
-	      });
-	
-	      measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
-	    }
-	
-	    /*
-	     * wedge
-	     */
-	
-	  }, {
-	    key: '_createMultiMeasureDirectionVFElement',
-	    value: function _createMultiMeasureDirectionVFElement(_ref8) {
-	      var _this19 = this;
-	
-	      var measure = _ref8.measure;
-	      var mi = _ref8.mi;
-	      var pi = _ref8.pi;
-	
-	      var directions = measure.getDirections().filter(function (direction) {
-	        return direction.getDirectionType() === 'wedge' && !['continue'].includes(direction.getWedge().type);
-	      });
-	
-	      var initGetNextMeasure = function initGetNextMeasure(mi) {
-	        var _mi = mi;
-	        return function () {
-	          return _this19.parts[pi].getMeasures()[++_mi];
-	        };
-	      };
-	
-	      directions.forEach(function (direction) {
-	        var getNextMeasure = initGetNextMeasure(mi);
-	        var vfNote = direction.getVFNote();
-	        if (!vfNote) return;
-	
-	        var isCrescendo = direction.getWedge().type === 'crescendo';
-	        var line = direction.getLine();
-	        var lineDirection = direction; // first direction of line
-	        var lastDirection = direction;
-	        var nextDirection = direction.getNextDirection();
-	        var lineChanged = false;
-	
-	        while (nextDirection) {
-	          var _measure = getNextMeasure();
-	          var isNewLine = _measure.isNewLineStarting();
-	
-	          if (isNewLine) {
-	            // flush!
-	            lineChanged = true;
-	
-	            lineDirection.setVFElement(new VF.Wedge({
-	              beginNote: lineDirection.getVFNote(),
-	              endStave: lastDirection.getVFNote().getStave(),
-	              beginHeight: isCrescendo ? 0 : 10,
-	              endHeight: isCrescendo ? 8 : 4,
-	              line: line
-	            }));
-	
-	            lineDirection = nextDirection;
-	          }
-	
-	          line = line > 0 ? Math.max(line, nextDirection.getLine()) : Math.min(line, nextDirection.getLine());
-	
-	          lastDirection = nextDirection;
-	          nextDirection = lastDirection.getNextDirection();
-	        }
-	
-	        var options = {
-	          endHeight: isCrescendo ? 10 : 0,
-	          line: line
-	        };
-	
-	        if (!lastDirection.getVFNote()) return;
-	
-	        var vfEndNote = lastDirection.getVFEndNote();
-	        if (vfEndNote) options.endNote = vfEndNote;else options.endStave = lastDirection.getVFNote().getStave();
-	
-	        if (lineChanged) {
-	          options.beginStave = lineDirection.getVFNote().getStave();
-	          options.beginHeight = isCrescendo ? 4 : 8;
-	        } else {
-	          options.beginNote = lineDirection.getVFNote();
-	          options.beginHeight = isCrescendo ? 0 : 10;
-	        }
-	
-	        lineDirection.setVFElement(new VF.Wedge(options));
-	      });
-	    }
-	
-	    // @before formatLyric
-	    // @after formatVoices: measure width
-	
-	  }, {
-	    key: 'formatDirection',
-	    value: function formatDirection() {
-	      var _this20 = this;
-	
-	      // reset
-	      this.parts.forEach(function (part) {
-	        return part.getMeasures().forEach(function (measure) {
-	          measure.getDirections().forEach(function (direction) {
-	            direction.setVFNote(null);
-	            direction.setVFEndNote(null);
-	            direction.setVFElement(null);
-	          });
-	        });
-	      });
-	
-	      this.parts.forEach(function (part, pi) {
-	        part.getMeasures().forEach(function (measure, mi) {
-	          var measureCache = _this20.getMeasureCache(pi, mi);
-	          _this20._formatDirection(measure, measureCache);
-	        });
-	      });
-	
-	      // create VFElement from GhostNote (Wedge...)
-	      this.parts.forEach(function (part, pi) {
-	        part.getMeasures().forEach(function (measure, mi) {
-	          _this20._createMultiMeasureDirectionVFElement({ measure: measure, mi: mi, pi: pi });
-	        });
-	      });
-	
-	      // joinVoices to existing formatters!
-	      this.measurePacks.forEach(function (measurePack) {
-	        var vfDirectionVoices = measurePack.getVFDirectionVoices();
-	        if (vfDirectionVoices.length === 0) return;
-	
-	        measurePack.getVFFormatter().joinVoices(vfDirectionVoices);
-	      });
-	    }
-	  }, {
-	    key: '_postFormatDirection',
-	    value: function _postFormatDirection(measure) {
-	      var directions = measure.getDirections().filter(function (direction) {
-	        return direction.getDirectionType() === 'words';
-	      });
-	
-	      directions.forEach(function (direction) {
-	        var vfStave = measure.getStave(direction.getStaff());
-	        var vfNote = direction.getVFNote();
-	        var shiftX = vfNote.getAbsoluteX() - vfStave.getX();
-	        var shiftY = vfStave.getYForLine(direction.getLine()) - vfStave.getYForLine(0);
-	
-	        var words = direction.getWordsList()[0];
-	        var font = {};
-	        if (words.fontFamily) font.family = words.fontFamily;
-	        if (words.fontWeight) font.weight = words.fontWeight;
-	        if (words.fontSize) {
-	          font.size = isNaN(Number(words.fontSize)) ? words.fontSize : Math.min(Number(words.fontSize) * 1.3, 14);
-	        }
-	
-	        var vfStaveText = new VF.StaveText({
-	          text: words.text,
-	          line: direction.getLine(),
-	          position: VF.StaveModifier.Position.ABOVE,
-	          options: {
-	            shift_x: shiftX,
-	            shift_y: -shiftY * 0,
-	            justification: VF.StaveText.Justification.LEFT
-	          }
-	        });
-	
-	        vfStaveText.setFont(font);
-	        vfStaveText.setStave(vfStave);
-	        vfStave.modifiers.push(vfStaveText);
-	        // Prevent vfStave not to cancel formatted
-	        //vfStave.addModifier(vfStaveText);
-	      });
-	    }
-	
-	    /*
-	     * Format VF.StaveModifier type directions!
-	     * words
-	     */
-	
-	  }, {
-	    key: 'postFormatDirection',
-	    value: function postFormatDirection() {
-	      var _this21 = this;
-	
-	      this.parts.forEach(function (part, pi) {
-	        part.getMeasures().forEach(function (measure, mi) {
-	          _this21._postFormatDirection(measure);
-	        });
-	      });
-	    }
-	  }, {
 	    key: 'formatVoices',
 	    value: function formatVoices() {
 	      this.measurePacks.forEach(function (measurePack, mi) {
@@ -38289,27 +37985,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        var vfTabVoices = vfVoices.filter(function (vfVoice) {
-	          var _iteratorNormalCompletion5 = true;
-	          var _didIteratorError5 = false;
-	          var _iteratorError5 = undefined;
+	          var _iteratorNormalCompletion3 = true;
+	          var _didIteratorError3 = false;
+	          var _iteratorError3 = undefined;
 	
 	          try {
-	            for (var _iterator5 = vfVoice.getTickables()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	              var vfNote = _step5.value;
+	            for (var _iterator3 = vfVoice.getTickables()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	              var vfNote = _step3.value;
 	
 	              if (vfNote instanceof _allegretto2.default.Flow.TabNote) return true;
 	            }
 	          } catch (err) {
-	            _didIteratorError5 = true;
-	            _iteratorError5 = err;
+	            _didIteratorError3 = true;
+	            _iteratorError3 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	                _iterator5.return();
+	              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	                _iterator3.return();
 	              }
 	            } finally {
-	              if (_didIteratorError5) {
-	                throw _iteratorError5;
+	              if (_didIteratorError3) {
+	                throw _iteratorError3;
 	              }
 	            }
 	          }
@@ -38392,11 +38088,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatBeam',
 	    value: function formatBeam() {
-	      var _this22 = this;
+	      var _this18 = this;
 	
 	      this.parts.forEach(function (part) {
 	        part.getMeasures().forEach(function (measure) {
-	          return _this22._formatBeam(measure);
+	          return _this18._formatBeam(measure);
 	        });
 	      });
 	    }
@@ -38521,32 +38217,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.slurTieSubFormatter.formatSlur();
 	    }
 	  }, {
+	    key: 'formatDirection',
+	    value: function formatDirection() {
+	      this.directionSubFormatter.formatDirection();
+	    }
+	  }, {
+	    key: 'postFormatDirection',
+	    value: function postFormatDirection() {
+	      this.directionSubFormatter.postFormatDirection();
+	    }
+	  }, {
 	    key: 'postFormatBeam',
 	    value: function postFormatBeam() {
 	      this.parts.forEach(function (part) {
 	        return part.getMeasures().forEach(function (measure) {
 	          var vfBeams = measure.getVFBeams();
-	          var _iteratorNormalCompletion6 = true;
-	          var _didIteratorError6 = false;
-	          var _iteratorError6 = undefined;
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
 	
 	          try {
-	            for (var _iterator6 = vfBeams[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	              var vfBeam = _step6.value;
+	            for (var _iterator4 = vfBeams[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var vfBeam = _step4.value;
 	
 	              vfBeam.postFormat();
 	            }
 	          } catch (err) {
-	            _didIteratorError6 = true;
-	            _iteratorError6 = err;
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-	                _iterator6.return();
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
 	              }
 	            } finally {
-	              if (_didIteratorError6) {
-	                throw _iteratorError6;
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
 	              }
 	            }
 	          }
@@ -38899,13 +38605,686 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	var _Note = __webpack_require__(315);
+	
+	var _Note2 = _interopRequireDefault(_Note);
+	
+	var _Util = __webpack_require__(310);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var VF = _allegretto2.default.Flow;
+	
+	var DirectionSubFormatter = function () {
+	  function DirectionSubFormatter(_ref) {
+	    var formatter = _ref.formatter;
+	    var score = _ref.score;
+	
+	    _classCallCheck(this, DirectionSubFormatter);
+	
+	    this.formatter = formatter;
+	    this.score = score;
+	  }
+	
+	  _createClass(DirectionSubFormatter, [{
+	    key: '_formatDirectionBeginDurations',
+	    value: function _formatDirectionBeginDurations(measure, measureCache) {
+	      var directionsMap = measure.getDirectionsMap();
+	      var notesMap = measure.getNotesMap();
+	
+	      directionsMap.forEach(function (directions, staff) {
+	        return directions.forEach(function (direction) {
+	          // 1. if begin duration >= measure duration
+	          // => set begin duration as measure duration / 2
+	          var duration = (0, _Util.getMaxDuration)(notesMap);
+	          if (direction.getBeginDuration() >= duration) {
+	            direction.setBeginDuration(duration / 2);
+	            return;
+	          }
+	
+	          if (direction.getDirectionType() !== 'dynamics') return; // TODO
+	          else if (direction.getBeginDuration() > 0 || direction.getDefaultX() == null) return;
+	
+	          var defaultX = direction.getDefaultX();
+	          var maxDuration = 0;
+	
+	          // Ensure all notes have defaultX
+	          notesMap.forEach(function (notes) {
+	            if (notes.length === 0 || notes[0].getDefaultX() == null) return;
+	
+	            var lastDuration = 0;
+	            var sumDuration = 0;
+	            var gap = Infinity;
+	
+	            var _iteratorNormalCompletion = true;
+	            var _didIteratorError = false;
+	            var _iteratorError = undefined;
+	
+	            try {
+	              for (var _iterator = notes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                var note = _step.value;
+	
+	                if (note.getDefaultX() == null) return; // not break, return
+	
+	                var newGap = Math.abs(note.getDefaultX() - defaultX);
+	
+	                if (gap < newGap) break;else gap = newGap;
+	
+	                sumDuration += lastDuration;
+	                lastDuration = note.getDuration();
+	              }
+	            } catch (err) {
+	              _didIteratorError = true;
+	              _iteratorError = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion && _iterator.return) {
+	                  _iterator.return();
+	                }
+	              } finally {
+	                if (_didIteratorError) {
+	                  throw _iteratorError;
+	                }
+	              }
+	            }
+	
+	            if (sumDuration > maxDuration) maxDuration = sumDuration;
+	          });
+	
+	          if (maxDuration > direction.getBeginDuration()) direction.setBeginDuration(maxDuration);
+	        });
+	      });
+	    }
+	  }, {
+	    key: '_calculateDirectionBoundingBox',
+	    value: function _calculateDirectionBoundingBox(_ref2) {
+	      var direction = _ref2.direction;
+	      var notesMap = _ref2.notesMap;
+	      var vfStave = _ref2.vfStave;
+	
+	      var boundingBox = void 0;
+	      var endDuration = direction.getBeginDuration() + direction.getDuration();
+	
+	      notesMap.forEach(function (notes) {
+	        var duration = 0;
+	
+	        var _iteratorNormalCompletion2 = true;
+	        var _didIteratorError2 = false;
+	        var _iteratorError2 = undefined;
+	
+	        try {
+	          for (var _iterator2 = notes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	            var note = _step2.value;
+	
+	            if (duration > endDuration) break;
+	
+	            if (note.getStaff() !== direction.getStaff() || duration < direction.getBeginDuration()) {
+	              duration += note.getDuration();
+	              continue;
+	            }
+	
+	            duration += note.getDuration();
+	
+	            var noteBoundingBox = note.getVFNote().getBoundingBox();
+	            if (boundingBox) boundingBox.mergeWith(noteBoundingBox);else boundingBox = noteBoundingBox;
+	          }
+	        } catch (err) {
+	          _didIteratorError2 = true;
+	          _iteratorError2 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	              _iterator2.return();
+	            }
+	          } finally {
+	            if (_didIteratorError2) {
+	              throw _iteratorError2;
+	            }
+	          }
+	        }
+	      });
+	
+	      return boundingBox;
+	    }
+	  }, {
+	    key: '_findBracketTypeEndNote',
+	    value: function _findBracketTypeEndNote(_ref3) {
+	      var notesMap = _ref3.notesMap;
+	      var direction = _ref3.direction;
+	      var staff = _ref3.staff;
+	      var divisions = _ref3.divisions;
+	      var vfStave = _ref3.vfStave;
+	
+	      var sumDuration = direction.getBeginDuration() + direction.getDuration();
+	      var endNote = void 0;
+	      var beginDuration = void 0;
+	      var minGap = Infinity;
+	
+	      notesMap.forEach(function (notes) {
+	        var duration = 0;
+	        var _iteratorNormalCompletion3 = true;
+	        var _didIteratorError3 = false;
+	        var _iteratorError3 = undefined;
+	
+	        try {
+	          for (var _iterator3 = notes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	            var note = _step3.value;
+	
+	            duration += note.getDuration();
+	
+	            if (note.getStaff() !== staff) continue;
+	
+	            if (duration >= sumDuration) {
+	              var gap = duration - sumDuration;
+	              if (gap < minGap) {
+	                minGap = gap;
+	                endNote = note;
+	                beginDuration = duration - note.getDuration();
+	              }
+	
+	              break;
+	            }
+	          }
+	        } catch (err) {
+	          _didIteratorError3 = true;
+	          _iteratorError3 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	              _iterator3.return();
+	            }
+	          } finally {
+	            if (_didIteratorError3) {
+	              throw _iteratorError3;
+	            }
+	          }
+	        }
+	      });
+	
+	      var vfEndNote = void 0;
+	
+	      // replace ghost note if bracket is only for a single note
+	      if (direction.getContent().type !== 'continue' && direction.getBeginDuration() === beginDuration) {
+	        vfEndNote = new VF.GhostNote({
+	          duration: (0, _Util.getVFDuration)(new _Note2.default({ duration: direction.getDuration() / 2 }), divisions)
+	        });
+	
+	        vfEndNote.setStave(vfStave);
+	      } else {
+	        vfEndNote = endNote.getVFNote();
+	      }
+	
+	      return vfEndNote;
+	    }
+	
+	    // @support dynamics
+	
+	  }, {
+	    key: '_formatDirectionDurations',
+	    value: function _formatDirectionDurations(measure, measureCache) {
+	      var _this = this;
+	
+	      var directionsMap = measure.getDirectionsMap();
+	      var notesMap = measure.getNotesMap();
+	      var divisions = measureCache.getDivisions();
+	      var maxDuration = (0, _Util.getMaxDuration)(notesMap);
+	
+	      directionsMap.forEach(function (directions, staff) {
+	        return directions.forEach(function (direction) {
+	          var directionType = direction.getDirectionType();
+	          if (!['dynamics', 'wedge', 'words', 'octave-shift'].includes(directionType)) return;
+	
+	          var vfStave = measure.getStave(staff);
+	
+	          var sumDuration = void 0;
+	          var vfDuration = void 0;
+	          var vfDirectionNote = void 0;
+	          switch (directionType) {
+	            case 'dynamics':
+	              direction.setDuration(divisions);
+	              vfDirectionNote = new VF.TextDynamics({
+	                text: direction.getDynamicType(),
+	                duration: (0, _Util.getVFDuration)(direction, divisions)
+	              });
+	              vfDirectionNote.setStave(vfStave).preFormat();
+	              break;
+	            case 'words':
+	              // StaveText will be used
+	              direction.setDuration(divisions * 2);
+	              vfDirectionNote = new VF.GhostNote({ duration: (0, _Util.getVFDuration)(direction, divisions) });
+	              vfDirectionNote.setStave(vfStave);
+	              break;
+	            case 'octave-shift':
+	              vfDuration = (0, _Util.getVFDuration)(direction, divisions);
+	              sumDuration = direction.getBeginDuration() + direction.getDuration();
+	              vfDirectionNote = new VF.GhostNote({ duration: vfDuration });
+	
+	              // stop, find bracket end note
+	              if (!direction.getNextDirection()) {
+	                var vfDirectionEndNote = _this._findBracketTypeEndNote({
+	                  notesMap: measure.getNotesMap(),
+	                  direction: direction,
+	                  staff: staff,
+	                  divisions: divisions,
+	                  vfStave: vfStave
+	                });
+	
+	                direction.setVFEndNote(vfDirectionEndNote);
+	              }
+	
+	              vfDirectionNote.setStave(vfStave);
+	              break;
+	            case 'wedge':
+	              if (direction.getDuration() === 0) {
+	                console.warn('[warn] measure number ' + measure.number + ', found duration 0 direction');
+	                return;
+	              }
+	
+	              vfDuration = (0, _Util.getVFDuration)(direction, divisions);
+	              sumDuration = direction.getBeginDuration() + direction.getDuration();
+	              vfDirectionNote = new VF.GhostNote({ duration: vfDuration });
+	
+	              if (sumDuration < maxDuration) {
+	                var _vfDirectionEndNote = new VF.GhostNote({
+	                  duration: (0, _Util.getVFDuration)(new _Note2.default({ duration: maxDuration - sumDuration }), divisions)
+	                });
+	
+	                _vfDirectionEndNote.setStave(vfStave);
+	                direction.setVFEndNote(_vfDirectionEndNote);
+	              }
+	
+	              vfDirectionNote.setStave(vfStave);
+	              break;
+	          }
+	
+	          direction.setVFNote(vfDirectionNote);
+	
+	          var spacing = vfStave.getSpacingBetweenLines();
+	          var placement = direction.getPlacement();
+	          var boundingBox = _this._calculateDirectionBoundingBox({ direction: direction, notesMap: notesMap, vfStave: vfStave });
+	
+	          if (placement === 'above') {
+	            var vfStaveTopLineY = vfStave.getTopLineTopY();
+	            var maxY = boundingBox ? boundingBox.getY() : vfStaveTopLineY;
+	            var maxLine = -2 + Math.min(0, (maxY - vfStaveTopLineY) / spacing);
+	
+	            direction.setMaxLine(maxLine);
+	          } else {
+	            var vfStaveBottomLineY = vfStave.getBottomLineBottomY();
+	            var numLines = vfStave.getNumLines();
+	            var minY = boundingBox ? boundingBox.getY() + boundingBox.getH() : vfStaveBottomLineY;
+	            var minLine = numLines + 1 + Math.max(0, (minY - vfStaveBottomLineY) / spacing);
+	
+	            direction.setMinLine(minLine);
+	          }
+	        });
+	      });
+	    }
+	  }, {
+	    key: '_formatDirection',
+	    value: function _formatDirection(measure, measureCache) {
+	      var directionsMap = measure.getDirectionsMap();
+	      var divisions = measureCache.getDivisions();
+	
+	      var _ref4 = measureCache.hasTime() ? measureCache.getTime() : {};
+	
+	      var _ref4$beats = _ref4.beats;
+	      var beats = _ref4$beats === undefined ? 4 : _ref4$beats;
+	      var _ref4$beatType = _ref4.beatType;
+	      var beatType = _ref4$beatType === undefined ? 4 : _ref4$beatType;
+	
+	      var voiceOptions = { num_beats: beats, beat_value: beatType };
+	
+	      // 1. calculate begin duration of directions.
+	      this._formatDirectionBeginDurations(measure, measureCache);
+	
+	      // 2. calculate duration of directions.(make [beginDuration, duration] pairs)
+	      this._formatDirectionDurations(measure, measureCache);
+	
+	      // 3. Fill vfDirectionVoicesMap
+	      var vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
+	
+	      directionsMap.forEach(function (directions, staff) {
+	        directions.forEach(function (direction) {
+	          var vfNote = direction.getVFNote();
+	          if (!vfNote) return;
+	
+	          var line = direction.getPlacement() === 'above' ? direction.getMaxLine() : direction.getMinLine();
+	
+	          direction.setLine(line);
+	
+	          if (vfNote instanceof VF.GhostNote) return;
+	
+	          direction.getVFNote().setLine(line + 3.5);
+	        });
+	
+	        // TODO: Join multiple directions into same voice
+	        directions.forEach(function (direction) {
+	          var vfNote = direction.getVFNote();
+	          var vfEndNote = direction.getVFEndNote();
+	          if (!vfNote) return;
+	
+	          var vfDirectionVoice = new VF.Voice(voiceOptions);
+	          vfDirectionVoice.setMode(VF.Voice.Mode.SOFT);
+	
+	          var vfTickables = [];
+	
+	          if (direction.getBeginDuration() > 0) {
+	            var vfDuration = (0, _Util.getVFDuration)(new _Note2.default({ duration: direction.getBeginDuration() }), divisions);
+	            var ghostNote = new VF.GhostNote(vfDuration);
+	            var vfStave = measure.getStave(direction.getStaff());
+	            ghostNote.setStave(vfStave);
+	            vfTickables.push(ghostNote);
+	          }
+	
+	          vfTickables.push(vfNote);
+	          if (vfEndNote && vfEndNote instanceof VF.GhostNote) vfTickables.push(vfEndNote);
+	
+	          vfDirectionVoice.addTickables(vfTickables);
+	          vfDirectionVoice.setStave(measure.getStave(staff));
+	
+	          if (vfDirectionVoicesMap.has(staff)) {
+	            vfDirectionVoicesMap.get(staff).push(vfDirectionVoice);
+	          } else {
+	            vfDirectionVoicesMap.set(staff, [vfDirectionVoice]);
+	          }
+	        });
+	      });
+	
+	      measure.setVFDirectionVoicesMap(vfDirectionVoicesMap);
+	    }
+	  }, {
+	    key: '_getMockTextBracketNote',
+	    value: function _getMockTextBracketNote(vfStave, isEnd) {
+	      var x = isEnd ? vfStave.getX() + vfStave.getWidth() : vfStave.getX();
+	
+	      return {
+	        getAbsoluteX: function getAbsoluteX() {
+	          return x;
+	        },
+	        getGlyph: function getGlyph() {
+	          return {
+	            getWidth: function getWidth() {
+	              return 0;
+	            }
+	          };
+	        },
+	        getStave: function getStave() {
+	          return vfStave;
+	        }
+	      };
+	    }
+	  }, {
+	    key: '_getOctaveShiftText',
+	    value: function _getOctaveShiftText(content) {
+	      return {
+	        text: content.size,
+	        superscript: content.type === 'up' ? content.size === 8 ? 'vb' : 'mb' : content.size === 8 ? 'va' : 'ma',
+	        position: content.type === 'up' ? -1 : 1
+	      };
+	    }
+	    /*
+	     * wedge
+	     */
+	
+	  }, {
+	    key: '_createMultiMeasureDirectionVFElement',
+	    value: function _createMultiMeasureDirectionVFElement(_ref5) {
+	      var _this2 = this;
+	
+	      var measure = _ref5.measure;
+	      var mi = _ref5.mi;
+	      var pi = _ref5.pi;
+	
+	      var directions = measure.getDirections().filter(function (direction) {
+	        return ['wedge', 'octave-shift'].includes(direction.getDirectionType()) && !['continue'].includes(direction.getContent().type);
+	      });
+	
+	      var initGetNextMeasure = function initGetNextMeasure(mi) {
+	        var _mi = mi;
+	        return function () {
+	          return _this2.score.getParts()[pi].getMeasures()[++_mi];
+	        };
+	      };
+	
+	      directions.forEach(function (direction) {
+	        var getNextMeasure = initGetNextMeasure(mi);
+	        var vfNote = direction.getVFNote();
+	        if (!vfNote) return;
+	
+	        var directionType = direction.getDirectionType();
+	        // wedge
+	        var isCrescendo = direction.getContent().type === 'crescendo';
+	        // octave-shift
+	        var content = direction.getContent();
+	        var line = direction.getLine();
+	        var lineDirection = direction; // first direction of line
+	        var lastDirection = direction;
+	        var nextDirection = direction.getNextDirection();
+	        var lineChanged = false;
+	
+	        while (nextDirection) {
+	          var _measure = getNextMeasure();
+	          var isNewLine = _measure.isNewLineStarting();
+	
+	          if (isNewLine) {
+	            // flush!
+	            lineChanged = true;
+	            var _vfElement = void 0;
+	
+	            switch (directionType) {
+	              case 'wedge':
+	                _vfElement = new VF.Wedge({
+	                  beginNote: lineDirection.getVFNote(),
+	                  endStave: lastDirection.getVFNote().getStave(),
+	                  beginHeight: isCrescendo ? 0 : 10,
+	                  endHeight: isCrescendo ? 8 : 4,
+	                  line: line
+	                });
+	                break;
+	              case 'octave-shift':
+	                var _getOctaveShiftText2 = _this2._getOctaveShiftText(content);
+	
+	                var text = _getOctaveShiftText2.text;
+	                var superscript = _getOctaveShiftText2.superscript;
+	                var position = _getOctaveShiftText2.position;
+	
+	                _vfElement = new VF.TextBracket({
+	                  start: lineDirection.getVFNote(),
+	                  stop: _this2._getMockTextBracketNote(lastDirection.getVFNote().getStave(), true),
+	                  text: text,
+	                  superscript: superscript,
+	                  position: position
+	                });
+	
+	                _vfElement.render_options.show_bracket = false;
+	                break;
+	            }
+	
+	            lineDirection.setVFElement(_vfElement);
+	            lineDirection = nextDirection;
+	          }
+	
+	          line = line > 0 ? Math.max(line, nextDirection.getLine()) : Math.min(line, nextDirection.getLine());
+	
+	          lastDirection = nextDirection;
+	          nextDirection = lastDirection.getNextDirection();
+	        }
+	
+	        var options = {
+	          endHeight: isCrescendo ? 10 : 0,
+	          line: line
+	        };
+	
+	        if (!lastDirection.getVFNote()) return;
+	
+	        var vfEndNote = lastDirection.getVFEndNote();
+	        if (vfEndNote) options.endNote = vfEndNote;else options.endStave = lastDirection.getVFNote().getStave();
+	
+	        if (lineChanged) {
+	          options.beginStave = lineDirection.getVFNote().getStave();
+	          options.beginHeight = isCrescendo ? 4 : 8;
+	        } else {
+	          options.beginNote = lineDirection.getVFNote();
+	          options.beginHeight = isCrescendo ? 0 : 10;
+	        }
+	
+	        var vfElement = void 0;
+	        switch (directionType) {
+	          case 'wedge':
+	            vfElement = new VF.Wedge(options);
+	            break;
+	          case 'octave-shift':
+	            var _getOctaveShiftText3 = _this2._getOctaveShiftText(content);
+	
+	            var _text = _getOctaveShiftText3.text;
+	            var _superscript = _getOctaveShiftText3.superscript;
+	            var _position = _getOctaveShiftText3.position;
+	
+	            vfElement = new VF.TextBracket({
+	              start: lineDirection.getVFNote(),
+	              stop: options.endNote,
+	              text: _text,
+	              superscript: _superscript,
+	              position: _position
+	            });
+	            break;
+	        }
+	
+	        lineDirection.setVFElement(vfElement);
+	      });
+	    }
+	
+	    // @before formatLyric
+	    // @after formatVoices: measure width
+	
+	  }, {
+	    key: 'formatDirection',
+	    value: function formatDirection() {
+	      var _this3 = this;
+	
+	      // reset
+	      var parts = this.score.getParts();
+	      parts.forEach(function (part) {
+	        return part.getMeasures().forEach(function (measure) {
+	          measure.getDirections().forEach(function (direction) {
+	            direction.setVFNote(null);
+	            direction.setVFEndNote(null);
+	            direction.setVFElement(null);
+	          });
+	        });
+	      });
+	
+	      parts.forEach(function (part, pi) {
+	        part.getMeasures().forEach(function (measure, mi) {
+	          var measureCache = _this3.formatter.getMeasureCache(pi, mi);
+	          _this3._formatDirection(measure, measureCache);
+	        });
+	      });
+	
+	      // create VFElement from GhostNote (Wedge...)
+	      parts.forEach(function (part, pi) {
+	        part.getMeasures().forEach(function (measure, mi) {
+	          _this3._createMultiMeasureDirectionVFElement({ measure: measure, mi: mi, pi: pi });
+	        });
+	      });
+	
+	      // joinVoices to existing formatters!
+	      this.score.getMeasurePacks().forEach(function (measurePack) {
+	        var vfDirectionVoices = measurePack.getVFDirectionVoices();
+	        if (vfDirectionVoices.length === 0) return;
+	
+	        measurePack.getVFFormatter().joinVoices(vfDirectionVoices);
+	      });
+	    }
+	  }, {
+	    key: '_postFormatDirection',
+	    value: function _postFormatDirection(measure) {
+	      var directions = measure.getDirections().filter(function (direction) {
+	        return direction.getDirectionType() === 'words';
+	      });
+	
+	      directions.forEach(function (direction) {
+	        var vfStave = measure.getStave(direction.getStaff());
+	        var vfNote = direction.getVFNote();
+	        var shiftX = vfNote.getAbsoluteX() - vfStave.getX();
+	        var shiftY = vfStave.getYForLine(direction.getLine()) - vfStave.getYForLine(0);
+	
+	        var words = direction.getWordsList()[0];
+	        var font = {};
+	        if (words.fontFamily) font.family = words.fontFamily;
+	        if (words.fontWeight) font.weight = words.fontWeight;
+	        if (words.fontSize) {
+	          font.size = isNaN(Number(words.fontSize)) ? words.fontSize : Math.min(Number(words.fontSize) * 1.3, 14);
+	        }
+	
+	        var vfStaveText = new VF.StaveText({
+	          text: words.text,
+	          line: direction.getLine(),
+	          position: VF.StaveModifier.Position.ABOVE,
+	          options: {
+	            shift_x: shiftX,
+	            shift_y: -shiftY * 0,
+	            justification: VF.StaveText.Justification.LEFT
+	          }
+	        });
+	
+	        vfStaveText.setFont(font);
+	        vfStaveText.setStave(vfStave);
+	        vfStave.modifiers.push(vfStaveText);
+	        // Prevent vfStave not to cancel formatted
+	        //vfStave.addModifier(vfStaveText);
+	      });
+	    }
+	
+	    /*
+	     * Format VF.StaveModifier type directions!
+	     * words
+	     */
+	
+	  }, {
+	    key: 'postFormatDirection',
+	    value: function postFormatDirection() {
+	      var _this4 = this;
+	
+	      this.score.getParts().forEach(function (part, pi) {
+	        part.getMeasures().forEach(function (measure, mi) {
+	          _this4._postFormatDirection(measure);
+	        });
+	      });
+	    }
+	  }]);
+	
+	  return DirectionSubFormatter;
+	}();
+	
+	exports.default = DirectionSubFormatter;
+
+/***/ },
+/* 324 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
 	var _allegretto = __webpack_require__(299);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _AdvancedFormatter2 = __webpack_require__(324);
+	var _AdvancedFormatter2 = __webpack_require__(325);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -39449,7 +39828,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = VerticalFormatter;
 
 /***/ },
-/* 324 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39705,7 +40084,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = AdvancedFormatter;
 
 /***/ },
-/* 325 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39718,7 +40097,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _AdvancedFormatter2 = __webpack_require__(324);
+	var _AdvancedFormatter2 = __webpack_require__(325);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -39815,7 +40194,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HorizontalFormatter;
 
 /***/ },
-/* 326 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
