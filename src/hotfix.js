@@ -8,6 +8,7 @@ import './hotfix.stavetext.js';
 import './hotfix.wedge.js';
 import './hotfix.curve.js';
 import './hotfix.volta.js';
+import './hotfix.repetition.js';
 
 // New options: numbered
 const Tuplet = Vex.Flow.Tuplet;

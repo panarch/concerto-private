@@ -468,9 +468,10 @@ export default class DirectionSubFormatter {
     });
   }
 
-  _postFormatDirection(measure) {
+  _postFormatWordsTypeDirection(measure) {
     const directions = measure.getDirections().filter(direction => (
-      direction.getDirectionType() === 'words'
+      direction.getDirectionType() === 'words' &&
+        !this._isRepetitionWords(direction.getWordsList()[0].text)
     ));
 
     directions.forEach(direction => {
@@ -508,6 +509,52 @@ export default class DirectionSubFormatter {
     });
   }
 
+  _isRepetitionWords(text) {
+    text = text.toLowerCase();
+    return ['d.c. al coda', 'd.c. al fine', 'd.s. al coda', 'd.s. al fine',
+      'fine', 'd.c.', 'd.s.', 'to coda'].includes(text);
+  }
+
+  _getVFRepetitionType(direction) {
+    const directionType = direction.getDirectionType();
+    const isBegin = direction.getBeginDuration() === 0;
+    const Type = VF.Repetition.type;
+
+    if (directionType === 'coda') {
+      return isBegin ? Type.CODA_LEFT : Type.CODA_RIGHT;
+    } else if (directionType === 'segno') {
+      return isBegin ? Type.SEGNO_LEFT : Type.SEGNO_RIGHT;
+    } else if (directionType === 'words') {
+      switch (direction.getWordsList()[0].text.toLowerCase()) {
+      case 'd.c. al coda': return Type.DC_AL_CODA;
+      case 'd.c. al fine': return Type.DC_AL_FINE;
+      case 'd.s. al coda': return Type.DS_AL_CODA;
+      case 'd.s. al fine': return Type.DS_AL_FINE;
+      case 'fine': return Type.FINE;
+      case 'd.c.': return Type.DC;
+      case 'd.s.': return Type.DS;
+      case 'to coda': return 'to_coda';
+      }
+    }
+
+    return vfType;
+  }
+
+  // coda, segno
+  _postFormatCodaTypeDirection(measure) {
+    measure.getDirections().filter(direction => (
+      ['coda', 'segno'].includes(direction.getDirectionType()) ||
+      (direction.getDirectionType() === 'words' &&
+        this._isRepetitionWords(direction.getWordsList()[0].text))
+    )).forEach(direction => {
+      const vfStave = measure.getStave(direction.getStaff());
+      const vfRepetitionType = this._getVFRepetitionType(direction);
+      const vfRepetition = new VF.Repetition(vfRepetitionType, vfStave.x, 25);
+
+      vfStave.modifiers.push(vfRepetition);
+    });
+  }
+
   /*
    * Format VF.StaveModifier type directions!
    * words
@@ -515,7 +562,8 @@ export default class DirectionSubFormatter {
   postFormatDirection() {
     this.score.getParts().forEach((part, pi) => {
       part.getMeasures().forEach((measure, mi) => {
-        this._postFormatDirection(measure);
+        this._postFormatWordsTypeDirection(measure);
+        this._postFormatCodaTypeDirection(measure);
       });
     });
   }

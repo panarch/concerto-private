@@ -163,7 +163,7 @@ const parseDirection = (data, directionNode, state) => {
   case 'words':
     direction.wordsList = [...directionTypeNode.children].map(wordsNode => {
       const words = {
-        text: wordsNode.textContent,
+        text: wordsNode.textContent.trim(),
       };
 
       const attrList = [
@@ -195,6 +195,12 @@ const parseDirection = (data, directionNode, state) => {
       direction.octaveShift.number = contentNode.getAttribute('number');
     }
 
+    break;
+  case 'segno':
+    direction.segno = true;
+    break;
+  case 'coda':
+    direction.coda = true;
     break;
   }
 
