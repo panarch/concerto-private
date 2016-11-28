@@ -64,49 +64,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Score = __webpack_require__(305);
+	var _Score = __webpack_require__(306);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Defaults = __webpack_require__(306);
+	var _Defaults = __webpack_require__(307);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Movement = __webpack_require__(307);
+	var _Movement = __webpack_require__(308);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(308);
+	var _Identification = __webpack_require__(309);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Part = __webpack_require__(309);
+	var _Part = __webpack_require__(310);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(310);
+	var _Measure = __webpack_require__(311);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Parser = __webpack_require__(313);
+	var _Parser = __webpack_require__(314);
 	
-	var _Formatter = __webpack_require__(322);
+	var _Formatter = __webpack_require__(323);
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _VerticalFormatter = __webpack_require__(325);
+	var _VerticalFormatter = __webpack_require__(326);
 	
 	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
 	
-	var _HorizontalFormatter = __webpack_require__(327);
+	var _HorizontalFormatter = __webpack_require__(328);
 	
 	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
 	
-	var _Renderer = __webpack_require__(328);
+	var _Renderer = __webpack_require__(329);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
-	var _Util = __webpack_require__(311);
+	var _Util = __webpack_require__(312);
 	
 	var _Util2 = _interopRequireDefault(_Util);
 	
@@ -8190,14 +8190,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(304);
 	
+	__webpack_require__(305);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// New options: numbered
-	/*
-	 * hotfix script
-	 */
+	var Tuplet = _allegretto2.default.Flow.Tuplet; /*
+	                                                * hotfix script
+	                                                */
 	
-	var Tuplet = _allegretto2.default.Flow.Tuplet;
 	_allegretto2.default.Flow.Tuplet.prototype.draw = function draw() {
 	  var _this = this;
 	
@@ -33323,6 +33324,130 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 305 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var Repetition = _allegretto2.default.Flow.Repetition;
+	var Glyph = _allegretto2.default.Flow.Glyph;
+	
+	/*
+	Vex.Flow.Repetition.type = {
+	  NONE: 1,         // no coda or segno
+	  CODA_LEFT: 2,    // coda at beginning of stave
+	  CODA_RIGHT: 3,   // coda at end of stave
+	  SEGNO_LEFT: 4,   // segno at beginning of stave
+	  SEGNO_RIGHT: 5,  // segno at end of stave
+	  DC: 6,           // D.C. at end of stave
+	  DC_AL_CODA: 7,   // D.C. al coda at end of stave
+	  DC_AL_FINE: 8,   // D.C. al Fine end of stave
+	  DS: 9,           // D.S. at end of stave
+	  DS_AL_CODA: 10,  // D.S. al coda at end of stave
+	  DS_AL_FINE: 11,  // D.S. al Fine at end of stave
+	  FINE: 12,        // Fine at end of stave
+	  TO_CODA: 13,
+	};
+	*/
+	
+	_allegretto2.default.Flow.Repetition.prototype.drawCodaFixed = function (stave, x) {
+	  var y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
+	  Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y, 40, 'v4d', true);
+	  // y + 25 => y
+	  return this;
+	};
+	
+	_allegretto2.default.Flow.Repetition.prototype.drawSignoFixed = function (stave, x) {
+	  var y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
+	  Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y, 30, 'v8c', true);
+	  return this;
+	};
+	
+	_allegretto2.default.Flow.Repetition.prototype.drawSymbolText = function (stave, x, text, draw_coda) {
+	  var ctx = stave.checkContext();
+	
+	  ctx.save();
+	  ctx.setFont(this.font.family, this.font.size, this.font.weight);
+	  // Default to right symbol
+	  var text_x = 0 + this.x_shift;
+	  var symbol_x = x + this.x_shift;
+	  if (this.symbol_type === Repetition.type.CODA_LEFT) {
+	    // Offset Coda text to right of stave beginning
+	    text_x = this.x + stave.options.vertical_bar_width;
+	    symbol_x = text_x + ctx.measureText(text).width + 12;
+	  } else {
+	    // Offset Segno text to left stave end
+	    symbol_x = this.x + stave.width - 5 + this.x_shift;
+	    text_x = symbol_x - ctx.measureText(text).width - 12;
+	  }
+	
+	  var y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
+	  if (draw_coda) {
+	    Glyph.renderGlyph(ctx, symbol_x, y, 40, 'v4d', true);
+	  } else {
+	    text_x += 17;
+	  }
+	
+	  ctx.fillText(text, text_x, y + 5);
+	  ctx.restore();
+	
+	  return this;
+	};
+	
+	_allegretto2.default.Flow.Repetition.prototype.draw = function draw(stave, x) {
+	  this.setRendered();
+	
+	  switch (this.symbol_type) {
+	    case Repetition.type.CODA_RIGHT:
+	      this.drawCodaFixed(stave, x + stave.width);
+	      break;
+	    case Repetition.type.CODA_LEFT:
+	      //this.drawSymbolText(stave, x, 'Coda', true);
+	      this.drawCodaFixed(stave, x);
+	      break;
+	    case Repetition.type.SEGNO_LEFT:
+	      this.drawSignoFixed(stave, x);
+	      break;
+	    case Repetition.type.SEGNO_RIGHT:
+	      this.drawSignoFixed(stave, x + stave.width);
+	      break;
+	    case Repetition.type.DC:
+	      this.drawSymbolText(stave, x, 'D.C.', false);
+	      break;
+	    case Repetition.type.DC_AL_CODA:
+	      this.drawSymbolText(stave, x, 'D.C. al', true);
+	      break;
+	    case Repetition.type.DC_AL_FINE:
+	      this.drawSymbolText(stave, x, 'D.C. al Fine', false);
+	      break;
+	    case Repetition.type.DS:
+	      this.drawSymbolText(stave, x, 'D.S.', false);
+	      brea;
+	    case Repetition.type.DS_AL_CODA:
+	      this.drawSymbolText(stave, x, 'D.S. al', true);
+	      break;
+	    case Repetition.type.DS_AL_FINE:
+	      this.drawSymbolText(stave, x, 'D.S. al Fine', false);
+	      break;
+	    case Repetition.type.FINE:
+	      this.drawSymbolText(stave, x, 'Fine', false);
+	      break;
+	    case 'to_coda':
+	      this.drawSymbolText(stave, x, 'To Coda', false);
+	    default:
+	      break;
+	  }
+	
+	  return this;
+	};
+
+/***/ },
+/* 306 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33420,7 +33545,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Score;
 
 /***/ },
-/* 306 */
+/* 307 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -33573,7 +33698,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Defaults.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 307 */
+/* 308 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33600,7 +33725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Movement;
 
 /***/ },
-/* 308 */
+/* 309 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33629,7 +33754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Identification;
 
 /***/ },
-/* 309 */
+/* 310 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33722,7 +33847,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Part;
 
 /***/ },
-/* 310 */
+/* 311 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33735,7 +33860,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	
-	var _Util = __webpack_require__(311);
+	var _Util = __webpack_require__(312);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -34218,7 +34343,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Measure.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 311 */
+/* 312 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34242,7 +34367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Table = __webpack_require__(312);
+	var _Table = __webpack_require__(313);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
@@ -34536,7 +34661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 312 */
+/* 313 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -34586,7 +34711,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Table;
 
 /***/ },
-/* 313 */
+/* 314 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34596,37 +34721,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parse = undefined;
 	
-	var _PartParser = __webpack_require__(314);
+	var _PartParser = __webpack_require__(315);
 	
-	var _LayoutParser = __webpack_require__(315);
+	var _LayoutParser = __webpack_require__(316);
 	
-	var _rectifier = __webpack_require__(318);
+	var _rectifier = __webpack_require__(319);
 	
-	var _Score = __webpack_require__(305);
+	var _Score = __webpack_require__(306);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Movement = __webpack_require__(307);
+	var _Movement = __webpack_require__(308);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(308);
+	var _Identification = __webpack_require__(309);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Defaults = __webpack_require__(306);
+	var _Defaults = __webpack_require__(307);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Credit = __webpack_require__(319);
+	var _Credit = __webpack_require__(320);
 	
 	var _Credit2 = _interopRequireDefault(_Credit);
 	
-	var _PartList = __webpack_require__(320);
+	var _PartList = __webpack_require__(321);
 	
 	var _PartList2 = _interopRequireDefault(_PartList);
 	
-	var _MeasurePack = __webpack_require__(321);
+	var _MeasurePack = __webpack_require__(322);
 	
 	var _MeasurePack2 = _interopRequireDefault(_MeasurePack);
 	
@@ -34858,7 +34983,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 314 */
+/* 315 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34868,25 +34993,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parsePart = undefined;
 	
-	var _LayoutParser = __webpack_require__(315);
+	var _LayoutParser = __webpack_require__(316);
 	
-	var _Part = __webpack_require__(309);
+	var _Part = __webpack_require__(310);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(310);
+	var _Measure = __webpack_require__(311);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Note = __webpack_require__(316);
+	var _Note = __webpack_require__(317);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Direction = __webpack_require__(317);
+	var _Direction = __webpack_require__(318);
 	
 	var _Direction2 = _interopRequireDefault(_Direction);
 	
-	var _Util = __webpack_require__(311);
+	var _Util = __webpack_require__(312);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35031,7 +35156,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    case 'words':
 	      direction.wordsList = [].concat(_toConsumableArray(directionTypeNode.children)).map(function (wordsNode) {
 	        var words = {
-	          text: wordsNode.textContent
+	          text: wordsNode.textContent.trim()
 	        };
 	
 	        var attrList = ['justify', 'valign', 'halign', 'font-size', 'font-weight', 'font-family', 'font-style'];
@@ -35062,6 +35187,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        direction.octaveShift.number = contentNode.getAttribute('number');
 	      }
 	
+	      break;
+	    case 'segno':
+	      direction.segno = true;
+	      break;
+	    case 'coda':
+	      direction.coda = true;
 	      break;
 	  }
 	
@@ -35770,7 +35901,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 315 */
+/* 316 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35840,7 +35971,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 316 */
+/* 317 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36068,7 +36199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Note;
 
 /***/ },
-/* 317 */
+/* 318 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -36326,7 +36457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Direction;
 
 /***/ },
-/* 318 */
+/* 319 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -36485,7 +36616,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	*/
 
 /***/ },
-/* 319 */
+/* 320 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36545,7 +36676,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Credit;
 
 /***/ },
-/* 320 */
+/* 321 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36592,7 +36723,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = PartList;
 
 /***/ },
-/* 321 */
+/* 322 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36723,7 +36854,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = MeasurePack;
 
 /***/ },
-/* 322 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36739,21 +36870,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Measure = __webpack_require__(310);
+	var _Measure = __webpack_require__(311);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Table = __webpack_require__(312);
+	var _Table = __webpack_require__(313);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
-	var _Util = __webpack_require__(311);
+	var _Util = __webpack_require__(312);
 	
-	var _SlurTieSubFormatter = __webpack_require__(323);
+	var _SlurTieSubFormatter = __webpack_require__(324);
 	
 	var _SlurTieSubFormatter2 = _interopRequireDefault(_SlurTieSubFormatter);
 	
-	var _DirectionSubFormatter = __webpack_require__(324);
+	var _DirectionSubFormatter = __webpack_require__(325);
 	
 	var _DirectionSubFormatter2 = _interopRequireDefault(_DirectionSubFormatter);
 	
@@ -38526,7 +38657,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Formatter;
 
 /***/ },
-/* 323 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38541,7 +38672,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(316);
+	var _Note = __webpack_require__(317);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
@@ -38827,7 +38958,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = SlurTieSubFormatter;
 
 /***/ },
-/* 324 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38842,11 +38973,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(316);
+	var _Note = __webpack_require__(317);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Util = __webpack_require__(311);
+	var _Util = __webpack_require__(312);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39437,10 +39568,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: '_postFormatDirection',
-	    value: function _postFormatDirection(measure) {
+	    key: '_postFormatWordsTypeDirection',
+	    value: function _postFormatWordsTypeDirection(measure) {
+	      var _this4 = this;
+	
 	      var directions = measure.getDirections().filter(function (direction) {
-	        return direction.getDirectionType() === 'words';
+	        return direction.getDirectionType() === 'words' && !_this4._isRepetitionWords(direction.getWordsList()[0].text);
 	      });
 	
 	      directions.forEach(function (direction) {
@@ -39475,6 +39608,64 @@ return /******/ (function(modules) { // webpackBootstrap
 	        //vfStave.addModifier(vfStaveText);
 	      });
 	    }
+	  }, {
+	    key: '_isRepetitionWords',
+	    value: function _isRepetitionWords(text) {
+	      text = text.toLowerCase();
+	      return ['d.c. al coda', 'd.c. al fine', 'd.s. al coda', 'd.s. al fine', 'fine', 'd.c.', 'd.s.', 'to coda'].includes(text);
+	    }
+	  }, {
+	    key: '_getVFRepetitionType',
+	    value: function _getVFRepetitionType(direction) {
+	      var directionType = direction.getDirectionType();
+	      var isBegin = direction.getBeginDuration() === 0;
+	      var Type = VF.Repetition.type;
+	
+	      if (directionType === 'coda') {
+	        return isBegin ? Type.CODA_LEFT : Type.CODA_RIGHT;
+	      } else if (directionType === 'segno') {
+	        return isBegin ? Type.SEGNO_LEFT : Type.SEGNO_RIGHT;
+	      } else if (directionType === 'words') {
+	        switch (direction.getWordsList()[0].text.toLowerCase()) {
+	          case 'd.c. al coda':
+	            return Type.DC_AL_CODA;
+	          case 'd.c. al fine':
+	            return Type.DC_AL_FINE;
+	          case 'd.s. al coda':
+	            return Type.DS_AL_CODA;
+	          case 'd.s. al fine':
+	            return Type.DS_AL_FINE;
+	          case 'fine':
+	            return Type.FINE;
+	          case 'd.c.':
+	            return Type.DC;
+	          case 'd.s.':
+	            return Type.DS;
+	          case 'to coda':
+	            return 'to_coda';
+	        }
+	      }
+	
+	      return vfType;
+	    }
+	
+	    // coda, segno
+	
+	  }, {
+	    key: '_postFormatCodaTypeDirection',
+	    value: function _postFormatCodaTypeDirection(measure) {
+	      var _this5 = this;
+	
+	      measure.getDirections().filter(function (direction) {
+	        return ['coda', 'segno'].includes(direction.getDirectionType()) || direction.getDirectionType() === 'words' && _this5._isRepetitionWords(direction.getWordsList()[0].text);
+	      }).forEach(function (direction) {
+	        var vfStave = measure.getStave(direction.getStaff());
+	        var vfRepetitionType = _this5._getVFRepetitionType(direction);
+	        var vfRepetition = new VF.Repetition(vfRepetitionType, vfStave.x, 25);
+	
+	        vfStave.modifiers.push(vfRepetition);
+	      });
+	    }
 	
 	    /*
 	     * Format VF.StaveModifier type directions!
@@ -39484,11 +39675,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'postFormatDirection',
 	    value: function postFormatDirection() {
-	      var _this4 = this;
+	      var _this6 = this;
 	
 	      this.score.getParts().forEach(function (part, pi) {
 	        part.getMeasures().forEach(function (measure, mi) {
-	          _this4._postFormatDirection(measure);
+	          _this6._postFormatWordsTypeDirection(measure);
+	          _this6._postFormatCodaTypeDirection(measure);
 	        });
 	      });
 	    }
@@ -39500,7 +39692,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = DirectionSubFormatter;
 
 /***/ },
-/* 325 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39517,11 +39709,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _AdvancedFormatter2 = __webpack_require__(326);
+	var _AdvancedFormatter2 = __webpack_require__(327);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
-	var _Util = __webpack_require__(311);
+	var _Util = __webpack_require__(312);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -40061,7 +40253,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = VerticalFormatter;
 
 /***/ },
-/* 326 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40074,7 +40266,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Formatter2 = __webpack_require__(322);
+	var _Formatter2 = __webpack_require__(323);
 	
 	var _Formatter3 = _interopRequireDefault(_Formatter2);
 	
@@ -40317,7 +40509,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = AdvancedFormatter;
 
 /***/ },
-/* 327 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40330,7 +40522,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _AdvancedFormatter2 = __webpack_require__(326);
+	var _AdvancedFormatter2 = __webpack_require__(327);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -40427,7 +40619,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HorizontalFormatter;
 
 /***/ },
-/* 328 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
