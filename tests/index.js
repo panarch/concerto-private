@@ -2,6 +2,7 @@ import Concerto from '../src/index';
 
 const URLS = [
   './tests/Volta.xml',
+  './tests/Volta.Complex.xml',
   './tests/OctaveShift.xml',
   './tests/KeyboardFingering.Sibelius.xml',
   './tests/KeyboardFingering.MuseScore.xml',
