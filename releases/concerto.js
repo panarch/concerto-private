@@ -64,49 +64,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Score = __webpack_require__(304);
+	var _Score = __webpack_require__(305);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Defaults = __webpack_require__(305);
+	var _Defaults = __webpack_require__(306);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Movement = __webpack_require__(306);
+	var _Movement = __webpack_require__(307);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(307);
+	var _Identification = __webpack_require__(308);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Part = __webpack_require__(308);
+	var _Part = __webpack_require__(309);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(309);
+	var _Measure = __webpack_require__(310);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Parser = __webpack_require__(312);
+	var _Parser = __webpack_require__(313);
 	
-	var _Formatter = __webpack_require__(321);
+	var _Formatter = __webpack_require__(322);
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _VerticalFormatter = __webpack_require__(324);
+	var _VerticalFormatter = __webpack_require__(325);
 	
 	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
 	
-	var _HorizontalFormatter = __webpack_require__(326);
+	var _HorizontalFormatter = __webpack_require__(327);
 	
 	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
 	
-	var _Renderer = __webpack_require__(327);
+	var _Renderer = __webpack_require__(328);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
-	var _Util = __webpack_require__(310);
+	var _Util = __webpack_require__(311);
 	
 	var _Util2 = _interopRequireDefault(_Util);
 	
@@ -8188,13 +8188,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(303);
 	
+	__webpack_require__(304);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// New options: numbered
-	var Tuplet = _allegretto2.default.Flow.Tuplet; /*
-	                                                * hotfix script
-	                                                */
+	/*
+	 * hotfix script
+	 */
 	
+	var Tuplet = _allegretto2.default.Flow.Tuplet;
 	_allegretto2.default.Flow.Tuplet.prototype.draw = function draw() {
 	  var _this = this;
 	
@@ -33194,6 +33197,132 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 304 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.Volta = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } // [VexFlow](http://vexflow.com) - Copyright (c) Mohit Muthanna 2010.
+	// Author Larry Kuhns 2011
+	
+	var StaveModifier = _allegretto2.default.Flow.StaveModifier;
+	
+	// VexFlow bundle : no Volta!!
+	
+	var Volta = exports.Volta = function (_StaveModifier) {
+	  _inherits(Volta, _StaveModifier);
+	
+	  _createClass(Volta, null, [{
+	    key: 'CATEGORY',
+	    get: function get() {
+	      return 'voltas';
+	    }
+	  }, {
+	    key: 'type',
+	    get: function get() {
+	      return {
+	        NONE: 1,
+	        BEGIN: 2,
+	        MID: 3,
+	        END: 4,
+	        BEGIN_END: 5
+	      };
+	    }
+	  }]);
+	
+	  function Volta(type, number, x, y_shift) {
+	    _classCallCheck(this, Volta);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Volta).call(this));
+	
+	    _this.setAttribute('type', 'Volta');
+	    _this.volta = type;
+	    _this.x = x;
+	    _this.y_shift = y_shift;
+	    _this.number = number;
+	    _this.font = {
+	      family: 'sans-serif',
+	      //size: 9,
+	      size: 12,
+	      weight: 'bold'
+	    };
+	    return _this;
+	  }
+	
+	  _createClass(Volta, [{
+	    key: 'getCategory',
+	    value: function getCategory() {
+	      return Volta.CATEGORY;
+	    }
+	  }, {
+	    key: 'setShiftY',
+	    value: function setShiftY(y) {
+	      this.y_shift = y;return this;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw(stave, x) {
+	      var ctx = stave.checkContext();
+	      this.setRendered();
+	
+	      //let width = stave.width;
+	      var width = stave.getWidth() - x; // UPDATED
+	      var top_y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
+	      //const vert_height = 1.5 * stave.options.spacing_between_lines_px;
+	      var vert_height = 2 * stave.options.spacing_between_lines_px;
+	      switch (this.volta) {
+	        case Volta.type.BEGIN:
+	          ctx.fillRect(this.x + x, top_y, 1, vert_height);
+	          break;
+	        case Volta.type.END:
+	          width -= 5;
+	          ctx.fillRect(this.x + x + width, top_y, 1, vert_height);
+	          break;
+	        case Volta.type.BEGIN_END:
+	          width -= 3;
+	          ctx.fillRect(this.x + x, top_y, 1, vert_height);
+	          ctx.fillRect(this.x + x + width, top_y, 1, vert_height);
+	          break;
+	        default:
+	          break;
+	      }
+	      // If the beginning of a volta, draw measure number
+	      if (this.volta === Volta.type.BEGIN || this.volta === Volta.type.BEGIN_END) {
+	        ctx.save();
+	        ctx.setFont(this.font.family, this.font.size, this.font.weight);
+	        //ctx.fillText(this.number, this.x + x + 5, top_y + 15);
+	        ctx.fillText(this.number, this.x + x + 5, top_y + 18);
+	        ctx.restore();
+	      }
+	
+	      ctx.fillRect(this.x + x, top_y, width, 1);
+	      return this;
+	    }
+	  }]);
+	
+	  return Volta;
+	}(StaveModifier);
+	
+	_allegretto2.default.Flow.Volta = Volta;
+
+/***/ },
+/* 305 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33291,7 +33420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Score;
 
 /***/ },
-/* 305 */
+/* 306 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -33444,7 +33573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Defaults.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 306 */
+/* 307 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33471,7 +33600,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Movement;
 
 /***/ },
-/* 307 */
+/* 308 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33500,7 +33629,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Identification;
 
 /***/ },
-/* 308 */
+/* 309 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -33593,7 +33722,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Part;
 
 /***/ },
-/* 309 */
+/* 310 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33606,7 +33735,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	
-	var _Util = __webpack_require__(310);
+	var _Util = __webpack_require__(311);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -34089,7 +34218,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Measure.STAFF_DISTANCE = 0;
 
 /***/ },
-/* 310 */
+/* 311 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34107,12 +34236,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.sumNotesDuration = sumNotesDuration;
 	exports.getMaxDuration = getMaxDuration;
 	exports.getLineGenerator = getLineGenerator;
+	exports.hasSameContents = hasSameContents;
 	
 	var _allegretto = __webpack_require__(299);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Table = __webpack_require__(311);
+	var _Table = __webpack_require__(312);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
@@ -34386,6 +34516,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return lineGenerator();
 	}
 	
+	// Check two arrays have same items
+	function hasSameContents(arr1, arr2) {
+	  return arr1.length === arr2.length && arr1.every(function (item1, i) {
+	    return item1 === arr2[i];
+	  });
+	}
+	
 	exports.default = {
 	  getVFClef: getVFClef,
 	  getVFDuration: getVFDuration,
@@ -34394,11 +34531,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Stack: Stack,
 	  sumNotesDuration: sumNotesDuration,
 	  getMaxDuration: getMaxDuration,
-	  getLineGenerator: getLineGenerator
+	  getLineGenerator: getLineGenerator,
+	  hasSameContents: hasSameContents
 	};
 
 /***/ },
-/* 311 */
+/* 312 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -34448,7 +34586,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Table;
 
 /***/ },
-/* 312 */
+/* 313 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34458,37 +34596,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parse = undefined;
 	
-	var _PartParser = __webpack_require__(313);
+	var _PartParser = __webpack_require__(314);
 	
-	var _LayoutParser = __webpack_require__(314);
+	var _LayoutParser = __webpack_require__(315);
 	
-	var _rectifier = __webpack_require__(317);
+	var _rectifier = __webpack_require__(318);
 	
-	var _Score = __webpack_require__(304);
+	var _Score = __webpack_require__(305);
 	
 	var _Score2 = _interopRequireDefault(_Score);
 	
-	var _Movement = __webpack_require__(306);
+	var _Movement = __webpack_require__(307);
 	
 	var _Movement2 = _interopRequireDefault(_Movement);
 	
-	var _Identification = __webpack_require__(307);
+	var _Identification = __webpack_require__(308);
 	
 	var _Identification2 = _interopRequireDefault(_Identification);
 	
-	var _Defaults = __webpack_require__(305);
+	var _Defaults = __webpack_require__(306);
 	
 	var _Defaults2 = _interopRequireDefault(_Defaults);
 	
-	var _Credit = __webpack_require__(318);
+	var _Credit = __webpack_require__(319);
 	
 	var _Credit2 = _interopRequireDefault(_Credit);
 	
-	var _PartList = __webpack_require__(319);
+	var _PartList = __webpack_require__(320);
 	
 	var _PartList2 = _interopRequireDefault(_PartList);
 	
-	var _MeasurePack = __webpack_require__(320);
+	var _MeasurePack = __webpack_require__(321);
 	
 	var _MeasurePack2 = _interopRequireDefault(_MeasurePack);
 	
@@ -34720,7 +34858,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 313 */
+/* 314 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34730,25 +34868,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parsePart = undefined;
 	
-	var _LayoutParser = __webpack_require__(314);
+	var _LayoutParser = __webpack_require__(315);
 	
-	var _Part = __webpack_require__(308);
+	var _Part = __webpack_require__(309);
 	
 	var _Part2 = _interopRequireDefault(_Part);
 	
-	var _Measure = __webpack_require__(309);
+	var _Measure = __webpack_require__(310);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Note = __webpack_require__(315);
+	var _Note = __webpack_require__(316);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Direction = __webpack_require__(316);
+	var _Direction = __webpack_require__(317);
 	
 	var _Direction2 = _interopRequireDefault(_Direction);
 	
-	var _Util = __webpack_require__(310);
+	var _Util = __webpack_require__(311);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -34773,14 +34911,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var parseBarline = function parseBarline(data, barlineNode) {
-	  var barStyleNode = barlineNode.getElementsByTagName('bar-style')[0];
-	  var repeatNode = barlineNode.getElementsByTagName('repeat')[0];
+	  var barStyleNode = barlineNode.querySelector('bar-style');
+	  var repeatNode = barlineNode.querySelector('repeat');
+	  var endingNode = barlineNode.querySelector('ending');
 	  var barline = {
 	    location: barlineNode.hasAttribute('location') ? barlineNode.getAttribute('location') : 'right'
 	  };
 	
 	  if (barStyleNode) barline.barStyle = barStyleNode.textContent;
 	  if (repeatNode) barline.repeat = { direction: repeatNode.getAttribute('direction') };
+	  if (endingNode) {
+	    barline.ending = {
+	      type: endingNode.getAttribute('type'),
+	      number: endingNode.getAttribute('number'),
+	      text: endingNode.textContent.lenght > 0 ? endingNote.textContent.trim() : endingNode.getAttribute('number') + '.'
+	    };
+	  }
 	
 	  data.barline[barline.location] = barline;
 	};
@@ -35624,7 +35770,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 314 */
+/* 315 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35694,7 +35840,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 315 */
+/* 316 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -35922,7 +36068,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Note;
 
 /***/ },
-/* 316 */
+/* 317 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -36180,7 +36326,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Direction;
 
 /***/ },
-/* 317 */
+/* 318 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -36339,7 +36485,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	*/
 
 /***/ },
-/* 318 */
+/* 319 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36399,7 +36545,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Credit;
 
 /***/ },
-/* 319 */
+/* 320 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36446,7 +36592,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = PartList;
 
 /***/ },
-/* 320 */
+/* 321 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36577,7 +36723,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = MeasurePack;
 
 /***/ },
-/* 321 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36593,21 +36739,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Measure = __webpack_require__(309);
+	var _Measure = __webpack_require__(310);
 	
 	var _Measure2 = _interopRequireDefault(_Measure);
 	
-	var _Table = __webpack_require__(311);
+	var _Table = __webpack_require__(312);
 	
 	var _Table2 = _interopRequireDefault(_Table);
 	
-	var _Util = __webpack_require__(310);
+	var _Util = __webpack_require__(311);
 	
-	var _SlurTieSubFormatter = __webpack_require__(322);
+	var _SlurTieSubFormatter = __webpack_require__(323);
 	
 	var _SlurTieSubFormatter2 = _interopRequireDefault(_SlurTieSubFormatter);
 	
-	var _DirectionSubFormatter = __webpack_require__(323);
+	var _DirectionSubFormatter = __webpack_require__(324);
 	
 	var _DirectionSubFormatter2 = _interopRequireDefault(_DirectionSubFormatter);
 	
@@ -37409,9 +37555,91 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _loop3(mi);
 	      }
 	    }
+	
+	    // formatBarline -> _formatVolta
+	
+	  }, {
+	    key: '_formatVolta',
+	    value: function _formatVolta(measures) {
+	      var onVolta = false;
+	
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+	
+	      try {
+	        for (var _iterator = measures[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var measure = _step.value;
+	
+	          var barline = measure.getBarline();
+	
+	          var type = void 0;
+	          var text = void 0;
+	          if (onVolta && barline.right && barline.right.ending) {
+	            var ending = barline.right.ending;
+	            if (ending.type === 'discontinue') {
+	              type = VF.Volta.type.MID;
+	            } else {
+	              // stop
+	              type = VF.Volta.type.END;
+	            }
+	
+	            onVolta = false;
+	          } else if (!onVolta && barline.left && barline.left.ending && barline.right && barline.right.ending) {
+	            var types = [barline.left.ending.type, barline.right.ending.type];
+	
+	            if ((0, _Util.hasSameContents)(types, ['start', 'discontinue'])) {
+	              type = VF.Volta.type.BEGIN;
+	            } else if ((0, _Util.hasSameContents)(types, ['start', 'stop'])) {
+	              type = VF.Volta.type.BEGIN_END;
+	            } else if ((0, _Util.hasSameContents)(types, ['discontinue', 'stop'])) {
+	              type = VF.Volta.type.END;
+	            } else {
+	              // ['discontinue', 'discontinue']
+	              type = VF.Volta.type.MID;
+	            }
+	
+	            text = barline.left.ending.text;
+	          } else if (!onVolta && barline.left && barline.left.ending) {
+	            var _ending = barline.left.ending;
+	            if (_ending.type === 'start') {
+	              type = VF.Volta.type.BEGIN;
+	            } else if (_ending.type === 'discontinue') {
+	              type = VF.Volta.type.MID;
+	            }
+	
+	            text = _ending.text;
+	            onVolta = true;
+	          } else if (onVolta) {
+	            type = VF.Volta.type.MID;
+	          }
+	
+	          var vfStave = measure.getStaves()[0];
+	          if (vfStave && type) {
+	            //vfStave.setVoltaType(type, text, 0);
+	            vfStave.modifiers.push(new VF.Volta(type, text, vfStave.x, 20));
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	    }
 	  }, {
 	    key: 'formatBarline',
 	    value: function formatBarline() {
+	      var _this13 = this;
+	
 	      this.parts.forEach(function (part) {
 	        return part.getMeasures().forEach(function (measure) {
 	          var barline = measure.getBarline();
@@ -37435,6 +37663,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            })();
 	          }
 	        });
+	      });
+	
+	      this.parts.forEach(function (part) {
+	        var measures = part.getMeasures();
+	        _this13._formatVolta(measures);
 	      });
 	    }
 	
@@ -37500,7 +37733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_formatNote',
 	    value: function _formatNote(note, clef, divisions, lyricNames) {
-	      var _this13 = this;
+	      var _this14 = this;
 	
 	      if (note.getHidden()) {
 	        return { vfNote: new _allegretto2.default.Flow.GhostNote({ duration: (0, _Util.getVFDuration)(note, divisions) }) };
@@ -37552,7 +37785,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (note.getGrace()) lyricNames = [];
 	      lyricNames.forEach(function (lyricName) {
 	        var lyric = lyrics.filter(function (_lyric) {
-	          return _this13.getLyricName(_lyric) === lyricName;
+	          return _this14.getLyricName(_lyric) === lyricName;
 	        })[0];
 	        var vfLyricNotes = [];
 	
@@ -37639,13 +37872,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var gap = Infinity;
 	          notesMap.forEach(function (notes, voice) {
 	            var duration = 0;
-	            var _iteratorNormalCompletion = true;
-	            var _didIteratorError = false;
-	            var _iteratorError = undefined;
+	            var _iteratorNormalCompletion2 = true;
+	            var _didIteratorError2 = false;
+	            var _iteratorError2 = undefined;
 	
 	            try {
-	              for (var _iterator = notes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	                var note = _step.value;
+	              for (var _iterator2 = notes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	                var note = _step2.value;
 	
 	                if (!note.getDuration() || staff !== note.getStaff()) continue;
 	
@@ -37662,16 +37895,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (note.getDuration()) duration += note.getDuration();
 	              }
 	            } catch (err) {
-	              _didIteratorError = true;
-	              _iteratorError = err;
+	              _didIteratorError2 = true;
+	              _iteratorError2 = err;
 	            } finally {
 	              try {
-	                if (!_iteratorNormalCompletion && _iterator.return) {
-	                  _iterator.return();
+	                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	                  _iterator2.return();
 	                }
 	              } finally {
-	                if (_didIteratorError) {
-	                  throw _iteratorError;
+	                if (_didIteratorError2) {
+	                  throw _iteratorError2;
 	                }
 	              }
 	            }
@@ -37689,12 +37922,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_formatNotes',
 	    value: function _formatNotes(part, pi) {
-	      var _this14 = this;
+	      var _this15 = this;
 	
 	      part.getMeasures().forEach(function (measure, mi) {
 	        var notesMap = measure.getNotesMap();
 	        var lyricNamesMap = measure.getLyricNamesMap();
-	        var measureCache = _this14.getMeasureCache(pi, mi);
+	        var measureCache = _this15.getMeasureCache(pi, mi);
 	        var vfVoicesMap = new Map(); // staff -> vfVoice[]
 	        var vfLyricVoicesMap = new Map();
 	        var vfTupletsMap = new Map();
@@ -37722,7 +37955,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var clef = clefs[clefs.length - 1];
 	            var divisions = measureCache.getDivisions();
 	
-	            var _formatNote2 = _this14._formatNote(note, clef, divisions, lyricNames);
+	            var _formatNote2 = _this15._formatNote(note, clef, divisions, lyricNames);
 	
 	            var vfNote = _formatNote2.vfNote;
 	            var _formatNote2$vfLyricN = _formatNote2.vfLyricNotesMap;
@@ -37734,7 +37967,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            vfNote.setStave(vfStave);
 	            _vfLyricNotesMap.forEach(function (vfLyricNotes) {
 	              vfLyricNotes.forEach(function (vfLyricNote) {
-	                vfLyricNote.setContext(_this14.context);
+	                vfLyricNote.setContext(_this15.context);
 	                vfLyricNote.setStave(vfStave);
 	              });
 	            });
@@ -37744,7 +37977,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (note.grace) {
 	              graceNotes.push(note);
 	            } else {
-	              _this14._formatGraceNotes(vfNote, graceNotes);
+	              _this15._formatGraceNotes(vfNote, graceNotes);
 	              if (!vfNotesMap.has(staff)) {
 	                var ghostNotes = vfDurations.map(function (vfDuration) {
 	                  return new VF.GhostNote({ duration: vfDuration });
@@ -37780,7 +38013,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (note.getDuration()) duration += note.getDuration();
 	          });
 	
-	          vfTupletsMap.set(voice, _this14._formatTuplet(notes));
+	          vfTupletsMap.set(voice, _this15._formatTuplet(notes));
 	
 	          var _ref5 = measureCache.hasTime() ? measureCache.getTime() : {};
 	
@@ -37801,7 +38034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          lyricNames.forEach(function (lyricName) {
 	            var vfLyricNotes = vfLyricNotesMap.get(lyricName).map(function (vfLyricNote) {
-	              return vfLyricNote.setContext(_this14.context);
+	              return vfLyricNote.setContext(_this15.context);
 	            });
 	            var vfLyricVoice = new _allegretto2.default.Flow.Voice(voiceOptions);
 	            vfLyricVoice.setMode(_allegretto2.default.Flow.Voice.Mode.SOFT);
@@ -37816,7 +38049,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          });
 	        });
 	
-	        _this14._formatNoteClef(measure);
+	        _this15._formatNoteClef(measure);
 	
 	        measure.setVFVoicesMap(vfVoicesMap);
 	        measure.setVFLyricVoicesMap(vfLyricVoicesMap);
@@ -37826,7 +38059,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_formatLyricNamesMap',
 	    value: function _formatLyricNamesMap() {
-	      var _this15 = this;
+	      var _this16 = this;
 	
 	      this.parts.forEach(function (part) {
 	        return part.getMeasures().forEach(function (measure) {
@@ -37839,7 +38072,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              if (!note.lyrics) return;
 	
 	              note.lyrics.forEach(function (lyric) {
-	                return lyricNames.add(_this15.getLyricName(lyric));
+	                return lyricNames.add(_this16.getLyricName(lyric));
 	              });
 	            });
 	
@@ -37853,11 +38086,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatNotes',
 	    value: function formatNotes() {
-	      var _this16 = this;
+	      var _this17 = this;
 	
 	      this._formatLyricNamesMap();
 	      this.parts.forEach(function (part, pi) {
-	        return _this16._formatNotes(part, pi);
+	        return _this17._formatNotes(part, pi);
 	      });
 	    }
 	  }, {
@@ -37923,31 +38156,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatLyric',
 	    value: function formatLyric() {
-	      var _this17 = this;
+	      var _this18 = this;
 	
 	      this.parts.forEach(function (part) {
 	        var lineGenerator = (0, _Util.getLineGenerator)(part);
-	        var _iteratorNormalCompletion2 = true;
-	        var _didIteratorError2 = false;
-	        var _iteratorError2 = undefined;
+	        var _iteratorNormalCompletion3 = true;
+	        var _didIteratorError3 = false;
+	        var _iteratorError3 = undefined;
 	
 	        try {
-	          for (var _iterator2 = lineGenerator[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	            var measures = _step2.value;
+	          for (var _iterator3 = lineGenerator[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	            var measures = _step3.value;
 	
-	            _this17._formatLyric(measures);
+	            _this18._formatLyric(measures);
 	          }
 	        } catch (err) {
-	          _didIteratorError2 = true;
-	          _iteratorError2 = err;
+	          _didIteratorError3 = true;
+	          _iteratorError3 = err;
 	        } finally {
 	          try {
-	            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	              _iterator2.return();
+	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	              _iterator3.return();
 	            }
 	          } finally {
-	            if (_didIteratorError2) {
-	              throw _iteratorError2;
+	            if (_didIteratorError3) {
+	              throw _iteratorError3;
 	            }
 	          }
 	        }
@@ -37985,27 +38218,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        var vfTabVoices = vfVoices.filter(function (vfVoice) {
-	          var _iteratorNormalCompletion3 = true;
-	          var _didIteratorError3 = false;
-	          var _iteratorError3 = undefined;
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
 	
 	          try {
-	            for (var _iterator3 = vfVoice.getTickables()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	              var vfNote = _step3.value;
+	            for (var _iterator4 = vfVoice.getTickables()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var vfNote = _step4.value;
 	
 	              if (vfNote instanceof _allegretto2.default.Flow.TabNote) return true;
 	            }
 	          } catch (err) {
-	            _didIteratorError3 = true;
-	            _iteratorError3 = err;
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	                _iterator3.return();
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
 	              }
 	            } finally {
-	              if (_didIteratorError3) {
-	                throw _iteratorError3;
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
 	              }
 	            }
 	          }
@@ -38088,11 +38321,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatBeam',
 	    value: function formatBeam() {
-	      var _this18 = this;
+	      var _this19 = this;
 	
 	      this.parts.forEach(function (part) {
 	        part.getMeasures().forEach(function (measure) {
-	          return _this18._formatBeam(measure);
+	          return _this19._formatBeam(measure);
 	        });
 	      });
 	    }
@@ -38232,27 +38465,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.parts.forEach(function (part) {
 	        return part.getMeasures().forEach(function (measure) {
 	          var vfBeams = measure.getVFBeams();
-	          var _iteratorNormalCompletion4 = true;
-	          var _didIteratorError4 = false;
-	          var _iteratorError4 = undefined;
+	          var _iteratorNormalCompletion5 = true;
+	          var _didIteratorError5 = false;
+	          var _iteratorError5 = undefined;
 	
 	          try {
-	            for (var _iterator4 = vfBeams[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	              var vfBeam = _step4.value;
+	            for (var _iterator5 = vfBeams[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	              var vfBeam = _step5.value;
 	
 	              vfBeam.postFormat();
 	            }
 	          } catch (err) {
-	            _didIteratorError4 = true;
-	            _iteratorError4 = err;
+	            _didIteratorError5 = true;
+	            _iteratorError5 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	                _iterator4.return();
+	              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	                _iterator5.return();
 	              }
 	            } finally {
-	              if (_didIteratorError4) {
-	                throw _iteratorError4;
+	              if (_didIteratorError5) {
+	                throw _iteratorError5;
 	              }
 	            }
 	          }
@@ -38293,7 +38526,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Formatter;
 
 /***/ },
-/* 322 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38308,7 +38541,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(315);
+	var _Note = __webpack_require__(316);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
@@ -38594,7 +38827,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = SlurTieSubFormatter;
 
 /***/ },
-/* 323 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38609,11 +38842,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _Note = __webpack_require__(315);
+	var _Note = __webpack_require__(316);
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
-	var _Util = __webpack_require__(310);
+	var _Util = __webpack_require__(311);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39267,7 +39500,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = DirectionSubFormatter;
 
 /***/ },
-/* 324 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39284,11 +39517,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _AdvancedFormatter2 = __webpack_require__(325);
+	var _AdvancedFormatter2 = __webpack_require__(326);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
-	var _Util = __webpack_require__(310);
+	var _Util = __webpack_require__(311);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39828,7 +40061,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = VerticalFormatter;
 
 /***/ },
-/* 325 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39841,7 +40074,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Formatter2 = __webpack_require__(321);
+	var _Formatter2 = __webpack_require__(322);
 	
 	var _Formatter3 = _interopRequireDefault(_Formatter2);
 	
@@ -40084,7 +40317,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = AdvancedFormatter;
 
 /***/ },
-/* 326 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40097,7 +40330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _AdvancedFormatter2 = __webpack_require__(325);
+	var _AdvancedFormatter2 = __webpack_require__(326);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -40194,7 +40427,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HorizontalFormatter;
 
 /***/ },
-/* 327 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
