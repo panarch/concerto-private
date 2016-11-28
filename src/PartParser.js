@@ -32,8 +32,9 @@ const parsePrint = (data, printNode) => {
 };
 
 const parseBarline = (data, barlineNode) => {
-  const barStyleNode = barlineNode.getElementsByTagName('bar-style')[0];
-  const repeatNode = barlineNode.getElementsByTagName('repeat')[0];
+  const barStyleNode = barlineNode.querySelector('bar-style');
+  const repeatNode = barlineNode.querySelector('repeat');
+  const endingNode = barlineNode.querySelector('ending');
   const barline = {
     location: (
       barlineNode.hasAttribute('location') ? barlineNode.getAttribute('location') : 'right'
@@ -42,6 +43,17 @@ const parseBarline = (data, barlineNode) => {
 
   if (barStyleNode) barline.barStyle = barStyleNode.textContent;
   if (repeatNode) barline.repeat = { direction: repeatNode.getAttribute('direction') }
+  if (endingNode) {
+    barline.ending = {
+      type: endingNode.getAttribute('type'),
+      number: endingNode.getAttribute('number'),
+      text: (
+        endingNode.textContent.lenght > 0 ?
+          endingNote.textContent.trim() :
+          `${endingNode.getAttribute('number')}.`
+      ),
+    };
+  }
 
   data.barline[barline.location] = barline;
 };
