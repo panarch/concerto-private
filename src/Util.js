@@ -194,6 +194,12 @@ export function getLineGenerator(part) {
   return lineGenerator();
 }
 
+// Check two arrays have same items
+export function hasSameContents(arr1, arr2) {
+  return arr1.length === arr2.length &&
+    arr1.every((item1, i) => item1 === arr2[i]);
+}
+
 export default {
   getVFClef,
   getVFDuration,
@@ -203,4 +209,5 @@ export default {
   sumNotesDuration,
   getMaxDuration,
   getLineGenerator,
+  hasSameContents,
 };
