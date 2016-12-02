@@ -903,6 +903,9 @@ export default class Formatter {
       staveNote.addStroke(0, new VF.Stroke(vfStrokeType));
     }
 
+    if (note.notations.fermata) {
+      staveNote.addArticulation(0, new VF.Articulation('a@a').setPosition(3));
+    }
   }
 
   _formatNote(note, clef, divisions, lyricNames) {

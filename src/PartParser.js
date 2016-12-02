@@ -287,11 +287,12 @@ const parseNoteTechnical = (note, head, technicalNode) => {
 };
 
 const parseNoteNotations = (note, head, notationsNode) => {
-  const arpeggiateNode = notationsNode.getElementsByTagName('arpeggiate')[0];
-  const articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
-  const tupletNodes = [...notationsNode.getElementsByTagName('tuplet')];
-  const tiedNodes = notationsNode.getElementsByTagName('tied');
-  const slurNodes = [...notationsNode.getElementsByTagName('slur')].filter(node => {
+  const arpeggiateNode = notationsNode.querySelector('arpeggiate');
+  const articulationsNode = notationsNode.querySelector('articulations');
+  const fermataNode = notationsNode.querySelector('fermata');
+  const tupletNodes = [...notationsNode.querySelectorAll('tuplet')];
+  const tiedNodes = notationsNode.querySelectorAll('tied');
+  const slurNodes = [...notationsNode.querySelectorAll('slur')].filter(node => {
     return node.getAttribute('type') !== 'continue';
   });
 
@@ -316,6 +317,15 @@ const parseNoteNotations = (note, head, notationsNode) => {
     }
 
     note.notations.arpeggiate = arpeggiate;
+  }
+
+  if (fermataNode) {
+    const fermata = {};
+    if (fermataNode.hasAttribute('type')) {
+      fermata.type = fermataNode.getAttribute('type');
+    }
+
+    note.notations.fermata = fermata;
   }
 
   if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
