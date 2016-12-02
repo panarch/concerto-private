@@ -13,7 +13,8 @@
     "diff:responsive": "rm -f ./build/images/diff/* && node tools/diff_svg_images.js responsive",
     "diff:horizontal": "rm -f ./build/images/diff/* && node tools/diff_svg_images.js horizontal",
     "diff": "npm run diff:original & npm run diff:responsive & npm run diff:horizontal",
-    "test": "npm run lint && npm run build && npm run generate && npm run diff"
+    "test:full": "npm run lint && npm run build && npm run generate && npm run diff",
+    "test": "npm run lint && npm run build && npm run generate && (npm run diff:original & npm run diff:responsive)"
   },
   "repository": {
     "type": "git",
