@@ -35281,11 +35281,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var parseNoteNotations = function parseNoteNotations(note, head, notationsNode) {
-	  var arpeggiateNode = notationsNode.getElementsByTagName('arpeggiate')[0];
-	  var articulationsNode = notationsNode.getElementsByTagName('articulations')[0];
-	  var tupletNodes = [].concat(_toConsumableArray(notationsNode.getElementsByTagName('tuplet')));
-	  var tiedNodes = notationsNode.getElementsByTagName('tied');
-	  var slurNodes = [].concat(_toConsumableArray(notationsNode.getElementsByTagName('slur'))).filter(function (node) {
+	  var arpeggiateNode = notationsNode.querySelector('arpeggiate');
+	  var articulationsNode = notationsNode.querySelector('articulations');
+	  var fermataNode = notationsNode.querySelector('fermata');
+	  var tupletNodes = [].concat(_toConsumableArray(notationsNode.querySelectorAll('tuplet')));
+	  var tiedNodes = notationsNode.querySelectorAll('tied');
+	  var slurNodes = [].concat(_toConsumableArray(notationsNode.querySelectorAll('slur'))).filter(function (node) {
 	    return node.getAttribute('type') !== 'continue';
 	  });
 	
@@ -35310,6 +35311,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    note.notations.arpeggiate = arpeggiate;
+	  }
+	
+	  if (fermataNode) {
+	    var fermata = {};
+	    if (fermataNode.hasAttribute('type')) {
+	      fermata.type = fermataNode.getAttribute('type');
+	    }
+	
+	    note.notations.fermata = fermata;
 	  }
 	
 	  if (articulationsNode) parseNoteArticulations(note.notations, articulationsNode);
@@ -37859,6 +37869,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var vfStrokeType = note.notations.arpeggiate.direction === 'down' ? VF.Stroke.Type.ROLL_UP : VF.Stroke.Type.ROLL_DOWN;
 	
 	        staveNote.addStroke(0, new VF.Stroke(vfStrokeType));
+	      }
+	
+	      if (note.notations.fermata) {
+	        staveNote.addArticulation(0, new VF.Articulation('a@a').setPosition(3));
 	      }
 	    }
 	  }, {
