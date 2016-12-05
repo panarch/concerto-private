@@ -10,70 +10,6 @@ export default class DirectionSubFormatter {
     this.score = score;
   }
 
-  _getAlterUnicode(alter) {
-    let acc = '';
-
-    switch (alter) {
-    case 2: acc = VF.unicode['sharp']; // no double-sharp in VexFlow
-    case 1: acc += VF.unicode['sharp']; break;
-    case -2: acc = VF.unicode['flat'];
-    case -1: acc += VF.unicode['flat']; break;
-    case 0: acc = VF.unicode['natural']; break;
-    }
-
-    return acc;
-  }
-
-      /*
-        major: a triangle, like Unicode 25B3
-        minor: -, like Unicode 002D
-        augmented: +, like Unicode 002B
-        diminished: °, like Unicode 00B0
-        half-diminished: ø, like Unicode 00F8
-      */
-  _getHarmonyKindSymbol(kind) {
-    switch (kind.type.split('-')[0]) {
-    case 'major': return VF.unicode['triangle'];
-    case 'minor': return '-';
-    case 'augmented': return '+';
-    case 'diminished': return VF.unicode['degrees'];
-    case 'half': return VF.unicode['o-with-slash'];
-    }
-
-    return null;
-  }
-
-  _getHarmonyVFTextNoteOptions(harmony) {
-    const { root, kind, bass } = harmony;
-    const options = {};
-
-    if (root) {
-      options.text = root.step;
-      const acc = this._getAlterUnicode(root.alter);
-
-      if (acc.length > 0) options.text += acc;
-    }
-
-    if (kind) {
-      if (kind.useSymbol) {
-        const symbol = this._getHarmonyKindSymbol(kind);
-        if (symbol) options.text += symbol;
-      }
-
-      if (kind.text) options.text += kind.text;
-    }
-
-    if (bass) {
-      options.text += `/${bass.step}`;
-      const acc = this._getAlterUnicode(bass.alter);
-
-      if (acc.length > 0) options.text += acc;
-    }
-
-    if (!options.text) options.text = '';
-    return options;
-  }
-
   _formatDirectionBeginDurations(measure, measureCache) {
     const directionsMap = measure.getDirectionsMap();
     const notesMap = measure.getNotesMap();
@@ -227,12 +163,8 @@ export default class DirectionSubFormatter {
         vfDirectionNote.setStave(vfStave);
         break;
       case 'harmony':
-        direction.setDuration(divisions);
-        const vfTextNoteOptions = this._getHarmonyVFTextNoteOptions(direction.getHarmony());
-        vfTextNoteOptions.duration = getVFDuration(direction, divisions);
-        vfStave.setContext(this.formatter.getContext());
-
-        vfDirectionNote = new VF.TextNote(vfTextNoteOptions);
+        direction.setDuration(divisions * 1.5);
+        vfDirectionNote = new VF.GhostNote({ duration: getVFDuration(direction, divisions) });
         vfDirectionNote.setStave(vfStave);
         break;
       case 'octave-shift':
@@ -585,6 +517,106 @@ export default class DirectionSubFormatter {
     });
   }
 
+  _getAlterUnicode(alter) {
+    let acc = '';
+
+    switch (alter) {
+    case 2: acc = VF.unicode['sharp']; // no double-sharp in VexFlow
+    case 1: acc += VF.unicode['sharp']; break;
+    case -2: acc = VF.unicode['flat'];
+    case -1: acc += VF.unicode['flat']; break;
+    case 0: acc = VF.unicode['natural']; break;
+    }
+
+    return acc;
+  }
+
+  /*
+    major: a triangle, like Unicode 25B3
+    minor: -, like Unicode 002D
+    augmented: +, like Unicode 002B
+    diminished: °, like Unicode 00B0
+    half-diminished: ø, like Unicode 00F8
+  */
+  _getHarmonyKindSymbol(kind) {
+    switch (kind.type.split('-')[0]) {
+    case 'major': return VF.unicode['triangle'];
+    case 'minor': return '-';
+    case 'augmented': return '+';
+    case 'diminished': return VF.unicode['degrees'];
+    case 'half': return VF.unicode['o-with-slash'];
+    }
+
+    return null;
+  }
+
+  _getHarmonyVFTextNoteOptions(harmony) {
+    const { root, kind, bass } = harmony;
+    const options = {};
+
+    if (root) {
+      options.text = root.step;
+      const acc = this._getAlterUnicode(root.alter);
+
+      if (acc.length > 0) options.text += acc;
+    }
+
+    if (kind) {
+      if (kind.useSymbol) {
+        const symbol = this._getHarmonyKindSymbol(kind);
+        if (symbol) options.text += symbol;
+      }
+
+      if (kind.text) options.text += kind.text;
+    }
+
+    if (bass) {
+      options.text += `/${bass.step}`;
+      const acc = this._getAlterUnicode(bass.alter);
+
+      if (acc.length > 0) options.text += acc;
+    }
+
+    if (!options.text) options.text = '';
+    return options;
+  }
+
+  _postFormatHarmonyTypeDirection(measure) {
+    const directions = measure.getDirections().filter(direction => (
+      direction.getDirectionType() === 'harmony'
+    ));
+
+    directions.forEach(direction => {
+      const vfStave = measure.getStave(direction.getStaff());
+      const vfNote = direction.getVFNote();
+      const shiftX = vfNote.getAbsoluteX() - vfStave.getX();
+      const shiftY = vfStave.getYForLine(direction.getLine()) - vfStave.getYForLine(0);
+
+      // TextNote default font
+      const font = {
+        family: 'Arial',
+        size: 12,
+        weight: '',
+      };
+
+      const vfOptions = this._getHarmonyVFTextNoteOptions(direction.getHarmony());
+      vfOptions.line = direction.getLine();
+      vfOptions.position = VF.StaveModifier.Position.ABOVE;
+      vfOptions.options = {
+        shift_x: shiftX,
+        shift_y: -shiftY * 0,
+        justification: VF.StaveText.Justification.LEFT,
+      }
+
+      const vfStaveText = new VF.StaveText(vfOptions);
+      vfStaveText.setFont(font);
+      vfStaveText.setStave(vfStave);
+      vfStave.modifiers.push(vfStaveText);
+      // Prevent vfStave not to cancel formatted
+      //vfStave.addModifier(vfStaveText);
+    });
+  }
+
   _isRepetitionWords(text) {
     text = text.toLowerCase();
     return ['d.c. al coda', 'd.c. al fine', 'd.s. al coda', 'd.s. al fine',
@@ -639,6 +671,7 @@ export default class DirectionSubFormatter {
     this.score.getParts().forEach((part, pi) => {
       part.getMeasures().forEach((measure, mi) => {
         this._postFormatWordsTypeDirection(measure);
+        this._postFormatHarmonyTypeDirection(measure);
         this._postFormatCodaTypeDirection(measure);
       });
     });
