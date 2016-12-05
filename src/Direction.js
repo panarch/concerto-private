@@ -2,7 +2,7 @@
 // @author Taehoon Moon
 
 export default class Direction {
-  constructor({ tag, directionType, wedge, wordsList, octaveShift,
+  constructor({ tag, directionType, wedge, wordsList, octaveShift, harmony,
       staff, voice, placement, beginDuration, dynamicType, defaultX }) {
     this.tag = tag;
     this.directionType = directionType;
@@ -14,6 +14,7 @@ export default class Direction {
     this.wordsList = wordsList;
     this.dynamicType = dynamicType;
     this.octaveShift = octaveShift;
+    this.harmony = harmony;
 
     // mutable
     this.beginDuration = beginDuration;
@@ -61,6 +62,7 @@ export default class Direction {
   getWordsList() { return this.wordsList; }
   getDynamicType() { return this.dynamicType; }
   getOctaveShift() { return this.octaveShift; }
+  getHarmony() { return this.harmony; }
 
   getContent() {
     switch (this.directionType) {

@@ -127,6 +127,77 @@ const parseAttributes = (data, attrNode, state) => {
   });
 };
 
+// push to DirectionsMap
+// function type & inversion support
+const parseHarmony = (data, harmonyNode, state) => {
+  const staffNode = harmonyNode.querySelector('staff');
+  const voiceNode = harmonyNode.querySelector('voice');
+  const offsetNode = harmonyNode.querySelector('offset'); // number based on divisions
+  const rootNode = harmonyNode.querySelector('root');
+  const kindNode = harmonyNode.querySelector('kind');
+  const inversionNode = harmonyNode.querySelector('inversion');
+  const bassNode = harmonyNode.querySelector('bass');
+  // TODO: funtion, degree
+
+  const harmony = {};
+  const direction = {
+    tag: 'harmony',
+    directionType: 'harmony',
+    beginDuration: state.duration,
+    staff: staffNode ? Number(staffNode.textContent) : state.staff,
+    voice: voiceNode ? Number(voiceNode.textContent) : state.voice,
+    harmony,
+  };
+
+  if (offsetNode) harmony.beginDuration += Number(offsetNode.textContent);
+
+  if (rootNode) {
+    harmony.root = {
+      step: rootNode.querySelector('root-step').textContent,
+    };
+
+    if (rootNode.querySelector('root-alter')) {
+      harmony.root.alter = Number(rootNode.querySelector('root-alter').textContent);
+    }
+  }
+
+  if (kindNode) {
+    harmony.kind = {
+      type: kindNode.textContent,
+    };
+
+    if (kindNode.hasAttribute('text')) harmony.kind.text = kindNode.getAttribute('text');
+    if (kindNode.hasAttribute('use-symbols')) {
+      harmony.kind.useSymbol = kindNode.getAttribute('use-symbols') === 'yes';
+      /*
+        major: a triangle, like Unicode 25B3
+        minor: -, like Unicode 002D
+        augmented: +, like Unicode 002B
+        diminished: °, like Unicode 00B0
+        half-diminished: ø, like Unicode 00F8
+      */
+    }
+  }
+
+  if (bassNode) {
+    harmony.bass = {
+      step: bassNode.querySelector('bass-step').textContent,
+    };
+
+    if (bassNode.querySelector('bass-alter')) {
+      harmony.bass.alter = Number(bassNode.querySelector('bass-alter'));
+    }
+  }
+
+  if (inversionNode) harmony.inversion = Number(inversionNode.textContent);
+
+  if (data.directionsMap.has(direction.staff)) {
+    data.directionsMap.get(direction.staff).push(new Direction(direction));
+  } else {
+    data.directionsMap.set(direction.staff, [new Direction(direction)]);
+  }
+};
+
 const parseDirection = (data, directionNode, state) => {
   const staffNode = directionNode.querySelector('staff');
   const voiceNode = directionNode.querySelector('voice');
@@ -528,6 +599,9 @@ const parseNotes = (data, noteNodes) => {
         break;
       case 'direction':
         parseDirection(data, node, state);
+        break;
+      case 'harmony':
+        parseHarmony(data, node, state);
         break;
     }
   });

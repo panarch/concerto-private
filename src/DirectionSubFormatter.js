@@ -10,6 +10,70 @@ export default class DirectionSubFormatter {
     this.score = score;
   }
 
+  _getAlterUnicode(alter) {
+    let acc = '';
+
+    switch (alter) {
+    case 2: acc = VF.unicode['sharp']; // no double-sharp in VexFlow
+    case 1: acc += VF.unicode['sharp']; break;
+    case -2: acc = VF.unicode['flat'];
+    case -1: acc += VF.unicode['flat']; break;
+    case 0: acc = VF.unicode['natural']; break;
+    }
+
+    return acc;
+  }
+
+      /*
+        major: a triangle, like Unicode 25B3
+        minor: -, like Unicode 002D
+        augmented: +, like Unicode 002B
+        diminished: °, like Unicode 00B0
+        half-diminished: ø, like Unicode 00F8
+      */
+  _getHarmonyKindSymbol(kind) {
+    switch (kind.type.split('-')[0]) {
+    case 'major': return VF.unicode['triangle'];
+    case 'minor': return '-';
+    case 'augmented': return '+';
+    case 'diminished': return VF.unicode['degrees'];
+    case 'half': return VF.unicode['o-with-slash'];
+    }
+
+    return null;
+  }
+
+  _getHarmonyVFTextNoteOptions(harmony) {
+    const { root, kind, bass } = harmony;
+    const options = {};
+
+    if (root) {
+      options.text = root.step;
+      const acc = this._getAlterUnicode(root.alter);
+
+      if (acc.length > 0) options.text += acc;
+    }
+
+    if (kind) {
+      if (kind.useSymbol) {
+        const symbol = this._getHarmonyKindSymbol(kind);
+        if (symbol) options.text += symbol;
+      }
+
+      if (kind.text) options.text += kind.text;
+    }
+
+    if (bass) {
+      options.text += `/${bass.step}`;
+      const acc = this._getAlterUnicode(bass.alter);
+
+      if (acc.length > 0) options.text += acc;
+    }
+
+    if (!options.text) options.text = '';
+    return options;
+  }
+
   _formatDirectionBeginDurations(measure, measureCache) {
     const directionsMap = measure.getDirectionsMap();
     const notesMap = measure.getNotesMap();
@@ -135,10 +199,13 @@ export default class DirectionSubFormatter {
     const notesMap = measure.getNotesMap();
     const divisions = measureCache.getDivisions();
     const maxDuration = getMaxDuration(notesMap);
+    const SUPPORTED_DIRECTION_TYPES = [
+      'dynamics', 'wedge', 'words', 'octave-shift', 'harmony',
+    ];
 
     directionsMap.forEach((directions, staff) => directions.forEach(direction => {
       const directionType = direction.getDirectionType();
-      if (!['dynamics', 'wedge', 'words', 'octave-shift'].includes(directionType)) return;
+      if (!SUPPORTED_DIRECTION_TYPES.includes(directionType)) return;
 
       const vfStave = measure.getStave(staff);
 
@@ -157,6 +224,15 @@ export default class DirectionSubFormatter {
       case 'words': // StaveText will be used
         direction.setDuration(divisions * 2);
         vfDirectionNote = new VF.GhostNote({ duration: getVFDuration(direction, divisions) });
+        vfDirectionNote.setStave(vfStave);
+        break;
+      case 'harmony':
+        direction.setDuration(divisions);
+        const vfTextNoteOptions = this._getHarmonyVFTextNoteOptions(direction.getHarmony());
+        vfTextNoteOptions.duration = getVFDuration(direction, divisions);
+        vfStave.setContext(this.formatter.getContext());
+
+        vfDirectionNote = new VF.TextNote(vfTextNoteOptions);
         vfDirectionNote.setStave(vfStave);
         break;
       case 'octave-shift':

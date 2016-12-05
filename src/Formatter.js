@@ -50,6 +50,8 @@ export default class Formatter {
     return Vex.Flow.Renderer.getSVGContext(div, 100, 100);
   }
 
+  getContext() { return this.context; }
+
   resetState() {
     this.state = {
       numParts: this.parts.length,
