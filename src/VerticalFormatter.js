@@ -405,7 +405,7 @@ export default class VerticalFormatter extends AdvancedFormatter {
     this.defaults.pageLayout.pageWidth = width;
     this.defaults.pageLayout.pageHeight = height;
 
-    super.formatCredits();
+    super.formatCredits(this.credits);
 
     this.defaults.pageLayout.pageWidth = pageSize.width;
     this.defaults.pageLayout.pageHeight = pageSize.height;

@@ -200,6 +200,7 @@ export default class Renderer {
   renderCredits() {
     this.score.getCredits().forEach(credit => {
       const context = this.contexts[credit.getPage() - 1];
+      if (!context) return;
 
       credit.getTexts().forEach(({ content, x, y, attributes }) => {
         context.save();
