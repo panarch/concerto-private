@@ -3,12 +3,12 @@
  */
 
 import Vex from '@panarch/allegretto';
-import './hotfix.beam.js';
-import './hotfix.stavetext.js';
-import './hotfix.wedge.js';
-import './hotfix.curve.js';
-import './hotfix.volta.js';
-import './hotfix.repetition.js';
+import './hotfixes/hotfix.beam.js';
+import './hotfixes/hotfix.stavetext.js';
+import './hotfixes/hotfix.wedge.js';
+import './hotfixes/hotfix.curve.js';
+import './hotfixes/hotfix.volta.js';
+import './hotfixes/hotfix.repetition.js';
 
 // New options: numbered
 const Tuplet = Vex.Flow.Tuplet;
