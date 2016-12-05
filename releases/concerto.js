@@ -35117,6 +35117,77 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 	
+	// push to DirectionsMap
+	// function type & inversion support
+	var parseHarmony = function parseHarmony(data, harmonyNode, state) {
+	  var staffNode = harmonyNode.querySelector('staff');
+	  var voiceNode = harmonyNode.querySelector('voice');
+	  var offsetNode = harmonyNode.querySelector('offset'); // number based on divisions
+	  var rootNode = harmonyNode.querySelector('root');
+	  var kindNode = harmonyNode.querySelector('kind');
+	  var inversionNode = harmonyNode.querySelector('inversion');
+	  var bassNode = harmonyNode.querySelector('bass');
+	  // TODO: funtion, degree
+	
+	  var harmony = {};
+	  var direction = {
+	    tag: 'harmony',
+	    directionType: 'harmony',
+	    beginDuration: state.duration,
+	    staff: staffNode ? Number(staffNode.textContent) : state.staff,
+	    voice: voiceNode ? Number(voiceNode.textContent) : state.voice,
+	    harmony: harmony
+	  };
+	
+	  if (offsetNode) harmony.beginDuration += Number(offsetNode.textContent);
+	
+	  if (rootNode) {
+	    harmony.root = {
+	      step: rootNode.querySelector('root-step').textContent
+	    };
+	
+	    if (rootNode.querySelector('root-alter')) {
+	      harmony.root.alter = Number(rootNode.querySelector('root-alter').textContent);
+	    }
+	  }
+	
+	  if (kindNode) {
+	    harmony.kind = {
+	      type: kindNode.textContent
+	    };
+	
+	    if (kindNode.hasAttribute('text')) harmony.kind.text = kindNode.getAttribute('text');
+	    if (kindNode.hasAttribute('use-symbols')) {
+	      harmony.kind.useSymbol = kindNode.getAttribute('use-symbols') === 'yes';
+	      /*
+	        major: a triangle, like Unicode 25B3
+	        minor: -, like Unicode 002D
+	        augmented: +, like Unicode 002B
+	        diminished: °, like Unicode 00B0
+	        half-diminished: ø, like Unicode 00F8
+	      */
+	    }
+	  }
+	
+	  if (bassNode) {
+	    harmony.bass = {
+	      step: bassNode.querySelector('bass-step').textContent
+	    };
+	
+	    if (bassNode.querySelector('bass-alter')) {
+	      harmony.bass.alter = Number(bassNode.querySelector('bass-alter'));
+	    }
+	  }
+	
+	  if (inversionNode) harmony.inversion = Number(inversionNode.textContent);
+	
+	  if (data.directionsMap.has(direction.staff)) {
+	    data.directionsMap.get(direction.staff).push(new _Direction2.default(direction));
+	  } else {
+	    data.directionsMap.set(direction.staff, [new _Direction2.default(direction)]);
+	  }
+	};
+	
 	var parseDirection = function parseDirection(data, directionNode, state) {
 	  var staffNode = directionNode.querySelector('staff');
 	  var voiceNode = directionNode.querySelector('voice');
@@ -35525,6 +35596,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        break;
 	      case 'direction':
 	        parseDirection(data, node, state);
+	        break;
+	      case 'harmony':
+	        parseHarmony(data, node, state);
 	        break;
 	    }
 	  });
@@ -36232,6 +36306,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var wedge = _ref.wedge;
 	    var wordsList = _ref.wordsList;
 	    var octaveShift = _ref.octaveShift;
+	    var harmony = _ref.harmony;
 	    var staff = _ref.staff;
 	    var voice = _ref.voice;
 	    var placement = _ref.placement;
@@ -36251,6 +36326,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.wordsList = wordsList;
 	    this.dynamicType = dynamicType;
 	    this.octaveShift = octaveShift;
+	    this.harmony = harmony;
 	
 	    // mutable
 	    this.beginDuration = beginDuration;
@@ -36346,6 +36422,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'getOctaveShift',
 	    value: function getOctaveShift() {
 	      return this.octaveShift;
+	    }
+	  }, {
+	    key: 'getHarmony',
+	    value: function getHarmony() {
+	      return this.harmony;
 	    }
 	  }, {
 	    key: 'getContent',
@@ -36937,6 +37018,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      document.getElementsByTagName('body')[0].appendChild(div);
 	
 	      return _allegretto2.default.Flow.Renderer.getSVGContext(div, 100, 100);
+	    }
+	  }, {
+	    key: 'getContext',
+	    value: function getContext() {
+	      return this.context;
 	    }
 	  }, {
 	    key: 'resetState',
@@ -39212,11 +39298,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var notesMap = measure.getNotesMap();
 	      var divisions = measureCache.getDivisions();
 	      var maxDuration = (0, _Util.getMaxDuration)(notesMap);
+	      var SUPPORTED_DIRECTION_TYPES = ['dynamics', 'wedge', 'words', 'octave-shift', 'harmony'];
 	
 	      directionsMap.forEach(function (directions, staff) {
 	        return directions.forEach(function (direction) {
 	          var directionType = direction.getDirectionType();
-	          if (!['dynamics', 'wedge', 'words', 'octave-shift'].includes(directionType)) return;
+	          if (!SUPPORTED_DIRECTION_TYPES.includes(directionType)) return;
 	
 	          var vfStave = measure.getStave(staff);
 	
@@ -39235,6 +39322,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            case 'words':
 	              // StaveText will be used
 	              direction.setDuration(divisions * 2);
+	              vfDirectionNote = new VF.GhostNote({ duration: (0, _Util.getVFDuration)(direction, divisions) });
+	              vfDirectionNote.setStave(vfStave);
+	              break;
+	            case 'harmony':
+	              direction.setDuration(divisions * 1.5);
 	              vfDirectionNote = new VF.GhostNote({ duration: (0, _Util.getVFDuration)(direction, divisions) });
 	              vfDirectionNote.setStave(vfStave);
 	              break;
@@ -39623,6 +39715,127 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: '_getAlterUnicode',
+	    value: function _getAlterUnicode(alter) {
+	      var acc = '';
+	
+	      switch (alter) {
+	        case 2:
+	          acc = VF.unicode['sharp']; // no double-sharp in VexFlow
+	        case 1:
+	          acc += VF.unicode['sharp'];break;
+	        case -2:
+	          acc = VF.unicode['flat'];
+	        case -1:
+	          acc += VF.unicode['flat'];break;
+	        case 0:
+	          acc = VF.unicode['natural'];break;
+	      }
+	
+	      return acc;
+	    }
+	
+	    /*
+	      major: a triangle, like Unicode 25B3
+	      minor: -, like Unicode 002D
+	      augmented: +, like Unicode 002B
+	      diminished: °, like Unicode 00B0
+	      half-diminished: ø, like Unicode 00F8
+	    */
+	
+	  }, {
+	    key: '_getHarmonyKindSymbol',
+	    value: function _getHarmonyKindSymbol(kind) {
+	      switch (kind.type.split('-')[0]) {
+	        case 'major':
+	          return VF.unicode['triangle'];
+	        case 'minor':
+	          return '-';
+	        case 'augmented':
+	          return '+';
+	        case 'diminished':
+	          return VF.unicode['degrees'];
+	        case 'half':
+	          return VF.unicode['o-with-slash'];
+	      }
+	
+	      return null;
+	    }
+	  }, {
+	    key: '_getHarmonyVFTextNoteOptions',
+	    value: function _getHarmonyVFTextNoteOptions(harmony) {
+	      var root = harmony.root;
+	      var kind = harmony.kind;
+	      var bass = harmony.bass;
+	
+	      var options = {};
+	
+	      if (root) {
+	        options.text = root.step;
+	        var acc = this._getAlterUnicode(root.alter);
+	
+	        if (acc.length > 0) options.text += acc;
+	      }
+	
+	      if (kind) {
+	        if (kind.useSymbol) {
+	          var symbol = this._getHarmonyKindSymbol(kind);
+	          if (symbol) options.text += symbol;
+	        }
+	
+	        if (kind.text) options.text += kind.text;
+	      }
+	
+	      if (bass) {
+	        options.text += '/' + bass.step;
+	        var _acc = this._getAlterUnicode(bass.alter);
+	
+	        if (_acc.length > 0) options.text += _acc;
+	      }
+	
+	      if (!options.text) options.text = '';
+	      return options;
+	    }
+	  }, {
+	    key: '_postFormatHarmonyTypeDirection',
+	    value: function _postFormatHarmonyTypeDirection(measure) {
+	      var _this5 = this;
+	
+	      var directions = measure.getDirections().filter(function (direction) {
+	        return direction.getDirectionType() === 'harmony';
+	      });
+	
+	      directions.forEach(function (direction) {
+	        var vfStave = measure.getStave(direction.getStaff());
+	        var vfNote = direction.getVFNote();
+	        var shiftX = vfNote.getAbsoluteX() - vfStave.getX();
+	        var shiftY = vfStave.getYForLine(direction.getLine()) - vfStave.getYForLine(0);
+	
+	        // TextNote default font
+	        var font = {
+	          family: 'Arial',
+	          size: 12,
+	          weight: ''
+	        };
+	
+	        var vfOptions = _this5._getHarmonyVFTextNoteOptions(direction.getHarmony());
+	        vfOptions.line = direction.getLine();
+	        vfOptions.position = VF.StaveModifier.Position.ABOVE;
+	        vfOptions.options = {
+	          shift_x: shiftX,
+	          shift_y: -shiftY * 0,
+	          justification: VF.StaveText.Justification.LEFT
+	        };
+	
+	        var vfStaveText = new VF.StaveText(vfOptions);
+	        vfStaveText.setFont(font);
+	        vfStaveText.setStave(vfStave);
+	        vfStave.modifiers.push(vfStaveText);
+	        // Prevent vfStave not to cancel formatted
+	        //vfStave.addModifier(vfStaveText);
+	      });
+	    }
+	  }, {
 	    key: '_isRepetitionWords',
 	    value: function _isRepetitionWords(text) {
 	      text = text.toLowerCase();
@@ -39668,13 +39881,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_postFormatCodaTypeDirection',
 	    value: function _postFormatCodaTypeDirection(measure) {
-	      var _this5 = this;
+	      var _this6 = this;
 	
 	      measure.getDirections().filter(function (direction) {
-	        return ['coda', 'segno'].includes(direction.getDirectionType()) || direction.getDirectionType() === 'words' && _this5._isRepetitionWords(direction.getWordsList()[0].text);
+	        return ['coda', 'segno'].includes(direction.getDirectionType()) || direction.getDirectionType() === 'words' && _this6._isRepetitionWords(direction.getWordsList()[0].text);
 	      }).forEach(function (direction) {
 	        var vfStave = measure.getStave(direction.getStaff());
-	        var vfRepetitionType = _this5._getVFRepetitionType(direction);
+	        var vfRepetitionType = _this6._getVFRepetitionType(direction);
 	        var vfRepetition = new VF.Repetition(vfRepetitionType, vfStave.x, 25);
 	
 	        vfStave.modifiers.push(vfRepetition);
@@ -39689,12 +39902,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'postFormatDirection',
 	    value: function postFormatDirection() {
-	      var _this6 = this;
+	      var _this7 = this;
 	
 	      this.score.getParts().forEach(function (part, pi) {
 	        part.getMeasures().forEach(function (measure, mi) {
-	          _this6._postFormatWordsTypeDirection(measure);
-	          _this6._postFormatCodaTypeDirection(measure);
+	          _this7._postFormatWordsTypeDirection(measure);
+	          _this7._postFormatHarmonyTypeDirection(measure);
+	          _this7._postFormatCodaTypeDirection(measure);
 	        });
 	      });
 	    }
