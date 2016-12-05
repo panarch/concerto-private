@@ -1,6 +1,7 @@
 import Concerto from '../src/index';
 
 const URLS = [
+  './tests/Harmony.xml',
   './tests/Volta.xml',
   './tests/Volta.Complex.xml',
   './tests/OctaveShift.xml',
