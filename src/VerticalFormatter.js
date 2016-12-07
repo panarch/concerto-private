@@ -193,7 +193,9 @@ export default class VerticalFormatter extends AdvancedFormatter {
   updateMeasureLine({ measurePacks, packIndices, packWidths }) {
     packIndices.forEach((mi, i) => {
       const w = packWidths[i];
-      measurePacks[mi].measures.forEach(measure => measure.width = w);
+      measurePacks[mi].measures.forEach(
+        measure => measure.setWidth(w)
+      );
     });
 
     // no newSystem for the first measure

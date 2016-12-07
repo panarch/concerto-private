@@ -5,7 +5,7 @@ export default class MeasurePack {
   constructor({ measures }) {
     this.measures = measures;
 
-    this.width = null;
+    this.notesWidth = null;
     this.minTotalWidth = null;
     this.connectors = [];
     this.vfFormatter = null;
@@ -16,8 +16,12 @@ export default class MeasurePack {
   getBottomMeasure() { return this.getMeasure(this.measures.length - 1); }
   getMeasures() { return this.measures; }
 
-  getWidth() { return this.width; }
-  setWidth(width) { this.width = width; }
+  getNotesWidth() { return this.notesWidth; }
+  setNotesWidth(notesWidth) {
+    this.notesWidth = notesWidth;
+    this.measures.forEach(measure => measure.setNotesWidth(notesWidth));
+  }
+
   getMinTotalWidth() { return this.minTotalWidth; }
   setMinTotalWidth(minTotalWidth) { this.minTotalWidth = minTotalWidth; }
 

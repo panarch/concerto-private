@@ -30,7 +30,7 @@ export default class AdvancedFormatter extends Formatter {
       });
 
       measures.forEach(measure => {
-        measure.width = maxWidth;
+        measure.setWidth(maxWidth);
       });
     }
   }

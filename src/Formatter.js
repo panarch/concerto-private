@@ -816,7 +816,7 @@ export default class Formatter {
         return vfTabFormatter.preCalculateMinTotalWidth([vfTabVoice]);
       }));
 
-      const width = minEndX - maxStartX - 10;
+      const notesWidth = minEndX - maxStartX - 10;
       const vfFormatter = new Vex.Flow.Formatter();
 
       measurePack.getMeasures().forEach(measure => {
@@ -833,7 +833,7 @@ export default class Formatter {
       );
 
       //vfFormatter.format(vfVoices, width); -> runFormatter
-      measurePack.setWidth(width);
+      measurePack.setNotesWidth(notesWidth);
       measurePack.setMinTotalWidth(minTotalWidth);
       measurePack.setVFFormatter(vfFormatter);
     });
@@ -842,11 +842,11 @@ export default class Formatter {
   runFormatter() {
     this.measurePacks.forEach(measurePack => {
       const vfVoices = measurePack.getAllVFVoices();
-      const width = measurePack.getWidth();
+      const notesWidth = measurePack.getNotesWidth();
       const vfFormatter = measurePack.getVFFormatter();
       if (!vfFormatter) return;
 
-      vfFormatter.format(vfVoices, width - 5);
+      vfFormatter.format(vfVoices, notesWidth - 5);
     });
   }
 

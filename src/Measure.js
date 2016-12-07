@@ -23,6 +23,7 @@ export default class Measure {
     // variables
     this.x = null;
     this.y = null;
+    this.notesWidth = null;
     this.lyricNamesMap = new Map(); // voice -> Set<lyricName>
     this.boundingBox = null; // VexFlow BoundingBox
     this.staveMap = new Map();
@@ -82,6 +83,7 @@ export default class Measure {
   }
 
   getWidth() { return this.width; }
+  setWidth(width) { this.width = width; }
 
   getHeight(numStaffs = 1, staffDistance = Measure.STAFF_DISTANCE) {
     let _numStaffs = 0;
@@ -151,6 +153,9 @@ export default class Measure {
 
   getY() { return this.y; }
   setY(y) { this.y = y; }
+
+  getNotesWidth() { return this.notesWidth; }
+  setNotesWidth(notesWidth) { this.notesWidth = notesWidth; }
 
   getPosition() {
     return {
