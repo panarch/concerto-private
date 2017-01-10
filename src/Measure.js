@@ -199,7 +199,13 @@ export default class Measure {
   setDivisions(divisions) { this.divisions = divisions; }
   getDirectionsMap() { return this.directionsMap; }
   setDirections(staff, directions) { this.directionsMap.set(staff, directions); }
-  getDirections() { return [...this.directionsMap.values()].reduce((a, b) => a.concat(b), []); }
+  getDirections(staff) {
+    if (staff) {
+      return this.directionsMap.has(staff) ? this.directionsMap.get(staff) : [];
+    }
+
+    return [...this.directionsMap.values()].reduce((a, b) => a.concat(b), []);
+  }
 
   getNotesMap() { return this.notesMap; }
   getMaxDuration() { return this.maxDuration; }
