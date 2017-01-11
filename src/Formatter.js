@@ -295,6 +295,8 @@ export default class Formatter {
         const width = measure.getWidth();
         const options = {
           space_above_staff_ln: 0,
+          // top_text_position: 0,
+          // bottom_text_position: 0,
         };
 
         for (let staff = 1; staff <= numStaffs; staff++) {
@@ -303,6 +305,7 @@ export default class Formatter {
           if (printMeasure.isStaffDisplayed(staff)) {
             const StaveClass = clef.sign === 'TAB' ? Vex.Flow.TabStave : Vex.Flow.Stave;
             const stave = new StaveClass(x, y, width, options);
+            // stave.options.bottom_text_position = 0;
             stave.setBegBarType(Vex.Flow.Barline.type.NONE);
             measure.setStave(staff, stave);
           }

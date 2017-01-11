@@ -2,6 +2,18 @@
 // @author Taehoon Moon
 
 export default class Direction {
+  static get LineHeight() {
+    return {
+      'dynamics': 2,
+      'wedge': 3,
+      'words': 2,
+      'octave-shift': 2,
+      'segno': 3,
+      'coda': 3,
+      'harmony': 3,
+    };
+  }
+
   constructor({ tag, directionType, wedge, wordsList, octaveShift, harmony,
       staff, voice, placement, beginDuration, dynamicType, defaultX }) {
     this.tag = tag;
@@ -30,7 +42,9 @@ export default class Direction {
     this.vfNote = null; // TextNote, TextDynamics, ...
     this.vfEndNote = null; // it is for Crescendo etc...
     this.vfElement = null; // Crescendo (VF StaveHairpin)
+    this.vfOptions = null; // font, etc...
     this.nextDirection = null;
+    this.offset = null; // Temp value for DirectionSubFormatter
   }
 
   clone() {
@@ -70,7 +84,12 @@ export default class Direction {
       case 'words': return this.wordsList;
       case 'dynamics': return this.dynamicType;
       case 'octave-shift': return this.octaveShift;
+      case 'harmony': return this.harmony;
     }
+  }
+
+  getLineHeight() {
+    return Direction.LineHeight[this.directionType];
   }
 
   getBeginDuration() { return this.beginDuration; }
@@ -78,6 +97,13 @@ export default class Direction {
 
   // extra read-only
   getDefaultX() { return this.defaultX; }
+
+  // get full duration of direction; including next direction's duration
+  getFullDuration() {
+    const nextDirection = this.getNextDirection();
+    return this.duration +
+      (nextDirection ? nextDirection.getFullDuration() : 0);
+  }
 
   getDuration() { return this.duration; }
   setDuration(duration) { this.duration = duration; }
@@ -89,10 +115,14 @@ export default class Direction {
   setMinLine(minLine) { this.minLine = minLine; }
   getNextDirection() { return this.nextDirection; }
   setNextDirection(direction) { this.nextDirection = direction; }
+  getOffset() { return this.offset; }
+  setOffset(offset) { this.offset = offset; }
   getVFNote() { return this.vfNote; }
   setVFNote(vfNote) { this.vfNote = vfNote; }
   getVFEndNote() { return this.vfEndNote; }
   setVFEndNote(vfEndNote) { this.vfEndNote = vfEndNote; }
   getVFElement() { return this.vfElement; }
   setVFElement(vfElement) { this.vfElement = vfElement; }
+  getVFOptions() { return this.vfOptions; }
+  setVFOptions(vfOptions) { this.vfOptions = vfOptions; }
 }
