@@ -94,15 +94,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _Formatter2 = _interopRequireDefault(_Formatter);
 	
-	var _VerticalFormatter = __webpack_require__(326);
+	var _VerticalFormatter = __webpack_require__(330);
 	
 	var _VerticalFormatter2 = _interopRequireDefault(_VerticalFormatter);
 	
-	var _HorizontalFormatter = __webpack_require__(328);
+	var _HorizontalFormatter = __webpack_require__(332);
 	
 	var _HorizontalFormatter2 = _interopRequireDefault(_HorizontalFormatter);
 	
-	var _Renderer = __webpack_require__(329);
+	var _Renderer = __webpack_require__(333);
 	
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 	
@@ -142,14 +142,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(295);
 	
-	/* eslint max-len: 0 */
-	
 	if (global._babelPolyfill) {
 	  throw new Error("only one instance of babel-polyfill is allowed");
 	}
 	global._babelPolyfill = true;
-	
-	// Should be removed in the next major release:
 	
 	var DEFINE_PROPERTY = "defineProperty";
 	function define(O, key, value) {
@@ -7384,7 +7380,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	!(function(global) {
 	  "use strict";
 	
-	  var hasOwn = Object.prototype.hasOwnProperty;
+	  var Op = Object.prototype;
+	  var hasOwn = Op.hasOwnProperty;
 	  var undefined; // More compressible than void 0.
 	  var $Symbol = typeof Symbol === "function" ? Symbol : {};
 	  var iteratorSymbol = $Symbol.iterator || "@@iterator";
@@ -7408,8 +7405,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  runtime = global.regeneratorRuntime = inModule ? module.exports : {};
 	
 	  function wrap(innerFn, outerFn, self, tryLocsList) {
-	    // If outerFn provided, then outerFn.prototype instanceof Generator.
-	    var generator = Object.create((outerFn || Generator).prototype);
+	    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+	    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+	    var generator = Object.create(protoGenerator.prototype);
 	    var context = new Context(tryLocsList || []);
 	
 	    // The ._invoke method unifies the implementations of the .next,
@@ -7455,10 +7453,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function GeneratorFunction() {}
 	  function GeneratorFunctionPrototype() {}
 	
-	  var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype;
+	  // This is a polyfill for %IteratorPrototype% for environments that
+	  // don't natively support it.
+	  var IteratorPrototype = {};
+	  IteratorPrototype[iteratorSymbol] = function () {
+	    return this;
+	  };
+	
+	  var getProto = Object.getPrototypeOf;
+	  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+	  if (NativeIteratorPrototype &&
+	      NativeIteratorPrototype !== Op &&
+	      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+	    // This environment has a native %IteratorPrototype%; use it instead
+	    // of the polyfill.
+	    IteratorPrototype = NativeIteratorPrototype;
+	  }
+	
+	  var Gp = GeneratorFunctionPrototype.prototype =
+	    Generator.prototype = Object.create(IteratorPrototype);
 	  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
 	  GeneratorFunctionPrototype.constructor = GeneratorFunction;
-	  GeneratorFunctionPrototype[toStringTagSymbol] = GeneratorFunction.displayName = "GeneratorFunction";
+	  GeneratorFunctionPrototype[toStringTagSymbol] =
+	    GeneratorFunction.displayName = "GeneratorFunction";
 	
 	  // Helper for defining the .next, .throw, and .return methods of the
 	  // Iterator interface in terms of a single ._invoke method.
@@ -7495,16 +7512,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // Within the body of any async function, `await x` is transformed to
 	  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-	  // `value instanceof AwaitArgument` to determine if the yielded value is
-	  // meant to be awaited. Some may consider the name of this method too
-	  // cutesy, but they are curmudgeons.
+	  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+	  // meant to be awaited.
 	  runtime.awrap = function(arg) {
-	    return new AwaitArgument(arg);
+	    return { __await: arg };
 	  };
-	
-	  function AwaitArgument(arg) {
-	    this.arg = arg;
-	  }
 	
 	  function AsyncIterator(generator) {
 	    function invoke(method, arg, resolve, reject) {
@@ -7514,8 +7526,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        var result = record.arg;
 	        var value = result.value;
-	        if (value instanceof AwaitArgument) {
-	          return Promise.resolve(value.arg).then(function(value) {
+	        if (value &&
+	            typeof value === "object" &&
+	            hasOwn.call(value, "__await")) {
+	          return Promise.resolve(value.__await).then(function(value) {
 	            invoke("next", value, resolve, reject);
 	          }, function(err) {
 	            invoke("throw", err, resolve, reject);
@@ -7584,6 +7598,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  defineIteratorMethods(AsyncIterator.prototype);
+	  runtime.AsyncIterator = AsyncIterator;
 	
 	  // Note that simple async functions are implemented on top of
 	  // AsyncIterator objects; they just return a Promise for the value of
@@ -7743,10 +7758,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // Define Generator.prototype.{next,throw,return} in terms of the
 	  // unified ._invoke helper method.
 	  defineIteratorMethods(Gp);
-	
-	  Gp[iteratorSymbol] = function() {
-	    return this;
-	  };
 	
 	  Gp[toStringTagSymbol] = "Generator";
 	
@@ -8047,14 +8058,103 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports) {
 
 	// shim for using process in browser
-	
 	var process = module.exports = {};
+	
+	// cached from whatever global is present so that test runners that stub it
+	// don't break things.  But we need to wrap it in a try catch in case it is
+	// wrapped in strict mode code which doesn't define any globals.  It's inside a
+	// function because try/catches deoptimize in certain engines.
+	
+	var cachedSetTimeout;
+	var cachedClearTimeout;
+	
+	function defaultSetTimout() {
+	    throw new Error('setTimeout has not been defined');
+	}
+	function defaultClearTimeout () {
+	    throw new Error('clearTimeout has not been defined');
+	}
+	(function () {
+	    try {
+	        if (typeof setTimeout === 'function') {
+	            cachedSetTimeout = setTimeout;
+	        } else {
+	            cachedSetTimeout = defaultSetTimout;
+	        }
+	    } catch (e) {
+	        cachedSetTimeout = defaultSetTimout;
+	    }
+	    try {
+	        if (typeof clearTimeout === 'function') {
+	            cachedClearTimeout = clearTimeout;
+	        } else {
+	            cachedClearTimeout = defaultClearTimeout;
+	        }
+	    } catch (e) {
+	        cachedClearTimeout = defaultClearTimeout;
+	    }
+	} ())
+	function runTimeout(fun) {
+	    if (cachedSetTimeout === setTimeout) {
+	        //normal enviroments in sane situations
+	        return setTimeout(fun, 0);
+	    }
+	    // if setTimeout wasn't available but was latter defined
+	    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+	        cachedSetTimeout = setTimeout;
+	        return setTimeout(fun, 0);
+	    }
+	    try {
+	        // when when somebody has screwed with setTimeout but no I.E. maddness
+	        return cachedSetTimeout(fun, 0);
+	    } catch(e){
+	        try {
+	            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+	            return cachedSetTimeout.call(null, fun, 0);
+	        } catch(e){
+	            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+	            return cachedSetTimeout.call(this, fun, 0);
+	        }
+	    }
+	
+	
+	}
+	function runClearTimeout(marker) {
+	    if (cachedClearTimeout === clearTimeout) {
+	        //normal enviroments in sane situations
+	        return clearTimeout(marker);
+	    }
+	    // if clearTimeout wasn't available but was latter defined
+	    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+	        cachedClearTimeout = clearTimeout;
+	        return clearTimeout(marker);
+	    }
+	    try {
+	        // when when somebody has screwed with setTimeout but no I.E. maddness
+	        return cachedClearTimeout(marker);
+	    } catch (e){
+	        try {
+	            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+	            return cachedClearTimeout.call(null, marker);
+	        } catch (e){
+	            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+	            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+	            return cachedClearTimeout.call(this, marker);
+	        }
+	    }
+	
+	
+	
+	}
 	var queue = [];
 	var draining = false;
 	var currentQueue;
 	var queueIndex = -1;
 	
 	function cleanUpNextTick() {
+	    if (!draining || !currentQueue) {
+	        return;
+	    }
 	    draining = false;
 	    if (currentQueue.length) {
 	        queue = currentQueue.concat(queue);
@@ -8070,7 +8170,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (draining) {
 	        return;
 	    }
-	    var timeout = setTimeout(cleanUpNextTick);
+	    var timeout = runTimeout(cleanUpNextTick);
 	    draining = true;
 	
 	    var len = queue.length;
@@ -8087,7 +8187,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    currentQueue = null;
 	    draining = false;
-	    clearTimeout(timeout);
+	    runClearTimeout(timeout);
 	}
 	
 	process.nextTick = function (fun) {
@@ -8099,7 +8199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    queue.push(new Item(fun, args));
 	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
+	        runTimeout(drainQueue);
 	    }
 	};
 	
@@ -32071,8 +32171,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        noteGroups.forEach(function (group) {
 	          var stemDirection = void 0;
 	          if (config.maintain_stem_directions) {
-	            var note = findFirstNote(group);
-	            stemDirection = note ? note.getStemDirection() : Stem.UP;
+	            var _note = findFirstNote(group);
+	            stemDirection = _note ? _note.getStemDirection() : Stem.UP;
 	          } else {
 	            if (config.stem_direction) {
 	              stemDirection = config.stem_direction;
@@ -32085,10 +32185,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      function findFirstNote(group) {
-	        for (var i = 0; i < group.length; i++) {
-	          var note = group[i];
-	          if (!note.isRest()) {
-	            return note;
+	        for (var _i = 0; _i < group.length; _i++) {
+	          var _note2 = group[_i];
+	          if (!_note2.isRest()) {
+	            return _note2;
 	          }
 	        }
 	
@@ -32157,9 +32257,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // If any of the notes in the tuplet are not beamed, draw a bracket.
 	        var bracketed = false;
-	        for (var i = 0; i < tuplet.notes.length; i++) {
-	          var note = tuplet.notes[i];
-	          if (note.beam === null) {
+	        for (var _i2 = 0; _i2 < tuplet.notes.length; _i2++) {
+	          var _note3 = tuplet.notes[_i2];
+	          if (_note3.beam === null) {
 	            bracketed = true;
 	            break;
 	          }
@@ -32174,7 +32274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Beam(notes, auto_stem) {
 	    _classCallCheck(this, Beam);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Beam).call(this));
+	    var _this = _possibleConstructorReturn(this, (Beam.__proto__ || Object.getPrototypeOf(Beam)).call(this));
 	
 	    _this.setAttribute('type', 'Beam');
 	
@@ -32303,12 +32403,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      try {
 	        for (var _iterator = this.notes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var note = _step.value;
+	          var _note4 = _step.value;
 	
 	          if (!stemDirection) {
-	            stemDirection = note.getStemDirection();
+	            stemDirection = _note4.getStemDirection();
 	            continue;
-	          } else if (stemDirection !== note.getStemDirection()) {
+	          } else if (stemDirection !== _note4.getStemDirection()) {
 	            var firstNote = this.notes[0];
 	            var lastNote = this.notes[this.notes.length - 1];
 	
@@ -32342,14 +32442,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function calculateSlope() {
 	      if (this.handleCrossStaffBeam()) return;
 	
-	      var notes = this.notes;
-	      var stemDirection = this.stem_direction;
-	      var _render_options = this.render_options;
-	      var max_slope = _render_options.max_slope;
-	      var min_slope = _render_options.min_slope;
-	      var ideal_slope_ratio = _render_options.ideal_slope_ratio;
-	      var slope_iterations = _render_options.slope_iterations;
-	      var slope_cost = _render_options.slope_cost;
+	      var notes = this.notes,
+	          stemDirection = this.stem_direction,
+	          _render_options = this.render_options,
+	          max_slope = _render_options.max_slope,
+	          min_slope = _render_options.min_slope,
+	          ideal_slope_ratio = _render_options.ideal_slope_ratio,
+	          slope_iterations = _render_options.slope_iterations,
+	          slope_cost = _render_options.slope_cost;
 	
 	
 	      var firstNote = notes[0];
@@ -32368,17 +32468,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var yShiftTemp = 0;
 	
 	        // iterate through notes, calculating y shift and stem extension
-	        for (var i = 1; i < notes.length; ++i) {
-	          var note = notes[i];
-	          var adjustedStemTipY = this.getSlopeY(note.getStemX(), firstNote.getStemX(), firstNote.getStemExtents().topY, slope) + yShiftTemp;
+	        for (var _i3 = 1; _i3 < notes.length; ++_i3) {
+	          var _note5 = notes[_i3];
+	          var adjustedStemTipY = this.getSlopeY(_note5.getStemX(), firstNote.getStemX(), firstNote.getStemExtents().topY, slope) + yShiftTemp;
 	
-	          var stemTipY = note.getStemExtents().topY;
+	          var stemTipY = _note5.getStemExtents().topY;
 	
 	          // beam needs to be shifted up to accommodate note
 	          if (stemTipY * stemDirection < adjustedStemTipY * stemDirection) {
 	            var diff = Math.abs(stemTipY - adjustedStemTipY);
 	            yShiftTemp += diff * -stemDirection;
-	            totalStemExtension += diff * i;
+	            totalStemExtension += diff * _i3;
 	          } else {
 	            // beam overshoots note, account for the difference
 	            totalStemExtension += (stemTipY - adjustedStemTipY) * stemDirection;
@@ -32408,12 +32508,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'calculateFlatSlope',
 	    value: function calculateFlatSlope() {
-	      var notes = this.notes;
-	      var stem_direction = this.stem_direction;
-	      var _render_options2 = this.render_options;
-	      var beam_width = _render_options2.beam_width;
-	      var min_flat_beam_offset = _render_options2.min_flat_beam_offset;
-	      var flat_beam_offset = _render_options2.flat_beam_offset;
+	      var notes = this.notes,
+	          stem_direction = this.stem_direction,
+	          _render_options2 = this.render_options,
+	          beam_width = _render_options2.beam_width,
+	          min_flat_beam_offset = _render_options2.min_flat_beam_offset,
+	          flat_beam_offset = _render_options2.flat_beam_offset;
 	
 	      // If a flat beam offset has not yet been supplied or calculated,
 	      // generate one based on the notes in this particular note group
@@ -32422,22 +32522,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var extremeY = 0; // Store the highest or lowest note here
 	      var extremeBeamCount = 0; // The beam count of the extreme note
 	      var currentExtreme = 0;
-	      for (var i = 0; i < notes.length; i++) {
+	      for (var _i4 = 0; _i4 < notes.length; _i4++) {
 	        // Total up all of the offsets so we can average them out later
-	        var note = notes[i];
-	        var stemTipY = note.getStemExtents().topY;
+	        var _note6 = notes[_i4];
+	        var stemTipY = _note6.getStemExtents().topY;
 	        total += stemTipY;
 	
 	        // Store the highest (stems-up) or lowest (stems-down) note so the
 	        //  offset can be adjusted in case the average isn't enough
 	        if (stem_direction === Stem.DOWN && currentExtreme < stemTipY) {
 	          currentExtreme = stemTipY;
-	          extremeY = Math.max.apply(Math, _toConsumableArray(note.getYs()));
-	          extremeBeamCount = note.getBeamCount();
+	          extremeY = Math.max.apply(Math, _toConsumableArray(_note6.getYs()));
+	          extremeBeamCount = _note6.getBeamCount();
 	        } else if (stem_direction === Stem.UP && (currentExtreme === 0 || currentExtreme > stemTipY)) {
 	          currentExtreme = stemTipY;
-	          extremeY = Math.min.apply(Math, _toConsumableArray(note.getYs()));
-	          extremeBeamCount = note.getBeamCount();
+	          extremeY = Math.min.apply(Math, _toConsumableArray(_note6.getYs()));
+	          extremeBeamCount = _note6.getBeamCount();
 	        }
 	      }
 	
@@ -32478,16 +32578,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'applyStemExtensions',
 	    value: function applyStemExtensions() {
-	      var notes = this.notes;
-	      var slope = this.slope;
-	      var y_shift = this.y_shift;
-	      var beam_count = this.beam_count;
-	      var _render_options3 = this.render_options;
-	      var show_stemlets = _render_options3.show_stemlets;
-	      var flat_beam_offset = _render_options3.flat_beam_offset;
-	      var flat_beams = _render_options3.flat_beams;
-	      var stemlet_extension = _render_options3.stemlet_extension;
-	      var beam_width = _render_options3.beam_width;
+	      var notes = this.notes,
+	          slope = this.slope,
+	          y_shift = this.y_shift,
+	          beam_count = this.beam_count,
+	          _render_options3 = this.render_options,
+	          show_stemlets = _render_options3.show_stemlets,
+	          flat_beam_offset = _render_options3.flat_beam_offset,
+	          flat_beams = _render_options3.flat_beams,
+	          stemlet_extension = _render_options3.stemlet_extension,
+	          beam_width = _render_options3.beam_width;
 	
 	
 	      var firstNote = notes[0];
@@ -32500,25 +32600,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      var firstStemX = firstNote.getStemX();
 	
-	      for (var i = 0; i < notes.length; ++i) {
-	        var note = notes[i];
-	        var stemX = note.getStemX();
+	      for (var _i5 = 0; _i5 < notes.length; ++_i5) {
+	        var _note7 = notes[_i5];
+	        var stemX = _note7.getStemX();
 	
-	        var _note$getStemExtents = note.getStemExtents();
-	
-	        var stemTipY = _note$getStemExtents.topY;
+	        var _note7$getStemExtents = _note7.getStemExtents(),
+	            stemTipY = _note7$getStemExtents.topY;
 	
 	        var beamedStemTipY = this.getSlopeY(stemX, firstStemX, firstStemTipY, slope) + y_shift;
-	        var preBeamExtension = note.getStem().getExtension();
-	        var beamExtension = note.getStemDirection() === Stem.UP ? stemTipY - beamedStemTipY : beamedStemTipY - stemTipY;
+	        var preBeamExtension = _note7.getStem().getExtension();
+	        var beamExtension = _note7.getStemDirection() === Stem.UP ? stemTipY - beamedStemTipY : beamedStemTipY - stemTipY;
 	
-	        note.stem.setExtension(preBeamExtension + beamExtension);
-	        note.stem.renderHeightAdjustment = -Stem.WIDTH / 2;
+	        _note7.stem.setExtension(preBeamExtension + beamExtension);
+	        _note7.stem.renderHeightAdjustment = -Stem.WIDTH / 2;
 	
-	        if (note.isRest() && show_stemlets) {
+	        if (_note7.isRest() && show_stemlets) {
 	          var beamWidth = beam_width;
 	          var totalBeamWidth = (beam_count - 1) * beamWidth * 1.5 + beamWidth;
-	          note.stem.setVisibility(true).setStemlet(true, totalBeamWidth + stemlet_extension);
+	          _note7.stem.setVisibility(true).setStemlet(true, totalBeamWidth + stemlet_extension);
 	        }
 	      }
 	    }
@@ -32534,18 +32633,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var partial_beam_length = this.render_options.partial_beam_length;
 	      var previous_should_break = false;
 	      var tick_tally = 0;
-	      for (var i = 0; i < this.notes.length; ++i) {
-	        var note = this.notes[i];
+	      for (var _i6 = 0; _i6 < this.notes.length; ++_i6) {
+	        var _note8 = this.notes[_i6];
 	
 	        // See if we need to break secondary beams on this note.
-	        var ticks = note.ticks.value();
+	        var ticks = _note8.ticks.value();
 	        tick_tally += ticks;
 	        var should_break = false;
 	
 	        // 8th note beams are always drawn.
 	        if (parseInt(duration, 10) >= 8) {
 	          // First, check to see if any indices were set up through breakSecondaryAt()
-	          should_break = this.break_on_indices.indexOf(i) !== -1;
+	          should_break = this.break_on_indices.indexOf(_i6) !== -1;
 	
 	          // If the secondary breaks were auto-configured in the render options,
 	          //  handle that as well.
@@ -32554,13 +32653,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            should_break = true;
 	          }
 	        }
-	        var note_gets_beam = note.getIntrinsicTicks() < Flow.durationToTicks(duration);
+	        var note_gets_beam = _note8.getIntrinsicTicks() < Flow.durationToTicks(duration);
 	
-	        var stem_x = note.getStemX() - Stem.WIDTH / 2;
+	        var stem_x = _note8.getStemX() - Stem.WIDTH / 2;
 	
 	        // Check to see if the next note in the group will get a beam at this
 	        //  level. This will help to inform the partial beam logic below.
-	        var next_note = this.notes[i + 1];
+	        var next_note = this.notes[_i6 + 1];
 	        var beam_next = next_note && next_note.getIntrinsicTicks() < Flow.durationToTicks(duration);
 	        if (note_gets_beam) {
 	          // This note gets a beam at the current level
@@ -32585,7 +32684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            beam_started = true;
 	            if (!beam_next) {
 	              // The next note doesn't get a beam. Draw a partial.
-	              if ((previous_should_break || i === 0) && next_note) {
+	              if ((previous_should_break || _i6 === 0) && next_note) {
 	                // This is the first note (but not the last one), or it is
 	                //  following a secondary break. Draw a partial to the right.
 	                current_beam.end = current_beam.start + partial_beam_length;
@@ -32657,8 +32756,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var beamThickness = this.render_options.beam_width * this.stem_direction;
 	
 	      // Draw the beams.
-	      for (var i = 0; i < valid_beam_durations.length; ++i) {
-	        var duration = valid_beam_durations[i];
+	      for (var _i7 = 0; _i7 < valid_beam_durations.length; ++_i7) {
+	        var duration = valid_beam_durations[_i7];
 	        var beamLines = this.getBeamLines(duration);
 	
 	        for (var j = 0; j < beamLines.length; ++j) {
@@ -32782,14 +32881,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	
 	  function StaveText(_ref) {
-	    var text = _ref.text;
-	    var position = _ref.position;
-	    var options = _ref.options;
-	    var line = _ref.line;
+	    var text = _ref.text,
+	        position = _ref.position,
+	        options = _ref.options,
+	        line = _ref.line;
 	
 	    _classCallCheck(this, StaveText);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(StaveText).call(this));
+	    var _this = _possibleConstructorReturn(this, (StaveText.__proto__ || Object.getPrototypeOf(StaveText)).call(this));
 	
 	    _this.setAttribute('type', 'StaveText');
 	
@@ -32934,17 +33033,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _inherits(Wedge, _Vex$Flow$Element);
 	
 	  function Wedge(_ref) {
-	    var beginNote = _ref.beginNote;
-	    var beginStave = _ref.beginStave;
-	    var beginHeight = _ref.beginHeight;
-	    var endNote = _ref.endNote;
-	    var endStave = _ref.endStave;
-	    var endHeight = _ref.endHeight;
-	    var line = _ref.line;
+	    var beginNote = _ref.beginNote,
+	        beginStave = _ref.beginStave,
+	        beginHeight = _ref.beginHeight,
+	        endNote = _ref.endNote,
+	        endStave = _ref.endStave,
+	        endHeight = _ref.endHeight,
+	        line = _ref.line;
 	
 	    _classCallCheck(this, Wedge);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Wedge).call(this));
+	    var _this = _possibleConstructorReturn(this, (Wedge.__proto__ || Object.getPrototypeOf(Wedge)).call(this));
 	
 	    _this.beginNote = beginNote;
 	    _this.beginStave = beginStave;
@@ -33050,7 +33149,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Curve(from, to, options) {
 	    _classCallCheck(this, Curve);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Curve).call(this));
+	    var _this = _possibleConstructorReturn(this, (Curve.__proto__ || Object.getPrototypeOf(Curve)).call(this));
 	
 	    _this.setAttribute('type', 'Curve');
 	
@@ -33250,7 +33349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Volta(type, number, x, y_shift) {
 	    _classCallCheck(this, Volta);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Volta).call(this));
+	    var _this = _possibleConstructorReturn(this, (Volta.__proto__ || Object.getPrototypeOf(Volta)).call(this));
 	
 	    _this.setAttribute('type', 'Volta');
 	    _this.volta = type;
@@ -33465,14 +33564,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var Score = function () {
 	  function Score(_ref) {
-	    var version = _ref.version;
-	    var movement = _ref.movement;
-	    var identification = _ref.identification;
-	    var defaults = _ref.defaults;
-	    var credits = _ref.credits;
-	    var partList = _ref.partList;
-	    var parts = _ref.parts;
-	    var measurePacks = _ref.measurePacks;
+	    var version = _ref.version,
+	        movement = _ref.movement,
+	        identification = _ref.identification,
+	        defaults = _ref.defaults,
+	        credits = _ref.credits,
+	        partList = _ref.partList,
+	        parts = _ref.parts,
+	        measurePacks = _ref.measurePacks;
 	
 	    _classCallCheck(this, Score);
 	
@@ -33563,10 +33662,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var Defaults = function () {
 	  function Defaults(_ref) {
-	    var scaling = _ref.scaling;
-	    var pageLayout = _ref.pageLayout;
-	    var systemLayout = _ref.systemLayout;
-	    var staffLayoutMap = _ref.staffLayoutMap;
+	    var scaling = _ref.scaling,
+	        pageLayout = _ref.pageLayout,
+	        systemLayout = _ref.systemLayout,
+	        staffLayoutMap = _ref.staffLayoutMap;
 	
 	    _classCallCheck(this, Defaults);
 	
@@ -33670,7 +33769,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getStaffDistance',
 	    value: function getStaffDistance() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 	
 	      return this.staffLayoutMap && this.staffLayoutMap.has(staff) ? this.staffLayoutMap.get(staff).staffDistance : Defaults.STAFF_DISTANCE;
 	    }
@@ -33713,8 +33812,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	var Movement = function Movement(_ref) {
-	  var title = _ref.title;
-	  var number = _ref.number;
+	  var title = _ref.title,
+	      number = _ref.number;
 	
 	  _classCallCheck(this, Movement);
 	
@@ -33740,9 +33839,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	var Identification = function Identification(_ref) {
-	  var rights = _ref.rights;
-	  var creatorList = _ref.creatorList;
-	  var encoding = _ref.encoding;
+	  var rights = _ref.rights,
+	      creatorList = _ref.creatorList,
+	      encoding = _ref.encoding;
 	
 	  _classCallCheck(this, Identification);
 	
@@ -33774,8 +33873,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var Part = function () {
 	  function Part(_ref) {
-	    var id = _ref.id;
-	    var measures = _ref.measures;
+	    var id = _ref.id,
+	        measures = _ref.measures;
 	
 	    _classCallCheck(this, Part);
 	
@@ -33868,21 +33967,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var Measure = function () {
 	  function Measure() {
-	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	
-	    var number = _ref.number;
-	    var width = _ref.width;
-	    var voices = _ref.voices;
-	    var staffs = _ref.staffs;
-	    var notesMap = _ref.notesMap;
-	    var key = _ref.key;
-	    var time = _ref.time;
-	    var clefsMap = _ref.clefsMap;
-	    var print = _ref.print;
-	    var divisions = _ref.divisions;
-	    var barline = _ref.barline;
-	    var directionsMap = _ref.directionsMap;
-	    var staffDetailsMap = _ref.staffDetailsMap;
+	    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	        number = _ref.number,
+	        width = _ref.width,
+	        voices = _ref.voices,
+	        staffs = _ref.staffs,
+	        notesMap = _ref.notesMap,
+	        key = _ref.key,
+	        time = _ref.time,
+	        clefsMap = _ref.clefsMap,
+	        print = _ref.print,
+	        divisions = _ref.divisions,
+	        barline = _ref.barline,
+	        directionsMap = _ref.directionsMap,
+	        staffDetailsMap = _ref.staffDetailsMap;
 	
 	    _classCallCheck(this, Measure);
 	
@@ -33904,6 +34002,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // variables
 	    this.x = null;
 	    this.y = null;
+	    this.notesWidth = null;
 	    this.lyricNamesMap = new Map(); // voice -> Set<lyricName>
 	    this.boundingBox = null; // VexFlow BoundingBox
 	    this.staveMap = new Map();
@@ -33962,8 +34061,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'isStaffDisplayed',
 	    value: function isStaffDisplayed() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
-	      var defaultValue = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+	      var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 	
 	      if (this.staffDisplayedMap.has(staff)) return this.staffDisplayedMap.get(staff);
 	
@@ -33978,7 +34077,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'setStaffDisplayed',
 	    value: function setStaffDisplayed() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 	      var displayed = arguments[1];
 	
 	      this.staffDisplayedMap.set(staff, displayed);
@@ -33989,10 +34088,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.width;
 	    }
 	  }, {
+	    key: 'setWidth',
+	    value: function setWidth(width) {
+	      this.width = width;
+	    }
+	  }, {
 	    key: 'getHeight',
 	    value: function getHeight() {
-	      var numStaffs = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
-	      var staffDistance = arguments.length <= 1 || arguments[1] === undefined ? Measure.STAFF_DISTANCE : arguments[1];
+	      var numStaffs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+	      var staffDistance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Measure.STAFF_DISTANCE;
 	
 	      var _numStaffs = 0;
 	      for (var staff = 1; staff <= numStaffs; staff++) {
@@ -34020,7 +34124,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getLeftMargin',
 	    value: function getLeftMargin() {
-	      var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? Measure.LEFT_MARGIN : arguments[0];
+	      var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Measure.LEFT_MARGIN;
 	
 	      var systemLayout = this.getSystemLayout();
 	      return systemLayout && systemLayout.systemMargins ? systemLayout.systemMargins.leftMargin : defaultValue;
@@ -34028,7 +34132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getRightMargin',
 	    value: function getRightMargin() {
-	      var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? Measure.RIGHT_MARGIN : arguments[0];
+	      var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Measure.RIGHT_MARGIN;
 	
 	      var systemLayout = this.getSystemLayout();
 	      return systemLayout && systemLayout.systemMargins ? systemLayout.systemMargins.rightMargin : defaultValue;
@@ -34036,22 +34140,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getTopSystemDistance',
 	    value: function getTopSystemDistance() {
-	      var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? Measure.TOP_SYSTEM_DISTANCE : arguments[0];
+	      var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Measure.TOP_SYSTEM_DISTANCE;
 	
 	      return this.hasTopSystemDistance() ? this.getSystemLayout().topSystemDistance : defaultValue;
 	    }
 	  }, {
 	    key: 'getSystemDistance',
 	    value: function getSystemDistance() {
-	      var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? Measure.SYSTEM_DISTANCE : arguments[0];
+	      var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Measure.SYSTEM_DISTANCE;
 	
 	      return this.hasSystemDistance() ? this.getSystemLayout().systemDistance : defaultValue;
 	    }
 	  }, {
 	    key: 'getStaffDistance',
 	    value: function getStaffDistance() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
-	      var defaultValue = arguments.length <= 1 || arguments[1] === undefined ? Measure.STAFF_DISTANCE : arguments[1];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+	      var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Measure.STAFF_DISTANCE;
 	
 	      return this.hasStaffDistances() ? this.getStaffLayoutMap().get(staff).staffDistance : defaultValue;
 	    }
@@ -34076,6 +34180,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.y = y;
 	    }
 	  }, {
+	    key: 'getNotesWidth',
+	    value: function getNotesWidth() {
+	      return this.notesWidth;
+	    }
+	  }, {
+	    key: 'setNotesWidth',
+	    value: function setNotesWidth(notesWidth) {
+	      this.notesWidth = notesWidth;
+	    }
+	  }, {
 	    key: 'getPosition',
 	    value: function getPosition() {
 	      return {
@@ -34086,8 +34200,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'setPosition',
 	    value: function setPosition(_ref2) {
-	      var x = _ref2.x;
-	      var y = _ref2.y;
+	      var x = _ref2.x,
+	          y = _ref2.y;
 	
 	      this.x = x;
 	      this.y = y;
@@ -34115,7 +34229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getStaffY',
 	    value: function getStaffY() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 	      return this.staffYMap.get(staff);
 	    }
 	  }, {
@@ -34136,7 +34250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getStave',
 	    value: function getStave() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 	      return this.staveMap.get(staff);
 	    }
 	  }, {
@@ -34187,7 +34301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getClefs',
 	    value: function getClefs() {
-	      var staff = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+	      var staff = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 	      return this.clefsMap.get(staff);
 	    }
 	  }, {
@@ -34217,7 +34331,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'getDirections',
-	    value: function getDirections() {
+	    value: function getDirections(staff) {
+	      if (staff) {
+	        return this.directionsMap.has(staff) ? this.directionsMap.get(staff) : [];
+	      }
+	
 	      return [].concat(_toConsumableArray(this.directionsMap.values())).reduce(function (a, b) {
 	        return a.concat(b);
 	      }, []);
@@ -34351,7 +34469,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Stack = exports.splitVFDuration = exports.getVFJustification = exports.convertVFBarlineTypeToVFConnectorType = exports.getVFBarlineType = exports.getVFConnectorType = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
+	exports.Stack = exports.splitVFDuration = exports.getVFJustification = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -34434,9 +34552,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var vfKey = void 0;
 	  Object.keys(keySpecs).forEach(function (key) {
-	    var _keySpecs$key = keySpecs[key];
-	    var acc = _keySpecs$key.acc;
-	    var num = _keySpecs$key.num;
+	    var _keySpecs$key = keySpecs[key],
+	        acc = _keySpecs$key.acc,
+	        num = _keySpecs$key.num;
 	
 	    if (/m/.test(key) || Math.abs(fifths) !== num) return;
 	
@@ -34446,59 +34564,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	
 	  return vfKey;
-	};
-	
-	var getVFConnectorType = exports.getVFConnectorType = function getVFConnectorType(groupSymbol) {
-	  var connectorType = void 0;
-	  switch (groupSymbol) {
-	    case 'brace':
-	      connectorType = _allegretto2.default.Flow.StaveConnector.type.BRACE;
-	      break;
-	    case 'bracket':
-	      connectorType = _allegretto2.default.Flow.StaveConnector.type.BRACKET;
-	      break;
-	    case 'line':
-	    default:
-	      connectorType = _allegretto2.default.Flow.StaveConnector.type.DOUBLE;
-	  }
-	
-	  return connectorType;
-	};
-	
-	var getVFBarlineType = exports.getVFBarlineType = function getVFBarlineType(barline) {
-	  var Barline = _allegretto2.default.Flow.Barline;
-	
-	  if (barline.repeat) {
-	    return barline.repeat.direction === 'forward' ? Barline.type.REPEAT_BEGIN : Barline.type.REPEAT_END;
-	  }
-	
-	  // regular, dotted, dashed, heavy, light-light, light-heavy, heavy-light, heavy-heavy
-	  switch (barline.barStyle) {
-	    case 'light-light':
-	      return Barline.type.DOUBLE;
-	    case 'heavy':
-	    case 'light-heavy':
-	      return Barline.type.END;
-	  }
-	
-	  return Barline.type.SINGLE;
-	};
-	
-	var convertVFBarlineTypeToVFConnectorType = exports.convertVFBarlineTypeToVFConnectorType = function convertVFBarlineTypeToVFConnectorType(vfBarlineType, isLeft) {
-	  var Barline = _allegretto2.default.Flow.Barline;
-	  var StaveConnector = _allegretto2.default.Flow.StaveConnector;
-	
-	  switch (vfBarlineType) {
-	    case Barline.type.DOUBLE:
-	      return StaveConnector.type.THIN_DOUBLE;
-	    case Barline.type.END:
-	    case Barline.type.REPEAT_END:
-	      return StaveConnector.type.BOLD_DOUBLE_RIGHT;
-	    case Barline.type.REPEAT_BEGIN:
-	      return StaveConnector.type.BOLD_DOUBLE_LEFT;
-	  }
-	
-	  return isLeft ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.SINGLE_RIGHT;
 	};
 	
 	var getVFJustification = exports.getVFJustification = function getVFJustification(justify) {
@@ -34514,13 +34579,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var splitVFDuration = exports.splitVFDuration = function splitVFDuration(vfDuration) {
-	  var _$exec$slice = /^([whqb0-9]{1,2})(d*)$/.exec(vfDuration).slice(1, 3);
-	
-	  var _$exec$slice2 = _slicedToArray(_$exec$slice, 2);
-	
-	  var type = _$exec$slice2[0];
-	  var dot = _$exec$slice2[1];
-	
+	  var _$exec$slice = /^([whqb0-9]{1,2})(d*)$/.exec(vfDuration).slice(1, 3),
+	      _$exec$slice2 = _slicedToArray(_$exec$slice, 2),
+	      type = _$exec$slice2[0],
+	      dot = _$exec$slice2[1];
 	
 	  return String(Number(_allegretto2.default.Flow.sanitizeDuration(type)) * 2) + dot;
 	};
@@ -34647,18 +34709,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return item1 === arr2[i];
 	  });
 	}
-	
-	exports.default = {
-	  getVFClef: getVFClef,
-	  getVFDuration: getVFDuration,
-	  getVFKeySignature: getVFKeySignature,
-	  getVFConnectorType: getVFConnectorType,
-	  Stack: Stack,
-	  sumNotesDuration: sumNotesDuration,
-	  getMaxDuration: getMaxDuration,
-	  getLineGenerator: getLineGenerator,
-	  hasSameContents: hasSameContents
-	};
 
 /***/ },
 /* 313 */
@@ -35291,7 +35341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var articulation = { tag: node.tagName };
 	
 	    function _parseAttr(attr, key) {
-	      var isNumber = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+	      var isNumber = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 	
 	      if (node.hasAttribute(attr)) {
 	        var value = node.getAttribute(attr);
@@ -35409,7 +35459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (syllabicNode) lyric.syllabic = syllabicNode.textContent;
 	
 	    function _parseAttr(attr, key) {
-	      var isNumber = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+	      var isNumber = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 	
 	      if (!lyricNode.hasAttribute(attr)) return;
 	
@@ -35620,9 +35670,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var setNotePlacements = function setNotePlacements(_ref) {
-	  var _notesMap = _ref.notesMap;
-	  var staffs = _ref.staffs;
-	  var voices = _ref.voices;
+	  var _notesMap = _ref.notesMap,
+	      staffs = _ref.staffs,
+	      voices = _ref.voices;
 	
 	  if (voices.length === 1) return; // ALL SINGLE
 	
@@ -35733,8 +35783,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var staffNoteMap = new Map(); // {staff}/(top|bottom) -> Note
 	    noteMap.forEach(function (note, voice) {
 	      var staff = note.getStaff();
-	      var topKey = staff + '/top';
-	      var bottomKey = staff + '/bottom';
+	      var topKey = staff + '/top',
+	          bottomKey = staff + '/bottom';
 	
 	      var topNote = staffNoteMap.get(topKey);
 	      var bottomNote = staffNoteMap.get(bottomKey);
@@ -35748,8 +35798,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (note.getPlacement() !== _Note2.default.Placement.SINGLE) return;
 	
 	      var staff = note.getStaff();
-	      var topKey = staff + '/top';
-	      var bottomKey = staff + '/bottom';
+	      var topKey = staff + '/top',
+	          bottomKey = staff + '/bottom';
 	
 	      var topNote = staffNoteMap.get(topKey);
 	      var bottomNote = staffNoteMap.get(bottomKey);
@@ -35779,10 +35829,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var _applyOctaveShift = function _applyOctaveShift(_ref2) {
-	  var direction = _ref2.direction;
-	  var measures = _ref2.measures;
-	  var mi = _ref2.mi;
-	  var staff = _ref2.staff;
+	  var direction = _ref2.direction,
+	      measures = _ref2.measures,
+	      mi = _ref2.mi,
+	      staff = _ref2.staff;
 	
 	  var octaveShift = direction.getOctaveShift();
 	
@@ -35870,10 +35920,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	var _splitMultiMeasureDirection = function _splitMultiMeasureDirection(_ref3) {
-	  var direction = _ref3.direction;
-	  var measures = _ref3.measures;
-	  var mi = _ref3.mi;
-	  var staff = _ref3.staff;
+	  var direction = _ref3.direction,
+	      measures = _ref3.measures,
+	      mi = _ref3.mi,
+	      staff = _ref3.staff;
 	
 	  if (['continue', 'stop'].includes(direction.getContent().type)) return;
 	
@@ -36085,25 +36135,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	
 	  function Note(_ref) {
-	    var tag = _ref.tag;
-	    var rest = _ref.rest;
-	    var full = _ref.full;
-	    var grace = _ref.grace;
-	    var staff = _ref.staff;
-	    var voice = _ref.voice;
-	    var dot = _ref.dot;
-	    var duration = _ref.duration;
-	    var hidden = _ref.hidden;
-	    var heads = _ref.heads;
-	    var stem = _ref.stem;
-	    var type = _ref.type;
-	    var beam = _ref.beam;
-	    var chord = _ref.chord;
-	    var slur = _ref.slur;
-	    var notations = _ref.notations;
-	    var lyrics = _ref.lyrics;
-	    var timeModification = _ref.timeModification;
-	    var defaultX = _ref.defaultX;
+	    var tag = _ref.tag,
+	        rest = _ref.rest,
+	        full = _ref.full,
+	        grace = _ref.grace,
+	        staff = _ref.staff,
+	        voice = _ref.voice,
+	        dot = _ref.dot,
+	        duration = _ref.duration,
+	        hidden = _ref.hidden,
+	        heads = _ref.heads,
+	        stem = _ref.stem,
+	        type = _ref.type,
+	        beam = _ref.beam,
+	        chord = _ref.chord,
+	        slur = _ref.slur,
+	        notations = _ref.notations,
+	        lyrics = _ref.lyrics,
+	        timeModification = _ref.timeModification,
+	        defaultX = _ref.defaultX;
 	
 	    _classCallCheck(this, Note);
 	
@@ -36300,19 +36350,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	// @author Taehoon Moon
 	
 	var Direction = function () {
+	  _createClass(Direction, null, [{
+	    key: 'LineHeight',
+	    get: function get() {
+	      return {
+	        'dynamics': 2,
+	        'wedge': 3,
+	        'words': 2,
+	        'octave-shift': 2,
+	        'segno': 3,
+	        'coda': 3,
+	        'harmony': 3
+	      };
+	    }
+	  }]);
+	
 	  function Direction(_ref) {
-	    var tag = _ref.tag;
-	    var directionType = _ref.directionType;
-	    var wedge = _ref.wedge;
-	    var wordsList = _ref.wordsList;
-	    var octaveShift = _ref.octaveShift;
-	    var harmony = _ref.harmony;
-	    var staff = _ref.staff;
-	    var voice = _ref.voice;
-	    var placement = _ref.placement;
-	    var beginDuration = _ref.beginDuration;
-	    var dynamicType = _ref.dynamicType;
-	    var defaultX = _ref.defaultX;
+	    var tag = _ref.tag,
+	        directionType = _ref.directionType,
+	        wedge = _ref.wedge,
+	        wordsList = _ref.wordsList,
+	        octaveShift = _ref.octaveShift,
+	        harmony = _ref.harmony,
+	        staff = _ref.staff,
+	        voice = _ref.voice,
+	        placement = _ref.placement,
+	        beginDuration = _ref.beginDuration,
+	        dynamicType = _ref.dynamicType,
+	        defaultX = _ref.defaultX;
 	
 	    _classCallCheck(this, Direction);
 	
@@ -36342,7 +36407,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.vfNote = null; // TextNote, TextDynamics, ...
 	    this.vfEndNote = null; // it is for Crescendo etc...
 	    this.vfElement = null; // Crescendo (VF StaveHairpin)
+	    this.vfOptions = null; // font, etc...
 	    this.nextDirection = null;
+	    this.offset = null; // Temp value for DirectionSubFormatter
 	  }
 	
 	  _createClass(Direction, [{
@@ -36440,7 +36507,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return this.dynamicType;
 	        case 'octave-shift':
 	          return this.octaveShift;
+	        case 'harmony':
+	          return this.harmony;
 	      }
+	    }
+	  }, {
+	    key: 'getLineHeight',
+	    value: function getLineHeight() {
+	      return Direction.LineHeight[this.directionType];
 	    }
 	  }, {
 	    key: 'getBeginDuration',
@@ -36459,6 +36533,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'getDefaultX',
 	    value: function getDefaultX() {
 	      return this.defaultX;
+	    }
+	
+	    // get full duration of direction; including next direction's duration
+	
+	  }, {
+	    key: 'getFullDuration',
+	    value: function getFullDuration() {
+	      var nextDirection = this.getNextDirection();
+	      return this.duration + (nextDirection ? nextDirection.getFullDuration() : 0);
 	    }
 	  }, {
 	    key: 'getDuration',
@@ -36511,6 +36594,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.nextDirection = direction;
 	    }
 	  }, {
+	    key: 'getOffset',
+	    value: function getOffset() {
+	      return this.offset;
+	    }
+	  }, {
+	    key: 'setOffset',
+	    value: function setOffset(offset) {
+	      this.offset = offset;
+	    }
+	  }, {
 	    key: 'getVFNote',
 	    value: function getVFNote() {
 	      return this.vfNote;
@@ -36539,6 +36632,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'setVFElement',
 	    value: function setVFElement(vfElement) {
 	      this.vfElement = vfElement;
+	    }
+	  }, {
+	    key: 'getVFOptions',
+	    value: function getVFOptions() {
+	      return this.vfOptions;
+	    }
+	  }, {
+	    key: 'setVFOptions',
+	    value: function setVFOptions(vfOptions) {
+	      this.vfOptions = vfOptions;
 	    }
 	  }]);
 	
@@ -36725,9 +36828,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var Credit = function () {
 	  function Credit(_ref) {
-	    var page = _ref.page;
-	    var type = _ref.type;
-	    var wordsList = _ref.wordsList;
+	    var page = _ref.page,
+	        type = _ref.type,
+	        wordsList = _ref.wordsList;
 	
 	    _classCallCheck(this, Credit);
 	
@@ -36785,9 +36888,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var PartList = function () {
 	  function PartList(_ref) {
-	    var id = _ref.id;
-	    var scoreParts = _ref.scoreParts;
-	    var partGroups = _ref.partGroups;
+	    var id = _ref.id,
+	        scoreParts = _ref.scoreParts,
+	        partGroups = _ref.partGroups;
 	
 	    _classCallCheck(this, PartList);
 	
@@ -36838,7 +36941,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.measures = measures;
 	
-	    this.width = null;
+	    this.notesWidth = null;
 	    this.minTotalWidth = null;
 	    this.connectors = [];
 	    this.vfFormatter = null;
@@ -36865,14 +36968,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.measures;
 	    }
 	  }, {
-	    key: "getWidth",
-	    value: function getWidth() {
-	      return this.width;
+	    key: "getNotesWidth",
+	    value: function getNotesWidth() {
+	      return this.notesWidth;
 	    }
 	  }, {
-	    key: "setWidth",
-	    value: function setWidth(width) {
-	      this.width = width;
+	    key: "setNotesWidth",
+	    value: function setNotesWidth(notesWidth) {
+	      this.notesWidth = notesWidth;
+	      this.measures.forEach(function (measure) {
+	        return measure.setNotesWidth(notesWidth);
+	      });
 	    }
 	  }, {
 	    key: "getMinTotalWidth",
@@ -36979,6 +37085,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _DirectionSubFormatter2 = _interopRequireDefault(_DirectionSubFormatter);
 	
+	var _AttributesSubFormatter = __webpack_require__(326);
+	
+	var _AttributesSubFormatter2 = _interopRequireDefault(_AttributesSubFormatter);
+	
+	var _BarlineSubFormatter = __webpack_require__(327);
+	
+	var _BarlineSubFormatter2 = _interopRequireDefault(_BarlineSubFormatter);
+	
+	var _PartListSubFormatter = __webpack_require__(328);
+	
+	var _PartListSubFormatter2 = _interopRequireDefault(_PartListSubFormatter);
+	
+	var _CreditsSubFormatter = __webpack_require__(329);
+	
+	var _CreditsSubFormatter2 = _interopRequireDefault(_CreditsSubFormatter);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -36992,8 +37114,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Formatter(score) {
 	    _classCallCheck(this, Formatter);
 	
-	    this.slurTieSubFormatter = new _SlurTieSubFormatter2.default({ formatter: this, score: score });
-	    this.directionSubFormatter = new _DirectionSubFormatter2.default({ formatter: this, score: score });
+	    var subFormatterOptions = { formatter: this, score: score };
+	    this.slurTieSubFormatter = new _SlurTieSubFormatter2.default(subFormatterOptions);
+	    this.directionSubFormatter = new _DirectionSubFormatter2.default(subFormatterOptions);
+	    this.attributesSubFormatter = new _AttributesSubFormatter2.default(subFormatterOptions);
+	    this.barlineSubFormatter = new _BarlineSubFormatter2.default(subFormatterOptions);
+	    this.partListSubFormatter = new _PartListSubFormatter2.default(subFormatterOptions);
+	    this.creditsSubFormatter = new _CreditsSubFormatter2.default(subFormatterOptions);
 	    this.score = score;
 	
 	    this.defaults = this.score.getDefaults();
@@ -37080,8 +37207,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getPrintMeasure',
 	    value: function getPrintMeasure(_ref) {
-	      var parts = _ref.parts;
-	      var mi = _ref.mi;
+	      var parts = _ref.parts,
+	          mi = _ref.mi;
 	
 	      for (var pi = 0; pi < parts.length; pi++) {
 	        var measure = parts[pi].getMeasures()[mi];
@@ -37169,8 +37296,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function updateMeasureYs(_ref2) {
 	      var _this4 = this;
 	
-	      var aboveBottomY = _ref2.aboveBottomY;
-	      var mi = _ref2.mi;
+	      var aboveBottomY = _ref2.aboveBottomY,
+	          mi = _ref2.mi;
 	
 	      var measureTopYs = [];
 	      var measureBottomYs = [];
@@ -37300,6 +37427,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (printMeasure.isStaffDisplayed(staff)) {
 	              var StaveClass = clef.sign === 'TAB' ? _allegretto2.default.Flow.TabStave : _allegretto2.default.Flow.Stave;
 	              var stave = new StaveClass(x, y, width, options);
+	              // stave.options.bottom_text_position = 0;
 	              stave.setBegBarType(_allegretto2.default.Flow.Barline.type.NONE);
 	              measure.setStave(staff, stave);
 	            }
@@ -37325,192 +37453,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: 'formatClef',
-	    value: function formatClef() {
-	      var _this7 = this;
-	
-	      this.parts.forEach(function (part, pi) {
-	        var clefsMap = new Map(); // {staff} -> clef[]
-	        var measures = part.getMeasures();
-	
-	        measures.forEach(function (measure, mi) {
-	          // Reset existing clefsMap!
-	          clefsMap.forEach(function (clefs, staff) {
-	            if (clefs.length === 1 && clefs[0].duration === 0) return;
-	
-	            var clef = Object.assign({}, clefs[clefs.length - 1]);
-	            clef.duration = 0;
-	            clefs.splice(0, clefs.length, clef);
-	          });
-	
-	          measure.getClefsMap().forEach(function (clefs, staff) {
-	            clefs.forEach(function (clef) {
-	              if (clef.duration === 0) clefsMap.set(staff, [clef]);else clefsMap.get(staff).push(clef);
-	            });
-	          });
-	
-	          if (mi === 0 || measure.isNewLineStarting()) {
-	            measure.getStaveMap().forEach(function (stave, staff) {
-	              var vfClef = (0, _Util.getVFClef)(clefsMap.get(staff)[0]);
-	              if (vfClef) stave.addClef(vfClef);
-	            });
-	          }
-	
-	          // check end-clef
-	          clefsMap.forEach(function (clefs, staff) {
-	            var lastClef = clefs[clefs.length - 1];
-	            if (lastClef.duration > 0 && lastClef.duration >= measure.getMaxDuration()) {
-	              var vfClef = (0, _Util.getVFClef)(lastClef);
-	              var vfStave = measure.getStave(staff);
-	              if (vfStave) vfStave.addEndClef(vfClef, 'small');
-	            }
-	          });
-	
-	          // update cache
-	          var cacheClefsMap = new Map();
-	          clefsMap.forEach(function (clefs, staff) {
-	            return cacheClefsMap.set(staff, clefs.slice());
-	          });
-	          _this7.getMeasureCache(pi, mi).setClefsMap(cacheClefsMap);
-	
-	          var nextMeasure = measures[mi + 1];
-	          if (!nextMeasure || !nextMeasure.isNewLineStarting()) return;
-	
-	          nextMeasure.getClefsMap().forEach(function (clefs, staff) {
-	            if (clefs[0].duration > 0) return;
-	
-	            // same clef with prev measure => pass!
-	            var lastClefs = clefsMap.get(staff);
-	            var lastClef = lastClefs[lastClefs.length - 1];
-	            if (lastClef.sign === clefs[0].sign && lastClef.line === clefs[0].line && lastClef.clefOctaveChange === clefs[0].clefOctaveChange) {
-	              return;
-	            }
-	
-	            var vfClef = (0, _Util.getVFClef)(clefs[0]);
-	            var stave = measure.getStave(staff);
-	            if (stave) stave.addEndClef(vfClef, 'small');
-	          });
-	        });
-	      });
-	
-	      // format clef width
-	      this.score.getMeasurePacks().forEach(function (measurePack, mi) {
-	        if (mi > 0 && !measurePack.getTopMeasure().isNewLineStarting()) {
-	          return;
-	        }
-	
-	        function _getVFClef(vfStave) {
-	          var vfPosition = _allegretto2.default.Flow.StaveModifier.Position.BEGIN;
-	          var vfCategory = _allegretto2.default.Flow.Clef.CATEGORY;
-	          return vfStave.getModifiers(vfPosition, vfCategory)[0];
-	        }
-	
-	        var vfStaves = measurePack.getVFStaves();
-	        var maxWidth = -Infinity;
-	
-	        vfStaves.forEach(function (vfStave) {
-	          var vfClef = _getVFClef(vfStave);
-	          if (vfClef && vfClef.width > maxWidth) maxWidth = vfClef.width;
-	        });
-	
-	        if (maxWidth < 0) return;
-	
-	        vfStaves.forEach(function (vfStave) {
-	          var vfClef = _getVFClef(vfStave);
-	          if (vfClef) vfClef.setWidth(maxWidth);
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'formatKeySignature',
-	    value: function formatKeySignature() {
-	      var _this8 = this;
-	
-	      this.parts.forEach(function (part, pi) {
-	        var prevMeasure = void 0;
-	        var key = void 0;
-	
-	        part.getMeasures().forEach(function (measure, mi) {
-	          var keyUpdated = false;
-	
-	          if (measure.getKey()) {
-	            key = measure.getKey();
-	            keyUpdated = true;
-	          }
-	
-	          if (mi === 0 || measure.isNewLineStarting() || keyUpdated) {
-	            measure.getStaves().forEach(function (stave) {
-	              if (stave instanceof _allegretto2.default.Flow.TabStave) return;
-	
-	              var vfKey = (0, _Util.getVFKeySignature)(key);
-	              if (key) stave.addKeySignature(vfKey);
-	            });
-	          }
-	
-	          if (mi > 0 && measure.isNewLineStarting() && keyUpdated) {
-	            prevMeasure.getStaves().forEach(function (stave) {
-	              if (stave instanceof _allegretto2.default.Flow.TabStave) return;
-	
-	              var vfKey = (0, _Util.getVFKeySignature)(key);
-	              // TODO: replace it to use StaveModifier later
-	              var END = 6; // Vex.Flow.StaveModifier.Position.END
-	              if (key) stave.addKeySignature(vfKey, undefined, END);
-	            });
-	          }
-	
-	          // update cache
-	          _this8.getMeasureCache(pi, mi).setKey(key);
-	          prevMeasure = measure;
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'formatTimeSignature',
-	    value: function formatTimeSignature() {
-	      var _this9 = this;
-	
-	      this.parts.forEach(function (part, pi) {
-	        //const numStaffs = part.getNumStaffs();
-	        var prevMeasure = void 0;
-	        var time = void 0;
-	
-	        part.getMeasures().forEach(function (measure, mi) {
-	          var timeUpdated = false;
-	
-	          if (measure.getTime()) {
-	            time = measure.getTime();
-	            timeUpdated = true;
-	          }
-	
-	          if (mi === 0 || timeUpdated) {
-	            measure.getStaves().forEach(function (stave) {
-	              if (time) stave.addTimeSignature(time.beats + '/' + time.beatType);
-	            });
-	          }
-	
-	          if (mi > 0 && measure.isNewLineStarting() && timeUpdated) {
-	            prevMeasure.getStaves().forEach(function (stave) {
-	              stave.addEndTimeSignature(time.beats + '/' + time.beatType);
-	            });
-	          }
-	
-	          // update cache
-	          _this9.getMeasureCache(pi, mi).setTime(time);
-	          prevMeasure = measure;
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'formatAttributes',
-	    value: function formatAttributes() {
-	      this.formatClef();
-	      this.formatKeySignature();
-	      this.formatTimeSignature();
-	    }
-	  }, {
 	    key: 'formatDivisions',
 	    value: function formatDivisions() {
-	      var _this10 = this;
+	      var _this7 = this;
 	
 	      this.parts.forEach(function (part, pi) {
 	        var divisions = void 0;
@@ -37518,383 +37463,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (measure.getDivisions() !== undefined) divisions = measure.getDivisions();
 	
 	          // update cache
-	          _this10.getMeasureCache(pi, mi).setDivisions(divisions);
+	          _this7.getMeasureCache(pi, mi).setDivisions(divisions);
 	        });
-	      });
-	    }
-	  }, {
-	    key: 'formatCredits',
-	    value: function formatCredits() {
-	      var _this11 = this;
-	
-	      var DEFAULT_FONT_SIZE = 16;
-	
-	      var getTextAnchor = function getTextAnchor(value) {
-	        switch (value) {
-	          case 'left':
-	            return 'start';
-	          case 'right':
-	            return 'end';
-	          case 'center':
-	            return 'middle';
-	        }
-	      };
-	
-	      var getDominantBaseline = function getDominantBaseline(value) {
-	        switch (value) {
-	          case 'top':
-	            return 'hanging';
-	          case 'middle':
-	            return 'middle';
-	          case 'bottom':
-	          case 'baseline':
-	            return 'alphabetical';
-	        }
-	      };
-	
-	      var pageSize = this.score.getDefaults().getPageSize();
-	      // words.fontSize = Number(/(\d+)\w*/.exec(node.getAttribute('font-size')[1]));
-	      this.credits.forEach(function (credit) {
-	        var texts = [];
-	        var x = void 0;
-	        var y = void 0;
-	        var fontSize = void 0;
-	        var textAnchor = 'hanging'; // TODO: full justify & halign support
-	        var baseline = 'start';
-	
-	        credit.getWordsList().forEach(function (words) {
-	          if (!/\w+/.test(words.content)) return; // ignore empty line-break
-	
-	          var text = {
-	            content: words.content,
-	            attributes: new Map()
-	          };
-	
-	          if (words.defaultX !== undefined) x = words.defaultX;
-	          if (words.defaultY !== undefined) y = pageSize.height - words.defaultY;
-	          if (words.justify !== undefined) textAnchor = getTextAnchor(words.justify);
-	          if (words.halign !== undefined) textAnchor = getTextAnchor(words.halign);
-	          if (words.valign !== undefined) baseline = getDominantBaseline(words.valign);
-	
-	          if (textAnchor) text.attributes.set('text-anchor', textAnchor);
-	          if (baseline) text.attributes.set('dominant-baseline', baseline);
-	
-	          _this11.context.save();
-	          if (words.fontSize !== undefined) {
-	            fontSize = words.fontSize;
-	            if (/\d+$/.test(fontSize)) {
-	              fontSize = Number(fontSize) * 2.2; // TODO
-	              //fontSize += 'px'; svgcontext uses pt
-	            }
-	
-	            text.attributes.set('font-size', fontSize);
-	            _this11.context.attributes['font-size'] = fontSize; // svgcontext only
-	          } else {
-	            text.attributes.set('font-size', DEFAULT_FONT_SIZE);
-	            _this11.context.attributes['font-size'] = DEFAULT_FONT_SIZE;
-	          }
-	
-	          // default font: "times", no custom font support
-	          text.attributes.set('font-family', 'times');
-	          _this11.context.attributes['font-family'] = 'times';
-	
-	          var bbox = _this11.context.measureText(text.content);
-	          _this11.context.restore();
-	
-	          text.x = x;
-	          text.y = y;
-	          texts.push(text);
-	          y += bbox.height;
-	        });
-	
-	        credit.setTexts(texts);
-	      });
-	    }
-	  }, {
-	    key: 'formatPartList',
-	    value: function formatPartList() {
-	      var _this12 = this;
-	
-	      var partGroups = this.partList.getPartGroups();
-	      var scoreParts = this.partList.getScoreParts();
-	      var numMeasures = this.measurePacks.length;
-	
-	      var findTopStave = function findTopStave(pi, mi, max) {
-	        for (; pi < max; pi++) {
-	          var staves = _this12.parts[pi].getMeasures()[mi].getStaves();
-	          if (staves && staves.length > 0) return staves[0];
-	        }
-	      };
-	
-	      var findBottomStave = function findBottomStave(pi, mi, min) {
-	        for (; pi > min; pi--) {
-	          var staves = _this12.parts[pi].getMeasures()[mi].getStaves();
-	          if (staves && staves.length > 0) return staves[staves.length - 1];
-	        }
-	      };
-	
-	      var setText = function setText(_ref3) {
-	        var stave = _ref3.stave;
-	        var staveConnector = _ref3.staveConnector;
-	        var text = _ref3.text;
-	
-	        var contents = text.split(/\n/);
-	        var topY = (1 - contents.length) * 10;
-	        contents.forEach(function (content, i) {
-	          var textOptions = { shift_y: topY + i * 20 };
-	          if (stave) {
-	            var position = _allegretto2.default.Flow.Modifier.Position.LEFT;
-	            textOptions.shift_x = 8;
-	            stave.setText(content, position, textOptions);
-	          } else staveConnector.setText(content, textOptions);
-	        });
-	      };
-	
-	      var page = 1;
-	
-	      var _loop3 = function _loop3(mi) {
-	        var connectors = [];
-	        _this12.measurePacks[mi].setConnectors(connectors);
-	
-	        var firstPartMeasure = _this12.parts[0].getMeasures()[mi];
-	        var isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
-	        if (mi > 0 && firstPartMeasure.hasNewPage()) page++;
-	
-	        if (isNewLineStarting) {
-	          var topStave = findTopStave(0, mi, _this12.parts.length - 1);
-	          var bottomStave = findBottomStave(_this12.parts.length - 1, mi, 0);
-	          if (topStave && bottomStave) {
-	            var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	            staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
-	            connectors.push({ page: page, staveConnector: staveConnector });
-	          }
-	        }
-	
-	        partGroups.forEach(function (partGroup) {
-	          var startPartIndex = partGroup.startPartIndex;
-	          var stopPartIndex = partGroup.stopPartIndex;
-	
-	          var topStave = findTopStave(startPartIndex, mi, stopPartIndex);
-	          var bottomStave = findBottomStave(stopPartIndex, mi, startPartIndex);
-	          if (!topStave || !bottomStave) {
-	            if (!isNewLineStarting) return;
-	
-	            topStave = findTopStave(startPartIndex, mi, stopPartIndex + 1);
-	            bottomStave = findBottomStave(stopPartIndex, mi, startPartIndex - 1);
-	            if (!topStave || !bottomStave) return;
-	
-	            var _staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	            var connectorType = partGroup.groupSymbol === 'bracket' ? _allegretto2.default.Flow.StaveConnector.type.BRACKET : _allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT;
-	            _staveConnector.setType(connectorType);
-	
-	            /* TODO: Current vexflow StaveConnector only provides a single text
-	            if (mi === 0 && partGroup.groupName)
-	              setText({ staveConnector, text: partGroup.partName });
-	            */
-	            if (mi > 0 && partGroup.groupAbbreviation) setText({ staveConnector: _staveConnector, text: partGroup.groupAbbreviation });
-	
-	            connectors.push({ page: page, staveConnector: _staveConnector });
-	            return;
-	          }
-	
-	          if (partGroup.groupBarline) {
-	            topStave.format();
-	
-	            var _staveConnector2 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	            var shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
-	            _staveConnector2.setXShift(shiftX);
-	            _staveConnector2.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_RIGHT);
-	            connectors.push({ page: page, staveConnector: _staveConnector2 });
-	          }
-	
-	          if (!isNewLineStarting) return;
-	
-	          var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	          var hasGroupSymbol = false;
-	          if (partGroup.groupSymbol) {
-	            hasGroupSymbol = true;
-	            var _connectorType = (0, _Util.getVFConnectorType)(partGroup.groupSymbol);
-	            staveConnector.setType(_connectorType);
-	            staveConnector.setXShift(0);
-	          }
-	
-	          if (mi === 0 && partGroup.groupName) setText({ staveConnector: staveConnector, text: partGroup.groupName });else if (mi > 0 && partGroup.groupAbbreviation) setText({ staveConnector: staveConnector, text: partGroup.groupAbbreviation });
-	
-	          if (!hasGroupSymbol) staveConnector.setType(_allegretto2.default.Flow.StaveConnector.type.NONE);
-	
-	          connectors.push({ page: page, staveConnector: staveConnector });
-	        });
-	
-	        // single part && multiple-staff
-	        _this12.parts.forEach(function (part, pi) {
-	          var scorePart = scoreParts[pi];
-	          var staves = part.getMeasures()[mi].getStaves();
-	
-	          if (staves.length === 1) {
-	            var stave = staves[0];
-	            if (mi === 0 && scorePart.partName) setText({ stave: stave, text: scorePart.partName });else if (mi > 0 && isNewLineStarting && scorePart.partAbbreviation) setText({ stave: stave, text: scorePart.partAbbreviation });
-	
-	            return;
-	          } else if (!staves) return;
-	
-	          var topStave = staves[0];
-	          var bottomStave = staves[staves.length - 1];
-	
-	          if (!topStave || !bottomStave) return;
-	
-	          topStave.format();
-	
-	          if (isNewLineStarting) {
-	            var _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	            _staveConnector3.setType(_allegretto2.default.Flow.StaveConnector.type.BRACE);
-	            connectors.push({ page: page, staveConnector: _staveConnector3 });
-	
-	            if (mi === 0 && scorePart.partName) setText({ staveConnector: _staveConnector3, text: scorePart.partName });else if (mi > 0 && isNewLineStarting && scorePart.partAbbreviation) setText({ staveConnector: _staveConnector3, text: scorePart.partAbbreviation });
-	
-	            _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	            _staveConnector3.setType(_allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT);
-	            connectors.push({ page: page, staveConnector: _staveConnector3 });
-	
-	            var _vfBarlineType = topStave.modifiers[0].getType();
-	            var _connectorType2 = (0, _Util.convertVFBarlineTypeToVFConnectorType)(_vfBarlineType, true);
-	            if (_connectorType2 !== _allegretto2.default.Flow.StaveConnector.type.SINGLE_LEFT) {
-	              _staveConnector3 = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	              var _vfBarlineType2 = topStave.modifiers[0].getType();
-	              var _connectorType3 = (0, _Util.convertVFBarlineTypeToVFConnectorType)(_vfBarlineType2, true);
-	              var _shiftX = topStave.modifiers[0].getX() - topStave.getX();
-	              _staveConnector3.setType(_connectorType3);
-	              _staveConnector3.setXShift(_shiftX);
-	              connectors.push({ page: page, staveConnector: _staveConnector3 });
-	            }
-	          }
-	
-	          var staveConnector = new _allegretto2.default.Flow.StaveConnector(topStave, bottomStave);
-	          var vfBarlineType = topStave.modifiers[1].getType();
-	          var connectorType = (0, _Util.convertVFBarlineTypeToVFConnectorType)(vfBarlineType, false);
-	          var shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
-	          staveConnector.setXShift(shiftX);
-	          staveConnector.setType(connectorType);
-	          connectors.push({ page: page, staveConnector: staveConnector });
-	        });
-	      };
-	
-	      for (var mi = 0; mi < numMeasures; mi++) {
-	        _loop3(mi);
-	      }
-	    }
-	
-	    // formatBarline -> _formatVolta
-	
-	  }, {
-	    key: '_formatVolta',
-	    value: function _formatVolta(measures) {
-	      var onVolta = false;
-	
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-	
-	      try {
-	        for (var _iterator = measures[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var measure = _step.value;
-	
-	          var barline = measure.getBarline();
-	
-	          var type = void 0;
-	          var text = void 0;
-	          if (onVolta && barline.right && barline.right.ending) {
-	            var ending = barline.right.ending;
-	            if (ending.type === 'discontinue') {
-	              type = VF.Volta.type.MID;
-	            } else {
-	              // stop
-	              type = VF.Volta.type.END;
-	            }
-	
-	            onVolta = false;
-	          } else if (!onVolta && barline.left && barline.left.ending && barline.right && barline.right.ending) {
-	            var types = [barline.left.ending.type, barline.right.ending.type];
-	
-	            if ((0, _Util.hasSameContents)(types, ['start', 'discontinue'])) {
-	              type = VF.Volta.type.BEGIN;
-	            } else if ((0, _Util.hasSameContents)(types, ['start', 'stop'])) {
-	              type = VF.Volta.type.BEGIN_END;
-	            } else if ((0, _Util.hasSameContents)(types, ['discontinue', 'stop'])) {
-	              type = VF.Volta.type.END;
-	            } else {
-	              // ['discontinue', 'discontinue']
-	              type = VF.Volta.type.MID;
-	            }
-	
-	            text = barline.left.ending.text;
-	          } else if (!onVolta && barline.left && barline.left.ending) {
-	            var _ending = barline.left.ending;
-	            if (_ending.type === 'start') {
-	              type = VF.Volta.type.BEGIN;
-	            } else if (_ending.type === 'discontinue') {
-	              type = VF.Volta.type.MID;
-	            }
-	
-	            text = _ending.text;
-	            onVolta = true;
-	          } else if (onVolta) {
-	            type = VF.Volta.type.MID;
-	          }
-	
-	          var vfStave = measure.getStaves()[0];
-	          if (vfStave && type) {
-	            //vfStave.setVoltaType(type, text, 0);
-	            vfStave.modifiers.push(new VF.Volta(type, text, vfStave.x, 20));
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'formatBarline',
-	    value: function formatBarline() {
-	      var _this13 = this;
-	
-	      this.parts.forEach(function (part) {
-	        return part.getMeasures().forEach(function (measure) {
-	          var barline = measure.getBarline();
-	          var vfStaves = measure.getStaves();
-	
-	          if (barline.left) {
-	            (function () {
-	              var vfBarlineType = (0, _Util.getVFBarlineType)(barline.left);
-	              vfStaves.forEach(function (vfStave) {
-	                return vfStave.setBegBarType(vfBarlineType);
-	              });
-	            })();
-	          }
-	
-	          if (barline.right) {
-	            (function () {
-	              var vfBarlineType = (0, _Util.getVFBarlineType)(barline.right);
-	              vfStaves.forEach(function (vfStave) {
-	                return vfStave.setEndBarType(vfBarlineType);
-	              });
-	            })();
-	          }
-	        });
-	      });
-	
-	      this.parts.forEach(function (part) {
-	        var measures = part.getMeasures();
-	        _this13._formatVolta(measures);
 	      });
 	    }
 	
@@ -37927,9 +37497,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'strong-accent': 'a^',
 	        'breath-mark': 'a,'
 	      };
-	      var _Vex$Flow$Modifier$Po = _allegretto2.default.Flow.Modifier.Position;
-	      var ABOVE = _Vex$Flow$Modifier$Po.ABOVE;
-	      var BELOW = _Vex$Flow$Modifier$Po.BELOW;
+	      var _Vex$Flow$Modifier$Po = _allegretto2.default.Flow.Modifier.Position,
+	          ABOVE = _Vex$Flow$Modifier$Po.ABOVE,
+	          BELOW = _Vex$Flow$Modifier$Po.BELOW;
 	
 	
 	      var articulations = notations.articulations ? notations.articulations : [];
@@ -37964,7 +37534,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_formatNote',
 	    value: function _formatNote(note, clef, divisions, lyricNames) {
-	      var _this14 = this;
+	      var _this8 = this;
 	
 	      if (note.getHidden()) {
 	        return { vfNote: new _allegretto2.default.Flow.GhostNote({ duration: (0, _Util.getVFDuration)(note, divisions) }) };
@@ -37984,13 +37554,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var headSoftClone = Object.assign({}, head);
 	        headSoftClone.octave += note.getOctaveChange();
 	        return headSoftClone;
-	      }).forEach(function (_ref4) {
-	        var step = _ref4.step;
-	        var octave = _ref4.octave;
-	        var accidental = _ref4.accidental;
-	        var fret = _ref4.fret;
-	        var string = _ref4.string;
-	        var fingering = _ref4.fingering;
+	      }).forEach(function (_ref3) {
+	        var step = _ref3.step,
+	            octave = _ref3.octave,
+	            accidental = _ref3.accidental,
+	            fret = _ref3.fret,
+	            string = _ref3.string,
+	            fingering = _ref3.fingering;
 	
 	        data.keys.push(step + '/' + octave);
 	        accidentals.push(accidental ? accidental : null);
@@ -38016,7 +37586,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (note.getGrace()) lyricNames = [];
 	      lyricNames.forEach(function (lyricName) {
 	        var lyric = lyrics.filter(function (_lyric) {
-	          return _this14.getLyricName(_lyric) === lyricName;
+	          return _this8.getLyricName(_lyric) === lyricName;
 	        })[0];
 	        var vfLyricNotes = [];
 	
@@ -38103,13 +37673,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var gap = Infinity;
 	          notesMap.forEach(function (notes, voice) {
 	            var duration = 0;
-	            var _iteratorNormalCompletion2 = true;
-	            var _didIteratorError2 = false;
-	            var _iteratorError2 = undefined;
+	            var _iteratorNormalCompletion = true;
+	            var _didIteratorError = false;
+	            var _iteratorError = undefined;
 	
 	            try {
-	              for (var _iterator2 = notes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	                var note = _step2.value;
+	              for (var _iterator = notes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                var note = _step.value;
 	
 	                if (!note.getDuration() || staff !== note.getStaff()) continue;
 	
@@ -38126,16 +37696,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (note.getDuration()) duration += note.getDuration();
 	              }
 	            } catch (err) {
-	              _didIteratorError2 = true;
-	              _iteratorError2 = err;
+	              _didIteratorError = true;
+	              _iteratorError = err;
 	            } finally {
 	              try {
-	                if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	                  _iterator2.return();
+	                if (!_iteratorNormalCompletion && _iterator.return) {
+	                  _iterator.return();
 	                }
 	              } finally {
-	                if (_didIteratorError2) {
-	                  throw _iteratorError2;
+	                if (_didIteratorError) {
+	                  throw _iteratorError;
 	                }
 	              }
 	            }
@@ -38153,12 +37723,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_formatNotes',
 	    value: function _formatNotes(part, pi) {
-	      var _this15 = this;
+	      var _this9 = this;
 	
 	      part.getMeasures().forEach(function (measure, mi) {
 	        var notesMap = measure.getNotesMap();
 	        var lyricNamesMap = measure.getLyricNamesMap();
-	        var measureCache = _this15.getMeasureCache(pi, mi);
+	        var measureCache = _this9.getMeasureCache(pi, mi);
 	        var vfVoicesMap = new Map(); // staff -> vfVoice[]
 	        var vfLyricVoicesMap = new Map();
 	        var vfTupletsMap = new Map();
@@ -38186,19 +37756,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var clef = clefs[clefs.length - 1];
 	            var divisions = measureCache.getDivisions();
 	
-	            var _formatNote2 = _this15._formatNote(note, clef, divisions, lyricNames);
-	
-	            var vfNote = _formatNote2.vfNote;
-	            var _formatNote2$vfLyricN = _formatNote2.vfLyricNotesMap;
-	
-	            var _vfLyricNotesMap = _formatNote2$vfLyricN === undefined ? new Map() : _formatNote2$vfLyricN;
+	            var _formatNote2 = _this9._formatNote(note, clef, divisions, lyricNames),
+	                vfNote = _formatNote2.vfNote,
+	                _formatNote2$vfLyricN = _formatNote2.vfLyricNotesMap,
+	                _vfLyricNotesMap = _formatNote2$vfLyricN === undefined ? new Map() : _formatNote2$vfLyricN;
 	
 	            var vfStave = measure.getStave(staff);
 	
 	            vfNote.setStave(vfStave);
 	            _vfLyricNotesMap.forEach(function (vfLyricNotes) {
 	              vfLyricNotes.forEach(function (vfLyricNote) {
-	                vfLyricNote.setContext(_this15.context);
+	                vfLyricNote.setContext(_this9.context);
 	                vfLyricNote.setStave(vfStave);
 	              });
 	            });
@@ -38208,7 +37776,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (note.grace) {
 	              graceNotes.push(note);
 	            } else {
-	              _this15._formatGraceNotes(vfNote, graceNotes);
+	              _this9._formatGraceNotes(vfNote, graceNotes);
 	              if (!vfNotesMap.has(staff)) {
 	                var ghostNotes = vfDurations.map(function (vfDuration) {
 	                  return new VF.GhostNote({ duration: vfDuration });
@@ -38244,14 +37812,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (note.getDuration()) duration += note.getDuration();
 	          });
 	
-	          vfTupletsMap.set(voice, _this15._formatTuplet(notes));
+	          vfTupletsMap.set(voice, _this9._formatTuplet(notes));
 	
-	          var _ref5 = measureCache.hasTime() ? measureCache.getTime() : {};
-	
-	          var _ref5$beats = _ref5.beats;
-	          var beats = _ref5$beats === undefined ? 4 : _ref5$beats;
-	          var _ref5$beatType = _ref5.beatType;
-	          var beatType = _ref5$beatType === undefined ? 4 : _ref5$beatType;
+	          var _ref4 = measureCache.hasTime() ? measureCache.getTime() : {},
+	              _ref4$beats = _ref4.beats,
+	              beats = _ref4$beats === undefined ? 4 : _ref4$beats,
+	              _ref4$beatType = _ref4.beatType,
+	              beatType = _ref4$beatType === undefined ? 4 : _ref4$beatType;
 	
 	          var voiceOptions = { num_beats: beats, beat_value: beatType };
 	          vfNotesMap.forEach(function (vfNotes, staff) {
@@ -38265,7 +37832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          lyricNames.forEach(function (lyricName) {
 	            var vfLyricNotes = vfLyricNotesMap.get(lyricName).map(function (vfLyricNote) {
-	              return vfLyricNote.setContext(_this15.context);
+	              return vfLyricNote.setContext(_this9.context);
 	            });
 	            var vfLyricVoice = new _allegretto2.default.Flow.Voice(voiceOptions);
 	            vfLyricVoice.setMode(_allegretto2.default.Flow.Voice.Mode.SOFT);
@@ -38280,7 +37847,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          });
 	        });
 	
-	        _this15._formatNoteClef(measure);
+	        _this9._formatNoteClef(measure);
 	
 	        measure.setVFVoicesMap(vfVoicesMap);
 	        measure.setVFLyricVoicesMap(vfLyricVoicesMap);
@@ -38290,7 +37857,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_formatLyricNamesMap',
 	    value: function _formatLyricNamesMap() {
-	      var _this16 = this;
+	      var _this10 = this;
 	
 	      this.parts.forEach(function (part) {
 	        return part.getMeasures().forEach(function (measure) {
@@ -38303,7 +37870,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              if (!note.lyrics) return;
 	
 	              note.lyrics.forEach(function (lyric) {
-	                return lyricNames.add(_this16.getLyricName(lyric));
+	                return lyricNames.add(_this10.getLyricName(lyric));
 	              });
 	            });
 	
@@ -38317,11 +37884,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatNotes',
 	    value: function formatNotes() {
-	      var _this17 = this;
+	      var _this11 = this;
 	
 	      this._formatLyricNamesMap();
 	      this.parts.forEach(function (part, pi) {
-	        return _this17._formatNotes(part, pi);
+	        return _this11._formatNotes(part, pi);
 	      });
 	    }
 	  }, {
@@ -38344,9 +37911,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          if (!maxYMap.has(staff)) maxYMap.set(staff, -Infinity);
 	
-	          var _vfBoundingBox = vfBoundingBox;
-	          var y = _vfBoundingBox.y;
-	          var h = _vfBoundingBox.h;
+	          var _vfBoundingBox = vfBoundingBox,
+	              y = _vfBoundingBox.y,
+	              h = _vfBoundingBox.h;
 	
 	          var maxY = y + h;
 	          if (maxY > maxYMap.get(staff)) maxYMap.set(staff, maxY);
@@ -38387,31 +37954,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatLyric',
 	    value: function formatLyric() {
-	      var _this18 = this;
+	      var _this12 = this;
 	
 	      this.parts.forEach(function (part) {
 	        var lineGenerator = (0, _Util.getLineGenerator)(part);
-	        var _iteratorNormalCompletion3 = true;
-	        var _didIteratorError3 = false;
-	        var _iteratorError3 = undefined;
+	        var _iteratorNormalCompletion2 = true;
+	        var _didIteratorError2 = false;
+	        var _iteratorError2 = undefined;
 	
 	        try {
-	          for (var _iterator3 = lineGenerator[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	            var measures = _step3.value;
+	          for (var _iterator2 = lineGenerator[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	            var measures = _step2.value;
 	
-	            _this18._formatLyric(measures);
+	            _this12._formatLyric(measures);
 	          }
 	        } catch (err) {
-	          _didIteratorError3 = true;
-	          _iteratorError3 = err;
+	          _didIteratorError2 = true;
+	          _iteratorError2 = err;
 	        } finally {
 	          try {
-	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	              _iterator3.return();
+	            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	              _iterator2.return();
 	            }
 	          } finally {
-	            if (_didIteratorError3) {
-	              throw _iteratorError3;
+	            if (_didIteratorError2) {
+	              throw _iteratorError2;
 	            }
 	          }
 	        }
@@ -38449,27 +38016,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        var vfTabVoices = vfVoices.filter(function (vfVoice) {
-	          var _iteratorNormalCompletion4 = true;
-	          var _didIteratorError4 = false;
-	          var _iteratorError4 = undefined;
+	          var _iteratorNormalCompletion3 = true;
+	          var _didIteratorError3 = false;
+	          var _iteratorError3 = undefined;
 	
 	          try {
-	            for (var _iterator4 = vfVoice.getTickables()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	              var vfNote = _step4.value;
+	            for (var _iterator3 = vfVoice.getTickables()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	              var vfNote = _step3.value;
 	
 	              if (vfNote instanceof _allegretto2.default.Flow.TabNote) return true;
 	            }
 	          } catch (err) {
-	            _didIteratorError4 = true;
-	            _iteratorError4 = err;
+	            _didIteratorError3 = true;
+	            _iteratorError3 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	                _iterator4.return();
+	              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	                _iterator3.return();
 	              }
 	            } finally {
-	              if (_didIteratorError4) {
-	                throw _iteratorError4;
+	              if (_didIteratorError3) {
+	                throw _iteratorError3;
 	              }
 	            }
 	          }
@@ -38483,7 +38050,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return vfTabFormatter.preCalculateMinTotalWidth([vfTabVoice]);
 	        }))));
 	
-	        var width = minEndX - maxStartX - 10;
+	        var notesWidth = minEndX - maxStartX - 10;
 	        var vfFormatter = new _allegretto2.default.Flow.Formatter();
 	
 	        measurePack.getMeasures().forEach(function (measure) {
@@ -38497,7 +38064,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        minTotalWidth = Math.max(vfFormatter.preCalculateMinTotalWidth(vfVoices.concat(vfLyricVoices)), minTotalWidth);
 	
 	        //vfFormatter.format(vfVoices, width); -> runFormatter
-	        measurePack.setWidth(width);
+	        measurePack.setNotesWidth(notesWidth);
 	        measurePack.setMinTotalWidth(minTotalWidth);
 	        measurePack.setVFFormatter(vfFormatter);
 	      });
@@ -38507,11 +38074,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function runFormatter() {
 	      this.measurePacks.forEach(function (measurePack) {
 	        var vfVoices = measurePack.getAllVFVoices();
-	        var width = measurePack.getWidth();
+	        var notesWidth = measurePack.getNotesWidth();
 	        var vfFormatter = measurePack.getVFFormatter();
 	        if (!vfFormatter) return;
 	
-	        vfFormatter.format(vfVoices, width - 5);
+	        vfFormatter.format(vfVoices, notesWidth - 5);
 	      });
 	    }
 	  }, {
@@ -38552,11 +38119,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatBeam',
 	    value: function formatBeam() {
-	      var _this19 = this;
+	      var _this13 = this;
 	
 	      this.parts.forEach(function (part) {
 	        part.getMeasures().forEach(function (measure) {
-	          return _this19._formatBeam(measure);
+	          return _this13._formatBeam(measure);
 	        });
 	      });
 	    }
@@ -38587,21 +38154,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                break;
 	              case 'stop':
-	                var _tupletStack$pop = tupletStack.pop();
-	
-	                var index = _tupletStack$pop.index;
-	                var numActual = _tupletStack$pop.numActual;
-	                var numNormal = _tupletStack$pop.numNormal;
-	                var placement = _tupletStack$pop.placement;
-	                var bracket = _tupletStack$pop.bracket;
-	                var showNumber = _tupletStack$pop.showNumber;
+	                var _tupletStack$pop = tupletStack.pop(),
+	                    index = _tupletStack$pop.index,
+	                    numActual = _tupletStack$pop.numActual,
+	                    numNormal = _tupletStack$pop.numNormal,
+	                    placement = _tupletStack$pop.placement,
+	                    bracket = _tupletStack$pop.bracket,
+	                    showNumber = _tupletStack$pop.showNumber;
 	
 	                var vfNotes = [];
 	                var vfLyricNotesMap = new Map();
 	                // if placement value exists => use placement, no need to auto calculation
 	                var hasPlacement = placement != null;
-	                var hasUp = false;
-	                var hasDown = false;
+	                var hasUp = false,
+	                    hasDown = false;
 	
 	                var vfLocation = !hasPlacement || placement === 'above' ? VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
 	
@@ -38671,6 +38237,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return vfTuplets;
 	    }
 	  }, {
+	    key: 'formatAttributes',
+	    value: function formatAttributes() {
+	      this.attributesSubFormatter.formatAttributes();
+	    }
+	  }, {
+	    key: 'formatPartList',
+	    value: function formatPartList() {
+	      this.partListSubFormatter.formatPartList();
+	    }
+	  }, {
+	    key: 'formatCredits',
+	    value: function formatCredits(credits) {
+	      this.creditsSubFormatter.formatCredits(credits);
+	    }
+	  }, {
+	    key: 'formatBarline',
+	    value: function formatBarline() {
+	      this.barlineSubFormatter.formatBarline();
+	    }
+	  }, {
 	    key: 'formatTie',
 	    value: function formatTie() {
 	      this.slurTieSubFormatter.formatTie();
@@ -38696,27 +38282,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.parts.forEach(function (part) {
 	        return part.getMeasures().forEach(function (measure) {
 	          var vfBeams = measure.getVFBeams();
-	          var _iteratorNormalCompletion5 = true;
-	          var _didIteratorError5 = false;
-	          var _iteratorError5 = undefined;
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
 	
 	          try {
-	            for (var _iterator5 = vfBeams[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	              var vfBeam = _step5.value;
+	            for (var _iterator4 = vfBeams[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var vfBeam = _step4.value;
 	
 	              vfBeam.postFormat();
 	            }
 	          } catch (err) {
-	            _didIteratorError5 = true;
-	            _iteratorError5 = err;
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	                _iterator5.return();
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
 	              }
 	            } finally {
-	              if (_didIteratorError5) {
-	                throw _iteratorError5;
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
 	              }
 	            }
 	          }
@@ -38784,8 +38370,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var SlurTieSubFormatter = function () {
 	  function SlurTieSubFormatter(_ref) {
-	    var formatter = _ref.formatter;
-	    var score = _ref.score;
+	    var formatter = _ref.formatter,
+	        score = _ref.score;
 	
 	    _classCallCheck(this, SlurTieSubFormatter);
 	
@@ -38798,10 +38384,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function _calculateSlurControlPoints(vfSlur) {
 	      vfSlur.preFormat();
 	
-	      var x1 = vfSlur.first_x;
-	      var x2 = vfSlur.last_x;
-	      var y1 = vfSlur.first_y;
-	      var y2 = vfSlur.last_y;
+	      var _ref2 = [vfSlur.first_x, vfSlur.last_x, vfSlur.first_y, vfSlur.last_y],
+	          x1 = _ref2[0],
+	          x2 = _ref2[1],
+	          y1 = _ref2[2],
+	          y2 = _ref2[3];
 	
 	      var dx = x2 - x1;
 	      var dy = y2 - y1;
@@ -38840,10 +38427,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: '_getSlurInvert',
-	    value: function _getSlurInvert(_ref2) {
-	      var from = _ref2.from;
-	      var to = _ref2.to;
-	      var placement = _ref2.placement;
+	    value: function _getSlurInvert(_ref3) {
+	      var from = _ref3.from,
+	          to = _ref3.to,
+	          placement = _ref3.placement;
 	
 	      var note = to ? to : from;
 	      var stem = note.getStem();
@@ -38909,9 +38496,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _slurState.to = note;
 	
 	                if (_slurState.from === undefined && !_slurState.partial) return; // TODO: grace note
-	                var from = _slurState.from;
-	                var to = _slurState.to;
-	                var _placement = _slurState.placement;
+	                var from = _slurState.from,
+	                    to = _slurState.to,
+	                    _placement = _slurState.placement;
 	
 	                _placement = _placement ? _placement : from ? from.getPlacement() : to.getPlacement();
 	
@@ -39087,8 +38674,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var DirectionSubFormatter = function () {
 	  function DirectionSubFormatter(_ref) {
-	    var formatter = _ref.formatter;
-	    var score = _ref.score;
+	    var formatter = _ref.formatter,
+	        score = _ref.score;
 	
 	    _classCallCheck(this, DirectionSubFormatter);
 	
@@ -39168,9 +38755,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_calculateDirectionBoundingBox',
 	    value: function _calculateDirectionBoundingBox(_ref2) {
-	      var direction = _ref2.direction;
-	      var notesMap = _ref2.notesMap;
-	      var vfStave = _ref2.vfStave;
+	      var direction = _ref2.direction,
+	          notesMap = _ref2.notesMap,
+	          vfStave = _ref2.vfStave;
 	
 	      var boundingBox = void 0;
 	      var endDuration = direction.getBeginDuration() + direction.getDuration();
@@ -39219,11 +38806,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_findBracketTypeEndNote',
 	    value: function _findBracketTypeEndNote(_ref3) {
-	      var notesMap = _ref3.notesMap;
-	      var direction = _ref3.direction;
-	      var staff = _ref3.staff;
-	      var divisions = _ref3.divisions;
-	      var vfStave = _ref3.vfStave;
+	      var notesMap = _ref3.notesMap,
+	          direction = _ref3.direction,
+	          staff = _ref3.staff,
+	          divisions = _ref3.divisions,
+	          vfStave = _ref3.vfStave;
 	
 	      var sumDuration = direction.getBeginDuration() + direction.getDuration();
 	      var endNote = void 0;
@@ -39287,6 +38874,94 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return vfEndNote;
 	    }
 	
+	    // _calculateDirectionDuration
+	    // 1, 2, 3, 4, 6, 8, 12, 16, 24....
+	    // [ 2^[i / 2] ] + odd && i > 1 ? 2 ^ [ i / 2 - 1]
+	    /*
+	      n start from 0,
+	      f(0) = 1
+	      f(1) = 2
+	      f(2) = 3
+	      f(n) = (3/4 - 1/Math.sqrt(2))*Math.pow((-Math.sqrt(2)),n) + ( 3/4 + 1/Math.sqrt(2)) * Math.pow(Math.sqrt(2), n)
+	      r2 = Math.sqrt(2)
+	      f(n) = Math.round( (0.75 - 1 / r2) * Math.pow(-r2, n) + (0.75 + 1 / r2) * Math.pow(r2, n) )
+	    */
+	
+	  }, {
+	    key: '_calculateAndApplyDirectionDuration',
+	    value: function _calculateAndApplyDirectionDuration(_ref4) {
+	      var direction = _ref4.direction,
+	          context = _ref4.context,
+	          notesWidth = _ref4.notesWidth,
+	          divisions = _ref4.divisions,
+	          maxDuration = _ref4.maxDuration;
+	
+	      var width = 0; // direction width
+	      var vfOptions = void 0;
+	
+	      switch (direction.getDirectionType()) {
+	        case 'dynamics':
+	          var GLYPHS = VF.TextDynamics.GLYPHS;
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
+	
+	          try {
+	            for (var _iterator4 = direction.getDynamicType()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var c = _step4.value;
+	
+	              width += GLYPHS[c] ? GLYPHS[c].width : 0;
+	            }
+	          } catch (err) {
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
+	              }
+	            } finally {
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
+	              }
+	            }
+	          }
+	
+	          break;
+	        case 'harmony':
+	          vfOptions = this._getHarmonyVFTextNoteOptions(direction.getHarmony());
+	          var font = {
+	            family: 'Arial',
+	            size: 12,
+	            weight: ''
+	          };
+	
+	          context.save();
+	          context.setFont(font.family, font.size, font.weight);
+	          width = context.measureText(vfOptions.text).width;
+	          context.restore();
+	          break;
+	      }
+	
+	      var beginDuration = direction.getBeginDuration();
+	      var unitDivisions = divisions / 2;
+	      var ratio = width / notesWidth;
+	      var ratioDuration = Math.min(ratio * maxDuration, maxDuration - beginDuration);
+	      var duration = 0;
+	      for (var i = 0; i < 20; i++) {
+	        var _duration = unitDivisions * DirectionSubFormatter.NUMS[i];
+	
+	        if (_duration > ratioDuration) break;
+	
+	        duration = _duration;
+	      }
+	
+	      duration = Math.max(unitDivisions, duration);
+	      direction.setDuration(duration);
+	
+	      return vfOptions;
+	    }
+	
 	    // @support dynamics
 	
 	  }, {
@@ -39294,6 +38969,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function _formatDirectionDurations(measure, measureCache) {
 	      var _this = this;
 	
+	      var context = this.formatter.getContext(); // measureText
+	      var notesWidth = measure.getNotesWidth();
 	      var directionsMap = measure.getDirectionsMap();
 	      var notesMap = measure.getNotesMap();
 	      var divisions = measureCache.getDivisions();
@@ -39312,12 +38989,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var vfDirectionNote = void 0;
 	          switch (directionType) {
 	            case 'dynamics':
-	              direction.setDuration(divisions);
+	              //direction.setDuration(divisions);
+	              _this._calculateAndApplyDirectionDuration({
+	                direction: direction, context: context, notesWidth: notesWidth, divisions: divisions, maxDuration: maxDuration
+	              });
+	
 	              vfDirectionNote = new VF.TextDynamics({
 	                text: direction.getDynamicType(),
 	                duration: (0, _Util.getVFDuration)(direction, divisions)
 	              });
 	              vfDirectionNote.setStave(vfStave).preFormat();
+	
 	              break;
 	            case 'words':
 	              // StaveText will be used
@@ -39326,7 +39008,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	              vfDirectionNote.setStave(vfStave);
 	              break;
 	            case 'harmony':
-	              direction.setDuration(divisions * 1.5);
+	              _this._calculateAndApplyDirectionDuration({
+	                direction: direction, context: context, notesWidth: notesWidth, divisions: divisions, maxDuration: maxDuration
+	              });
+	
 	              vfDirectionNote = new VF.GhostNote({ duration: (0, _Util.getVFDuration)(direction, divisions) });
 	              vfDirectionNote.setStave(vfStave);
 	              break;
@@ -39397,44 +39082,307 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: '_getDirectionLineGenerator',
+	    value: function _getDirectionLineGenerator(measures) {
+	      var _marked = [directionLineGenerator].map(regeneratorRuntime.mark);
+	
+	      function directionLineGenerator() {
+	        var newMeasures, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, measure, directions, hasMulti, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, direction;
+	
+	        return regeneratorRuntime.wrap(function directionLineGenerator$(_context) {
+	          while (1) {
+	            switch (_context.prev = _context.next) {
+	              case 0:
+	                newMeasures = [];
+	                _iteratorNormalCompletion5 = true;
+	                _didIteratorError5 = false;
+	                _iteratorError5 = undefined;
+	                _context.prev = 4;
+	                _iterator5 = measures[Symbol.iterator]();
+	
+	              case 6:
+	                if (_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done) {
+	                  _context.next = 46;
+	                  break;
+	                }
+	
+	                measure = _step5.value;
+	                directions = measure.getDirections();
+	                hasMulti = false;
+	                _iteratorNormalCompletion6 = true;
+	                _didIteratorError6 = false;
+	                _iteratorError6 = undefined;
+	                _context.prev = 13;
+	                _iterator6 = directions[Symbol.iterator]();
+	
+	              case 15:
+	                if (_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done) {
+	                  _context.next = 23;
+	                  break;
+	                }
+	
+	                direction = _step6.value;
+	
+	                if (!direction.getNextDirection()) {
+	                  _context.next = 20;
+	                  break;
+	                }
+	
+	                hasMulti = true;
+	                return _context.abrupt('break', 23);
+	
+	              case 20:
+	                _iteratorNormalCompletion6 = true;
+	                _context.next = 15;
+	                break;
+	
+	              case 23:
+	                _context.next = 29;
+	                break;
+	
+	              case 25:
+	                _context.prev = 25;
+	                _context.t0 = _context['catch'](13);
+	                _didIteratorError6 = true;
+	                _iteratorError6 = _context.t0;
+	
+	              case 29:
+	                _context.prev = 29;
+	                _context.prev = 30;
+	
+	                if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	                  _iterator6.return();
+	                }
+	
+	              case 32:
+	                _context.prev = 32;
+	
+	                if (!_didIteratorError6) {
+	                  _context.next = 35;
+	                  break;
+	                }
+	
+	                throw _iteratorError6;
+	
+	              case 35:
+	                return _context.finish(32);
+	
+	              case 36:
+	                return _context.finish(29);
+	
+	              case 37:
+	
+	                newMeasures.push(measure);
+	
+	                if (!hasMulti) {
+	                  _context.next = 40;
+	                  break;
+	                }
+	
+	                return _context.abrupt('continue', 43);
+	
+	              case 40:
+	                _context.next = 42;
+	                return newMeasures;
+	
+	              case 42:
+	                newMeasures = [];
+	
+	              case 43:
+	                _iteratorNormalCompletion5 = true;
+	                _context.next = 6;
+	                break;
+	
+	              case 46:
+	                _context.next = 52;
+	                break;
+	
+	              case 48:
+	                _context.prev = 48;
+	                _context.t1 = _context['catch'](4);
+	                _didIteratorError5 = true;
+	                _iteratorError5 = _context.t1;
+	
+	              case 52:
+	                _context.prev = 52;
+	                _context.prev = 53;
+	
+	                if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	                  _iterator5.return();
+	                }
+	
+	              case 55:
+	                _context.prev = 55;
+	
+	                if (!_didIteratorError5) {
+	                  _context.next = 58;
+	                  break;
+	                }
+	
+	                throw _iteratorError5;
+	
+	              case 58:
+	                return _context.finish(55);
+	
+	              case 59:
+	                return _context.finish(52);
+	
+	              case 60:
+	                if (!(newMeasures.length > 0)) {
+	                  _context.next = 63;
+	                  break;
+	                }
+	
+	                _context.next = 63;
+	                return newMeasures;
+	
+	              case 63:
+	              case 'end':
+	                return _context.stop();
+	            }
+	          }
+	        }, _marked[0], this, [[4, 48, 52, 60], [13, 25, 29, 37], [30,, 32, 36], [53,, 55, 59]]);
+	      }
+	
+	      return directionLineGenerator();
+	    }
+	  }, {
 	    key: '_formatDirection',
 	    value: function _formatDirection(measure, measureCache) {
-	      var directionsMap = measure.getDirectionsMap();
-	      var divisions = measureCache.getDivisions();
-	
-	      var _ref4 = measureCache.hasTime() ? measureCache.getTime() : {};
-	
-	      var _ref4$beats = _ref4.beats;
-	      var beats = _ref4$beats === undefined ? 4 : _ref4$beats;
-	      var _ref4$beatType = _ref4.beatType;
-	      var beatType = _ref4$beatType === undefined ? 4 : _ref4$beatType;
-	
-	      var voiceOptions = { num_beats: beats, beat_value: beatType };
-	
 	      // 1. calculate begin duration of directions.
 	      this._formatDirectionBeginDurations(measure, measureCache);
 	
 	      // 2. calculate duration of directions.(make [beginDuration, duration] pairs)
 	      this._formatDirectionDurations(measure, measureCache);
+	    }
+	  }, {
+	    key: '_formatDirectionLines',
+	    value: function _formatDirectionLines(_ref5) {
+	      var measures = _ref5.measures,
+	          pi = _ref5.pi,
+	          mi = _ref5.mi;
 	
-	      // 3. Fill vfDirectionVoicesMap
-	      var vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
+	      var multiMeasureDirections = [];
+	      var directionsMap = new Map(); // staff -> directions
+	      var offset = 0;
 	
+	      // Setup offset
+	      measures.forEach(function (measure) {
+	        var staffs = measure.getStaffs();
+	        var _iteratorNormalCompletion7 = true;
+	        var _didIteratorError7 = false;
+	        var _iteratorError7 = undefined;
+	
+	        try {
+	          for (var _iterator7 = staffs[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	            var staff = _step7.value;
+	
+	            var directions = measure.getDirections(staff).filter(function (direction) {
+	              if (!direction.getVFNote()) return false;
+	
+	              direction.setOffset(offset);
+	              var nextDirection = direction.getNextDirection();
+	              if (nextDirection) multiMeasureDirections.push(nextDirection);
+	
+	              return !multiMeasureDirections.includes(direction);
+	            });
+	
+	            if (!directionsMap.has(staff)) directionsMap.set(staff, []);
+	            directionsMap.set(staff, directionsMap.get(staff).concat(directions));
+	          }
+	        } catch (err) {
+	          _didIteratorError7 = true;
+	          _iteratorError7 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion7 && _iterator7.return) {
+	              _iterator7.return();
+	            }
+	          } finally {
+	            if (_didIteratorError7) {
+	              throw _iteratorError7;
+	            }
+	          }
+	        }
+	
+	        offset += (0, _Util.getMaxDuration)(measure.getNotesMap());
+	      });
+	
+	      // Setup lines
 	      directionsMap.forEach(function (directions, staff) {
-	        directions.forEach(function (direction) {
-	          var vfNote = direction.getVFNote();
-	          if (!vfNote) return;
+	        for (var i = 0; i < directions.length; i++) {
+	          var direction = directions[i];
+	          var beginDuration = direction.getBeginDuration() + direction.getOffset();
+	          var duration = direction.getFullDuration();
+	          var placement = direction.getPlacement();
+	          var minLine = direction.getMinLine();
+	          var maxLine = direction.getMaxLine();
+	          var lineHeight = direction.getLineHeight();
+	          var line = placement === 'above' ? maxLine : minLine;
+	          var topLine = line - lineHeight / 2;
+	          var bottomLine = line + lineHeight / 2;
 	
-	          var line = direction.getPlacement() === 'above' ? direction.getMaxLine() : direction.getMinLine();
+	          for (var j = 0; j < i; j++) {
+	            var pDirection = directions[j];
+	            if (pDirection.getPlacement() !== placement) continue;else if (beginDuration + duration <= pDirection.getBeginDuration() || beginDuration >= pDirection.getBeginDuration() + pDirection.getFullDuration()) {
+	              continue;
+	            }
+	
+	            var pLineHeight = pDirection.getLineHeight();
+	            var pLine = pDirection.getLine();
+	            var pTopLine = pLine - pLineHeight / 2;
+	            var pBottomLine = pLine + pLineHeight / 2;
+	
+	            if (bottomLine > pTopLine && topLine < pBottomLine) {
+	              line = placement === 'above' ? pTopLine - lineHeight / 2 : pBottomLine + lineHeight / 2;
+	            }
+	          }
 	
 	          direction.setLine(line);
 	
-	          if (vfNote instanceof VF.GhostNote) return;
+	          if (direction.getVFNote() instanceof VF.GhostNote) continue;
 	
 	          direction.getVFNote().setLine(line + 3.5);
-	        });
+	        }
+	      });
 	
-	        // TODO: Join multiple directions into same voice
+	      /*
+	      for (const measure of measures) {
+	        const directionsMap = measure.getDirectionsMap();
+	         directionsMap.forEach(directions => {
+	          directions.forEach(direction => {
+	            const vfNote = direction.getVFNote()
+	            if (!vfNote) return;
+	             const line = direction.getPlacement() === 'above' ?
+	              direction.getMaxLine() : direction.getMinLine();
+	             direction.setLine(line);
+	             if (vfNote instanceof VF.GhostNote) return;
+	             direction.getVFNote().setLine(line + 3.5);
+	          });
+	        });
+	      }
+	      */
+	    }
+	  }, {
+	    key: '_formatDirectionVoicesMap',
+	    value: function _formatDirectionVoicesMap(_ref6) {
+	      var measure = _ref6.measure,
+	          measureCache = _ref6.measureCache;
+	
+	      var divisions = measureCache.getDivisions();
+	
+	      var _ref7 = measureCache.hasTime() ? measureCache.getTime() : {},
+	          _ref7$beats = _ref7.beats,
+	          beats = _ref7$beats === undefined ? 4 : _ref7$beats,
+	          _ref7$beatType = _ref7.beatType,
+	          beatType = _ref7$beatType === undefined ? 4 : _ref7$beatType;
+	
+	      var voiceOptions = { num_beats: beats, beat_value: beatType };
+	      var vfDirectionVoicesMap = new Map(); // staff -> vfVoice[]
+	
+	      // TODO: Join multiple directions into same voice
+	      var directionsMap = measure.getDirectionsMap();
+	      directionsMap.forEach(function (directions, staff) {
 	        directions.forEach(function (direction) {
 	          var vfNote = direction.getVFNote();
 	          var vfEndNote = direction.getVFEndNote();
@@ -39448,7 +39396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (direction.getBeginDuration() > 0) {
 	            var vfDuration = (0, _Util.getVFDuration)(new _Note2.default({ duration: direction.getBeginDuration() }), divisions);
 	            var ghostNote = new VF.GhostNote(vfDuration);
-	            var vfStave = measure.getStave(direction.getStaff());
+	            var vfStave = measure.getStave(staff);
 	            ghostNote.setStave(vfStave);
 	            vfTickables.push(ghostNote);
 	          }
@@ -39505,12 +39453,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  }, {
 	    key: '_createMultiMeasureDirectionVFElement',
-	    value: function _createMultiMeasureDirectionVFElement(_ref5) {
+	    value: function _createMultiMeasureDirectionVFElement(_ref8) {
 	      var _this2 = this;
 	
-	      var measure = _ref5.measure;
-	      var mi = _ref5.mi;
-	      var pi = _ref5.pi;
+	      var measure = _ref8.measure,
+	          mi = _ref8.mi,
+	          pi = _ref8.pi;
 	
 	      var directions = measure.getDirections().filter(function (direction) {
 	        return ['wedge', 'octave-shift'].includes(direction.getDirectionType()) && !['continue'].includes(direction.getContent().type);
@@ -39559,11 +39507,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 	                break;
 	              case 'octave-shift':
-	                var _getOctaveShiftText2 = _this2._getOctaveShiftText(content);
-	
-	                var text = _getOctaveShiftText2.text;
-	                var superscript = _getOctaveShiftText2.superscript;
-	                var position = _getOctaveShiftText2.position;
+	                var _getOctaveShiftText2 = _this2._getOctaveShiftText(content),
+	                    text = _getOctaveShiftText2.text,
+	                    superscript = _getOctaveShiftText2.superscript,
+	                    position = _getOctaveShiftText2.position;
 	
 	                _vfElement = new VF.TextBracket({
 	                  start: lineDirection.getVFNote(),
@@ -39579,9 +39526,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            lineDirection.setVFElement(_vfElement);
 	            lineDirection = nextDirection;
+	            line = lineDirection.getLine();
 	          }
 	
-	          line = line > 0 ? Math.max(line, nextDirection.getLine()) : Math.min(line, nextDirection.getLine());
+	          /*
+	          line = line > 0 ?
+	            Math.max(line, nextDirection.getLine()) :
+	            Math.min(line, nextDirection.getLine());
+	          */
 	
 	          lastDirection = nextDirection;
 	          nextDirection = lastDirection.getNextDirection();
@@ -39611,11 +39563,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            vfElement = new VF.Wedge(options);
 	            break;
 	          case 'octave-shift':
-	            var _getOctaveShiftText3 = _this2._getOctaveShiftText(content);
-	
-	            var _text = _getOctaveShiftText3.text;
-	            var _superscript = _getOctaveShiftText3.superscript;
-	            var _position = _getOctaveShiftText3.position;
+	            var _getOctaveShiftText3 = _this2._getOctaveShiftText(content),
+	                _text = _getOctaveShiftText3.text,
+	                _superscript = _getOctaveShiftText3.superscript,
+	                _position = _getOctaveShiftText3.position;
 	
 	            vfElement = new VF.TextBracket({
 	              start: lineDirection.getVFNote(),
@@ -39624,6 +39575,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              superscript: _superscript,
 	              position: _position
 	            });
+	
+	            // vfElement.setLine(direction.getPlacement() === 'above' ? -line : line);
 	            break;
 	        }
 	
@@ -39655,6 +39608,69 @@ return /******/ (function(modules) { // webpackBootstrap
 	        part.getMeasures().forEach(function (measure, mi) {
 	          var measureCache = _this3.formatter.getMeasureCache(pi, mi);
 	          _this3._formatDirection(measure, measureCache);
+	        });
+	      });
+	
+	      parts.forEach(function (part, pi) {
+	        var mi = 0;
+	
+	        var lineGenerator = (0, _Util.getLineGenerator)(part);
+	        var _iteratorNormalCompletion8 = true;
+	        var _didIteratorError8 = false;
+	        var _iteratorError8 = undefined;
+	
+	        try {
+	          for (var _iterator8 = lineGenerator[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	            var measures = _step8.value;
+	
+	            var directionLineGenerator = _this3._getDirectionLineGenerator(measures);
+	
+	            var _iteratorNormalCompletion9 = true;
+	            var _didIteratorError9 = false;
+	            var _iteratorError9 = undefined;
+	
+	            try {
+	              for (var _iterator9 = directionLineGenerator[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+	                var directionMeasures = _step9.value;
+	
+	                _this3._formatDirectionLines({ measures: directionMeasures, pi: pi, mi: mi });
+	                mi += directionMeasures.length;
+	              }
+	            } catch (err) {
+	              _didIteratorError9 = true;
+	              _iteratorError9 = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion9 && _iterator9.return) {
+	                  _iterator9.return();
+	                }
+	              } finally {
+	                if (_didIteratorError9) {
+	                  throw _iteratorError9;
+	                }
+	              }
+	            }
+	          }
+	        } catch (err) {
+	          _didIteratorError8 = true;
+	          _iteratorError8 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion8 && _iterator8.return) {
+	              _iterator8.return();
+	            }
+	          } finally {
+	            if (_didIteratorError8) {
+	              throw _iteratorError8;
+	            }
+	          }
+	        }
+	      });
+	
+	      parts.forEach(function (part, pi) {
+	        part.getMeasures().forEach(function (measure, mi) {
+	          var measureCache = _this3.formatter.getMeasureCache(pi, mi);
+	          _this3._formatDirectionVoicesMap({ measure: measure, measureCache: measureCache });
 	        });
 	      });
 	
@@ -39764,9 +39780,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_getHarmonyVFTextNoteOptions',
 	    value: function _getHarmonyVFTextNoteOptions(harmony) {
-	      var root = harmony.root;
-	      var kind = harmony.kind;
-	      var bass = harmony.bass;
+	      var root = harmony.root,
+	          kind = harmony.kind,
+	          bass = harmony.bass;
 	
 	      var options = {};
 	
@@ -39912,6 +39928,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	      });
 	    }
+	  }], [{
+	    key: 'NUMS',
+	    get: function get() {
+	      return [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 769, 1024, 1536, 2048];
+	    }
 	  }]);
 	
 	  return DirectionSubFormatter;
@@ -39931,13 +39952,787 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	var _Util = __webpack_require__(312);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var VF = _allegretto2.default.Flow;
+	
+	var AttributesSubFormatter = function () {
+	  function AttributesSubFormatter(_ref) {
+	    var formatter = _ref.formatter,
+	        score = _ref.score;
+	
+	    _classCallCheck(this, AttributesSubFormatter);
+	
+	    this.formatter = formatter;
+	    this.score = score;
+	  }
+	
+	  _createClass(AttributesSubFormatter, [{
+	    key: 'formatClef',
+	    value: function formatClef() {
+	      var _this = this;
+	
+	      this.score.getParts().forEach(function (part, pi) {
+	        var clefsMap = new Map(); // {staff} -> clef[]
+	        var measures = part.getMeasures();
+	
+	        measures.forEach(function (measure, mi) {
+	          // Reset existing clefsMap!
+	          clefsMap.forEach(function (clefs, staff) {
+	            if (clefs.length === 1 && clefs[0].duration === 0) return;
+	
+	            var clef = Object.assign({}, clefs[clefs.length - 1]);
+	            clef.duration = 0;
+	            clefs.splice(0, clefs.length, clef);
+	          });
+	
+	          measure.getClefsMap().forEach(function (clefs, staff) {
+	            clefs.forEach(function (clef) {
+	              if (clef.duration === 0) clefsMap.set(staff, [clef]);else clefsMap.get(staff).push(clef);
+	            });
+	          });
+	
+	          if (mi === 0 || measure.isNewLineStarting()) {
+	            measure.getStaveMap().forEach(function (stave, staff) {
+	              var vfClef = (0, _Util.getVFClef)(clefsMap.get(staff)[0]);
+	              if (vfClef) stave.addClef(vfClef);
+	            });
+	          }
+	
+	          // check end-clef
+	          clefsMap.forEach(function (clefs, staff) {
+	            var lastClef = clefs[clefs.length - 1];
+	            if (lastClef.duration > 0 && lastClef.duration >= measure.getMaxDuration()) {
+	              var vfClef = (0, _Util.getVFClef)(lastClef);
+	              var vfStave = measure.getStave(staff);
+	              if (vfStave) vfStave.addEndClef(vfClef, 'small');
+	            }
+	          });
+	
+	          // update cache
+	          var cacheClefsMap = new Map();
+	          clefsMap.forEach(function (clefs, staff) {
+	            return cacheClefsMap.set(staff, clefs.slice());
+	          });
+	          _this.formatter.getMeasureCache(pi, mi).setClefsMap(cacheClefsMap);
+	
+	          var nextMeasure = measures[mi + 1];
+	          if (!nextMeasure || !nextMeasure.isNewLineStarting()) return;
+	
+	          nextMeasure.getClefsMap().forEach(function (clefs, staff) {
+	            if (clefs[0].duration > 0) return;
+	
+	            // same clef with prev measure => pass!
+	            var lastClefs = clefsMap.get(staff);
+	            var lastClef = lastClefs[lastClefs.length - 1];
+	            if (lastClef.sign === clefs[0].sign && lastClef.line === clefs[0].line && lastClef.clefOctaveChange === clefs[0].clefOctaveChange) {
+	              return;
+	            }
+	
+	            var vfClef = (0, _Util.getVFClef)(clefs[0]);
+	            var stave = measure.getStave(staff);
+	            if (stave) stave.addEndClef(vfClef, 'small');
+	          });
+	        });
+	      });
+	
+	      // format clef width
+	      this.score.getMeasurePacks().forEach(function (measurePack, mi) {
+	        if (mi > 0 && !measurePack.getTopMeasure().isNewLineStarting()) {
+	          return;
+	        }
+	
+	        function _getVFClef(vfStave) {
+	          var vfPosition = VF.StaveModifier.Position.BEGIN;
+	          var vfCategory = VF.Clef.CATEGORY;
+	          return vfStave.getModifiers(vfPosition, vfCategory)[0];
+	        }
+	
+	        var vfStaves = measurePack.getVFStaves();
+	        var maxWidth = -Infinity;
+	
+	        vfStaves.forEach(function (vfStave) {
+	          var vfClef = _getVFClef(vfStave);
+	          if (vfClef && vfClef.width > maxWidth) maxWidth = vfClef.width;
+	        });
+	
+	        if (maxWidth < 0) return;
+	
+	        vfStaves.forEach(function (vfStave) {
+	          var vfClef = _getVFClef(vfStave);
+	          if (vfClef) vfClef.setWidth(maxWidth);
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'formatKeySignature',
+	    value: function formatKeySignature() {
+	      var _this2 = this;
+	
+	      this.score.getParts().forEach(function (part, pi) {
+	        var prevMeasure = void 0;
+	        var key = void 0;
+	
+	        part.getMeasures().forEach(function (measure, mi) {
+	          var keyUpdated = false;
+	
+	          if (measure.getKey()) {
+	            key = measure.getKey();
+	            keyUpdated = true;
+	          }
+	
+	          if (mi === 0 || measure.isNewLineStarting() || keyUpdated) {
+	            measure.getStaves().forEach(function (stave) {
+	              if (stave instanceof VF.TabStave) return;
+	
+	              var vfKey = (0, _Util.getVFKeySignature)(key);
+	              if (key) stave.addKeySignature(vfKey);
+	            });
+	          }
+	
+	          if (mi > 0 && measure.isNewLineStarting() && keyUpdated) {
+	            prevMeasure.getStaves().forEach(function (stave) {
+	              if (stave instanceof VF.TabStave) return;
+	
+	              var vfKey = (0, _Util.getVFKeySignature)(key);
+	              // TODO: replace it to use StaveModifier later
+	              var END = 6; // Vex.Flow.StaveModifier.Position.END
+	              if (key) stave.addKeySignature(vfKey, undefined, END);
+	            });
+	          }
+	
+	          // update cache
+	          _this2.formatter.getMeasureCache(pi, mi).setKey(key);
+	          prevMeasure = measure;
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'formatTimeSignature',
+	    value: function formatTimeSignature() {
+	      var _this3 = this;
+	
+	      this.score.getParts().forEach(function (part, pi) {
+	        //const numStaffs = part.getNumStaffs();
+	        var prevMeasure = void 0;
+	        var time = void 0;
+	
+	        part.getMeasures().forEach(function (measure, mi) {
+	          var timeUpdated = false;
+	
+	          if (measure.getTime()) {
+	            time = measure.getTime();
+	            timeUpdated = true;
+	          }
+	
+	          if (mi === 0 || timeUpdated) {
+	            measure.getStaves().forEach(function (stave) {
+	              if (time) stave.addTimeSignature(time.beats + '/' + time.beatType);
+	            });
+	          }
+	
+	          if (mi > 0 && measure.isNewLineStarting() && timeUpdated) {
+	            prevMeasure.getStaves().forEach(function (stave) {
+	              stave.addEndTimeSignature(time.beats + '/' + time.beatType);
+	            });
+	          }
+	
+	          // update cache
+	          _this3.formatter.getMeasureCache(pi, mi).setTime(time);
+	          prevMeasure = measure;
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'formatAttributes',
+	    value: function formatAttributes() {
+	      this.formatClef();
+	      this.formatKeySignature();
+	      this.formatTimeSignature();
+	    }
+	  }]);
+	
+	  return AttributesSubFormatter;
+	}();
+	
+	exports.default = AttributesSubFormatter;
+
+/***/ },
+/* 327 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.getVFBarlineType = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	var _Util = __webpack_require__(312);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var VF = _allegretto2.default.Flow;
+	
+	var getVFBarlineType = exports.getVFBarlineType = function getVFBarlineType(barline) {
+	  var Barline = VF.Barline;
+	
+	  if (barline.repeat) {
+	    return barline.repeat.direction === 'forward' ? Barline.type.REPEAT_BEGIN : Barline.type.REPEAT_END;
+	  }
+	
+	  // regular, dotted, dashed, heavy, light-light, light-heavy, heavy-light, heavy-heavy
+	  switch (barline.barStyle) {
+	    case 'light-light':
+	      return Barline.type.DOUBLE;
+	    case 'heavy':
+	    case 'light-heavy':
+	      return Barline.type.END;
+	  }
+	
+	  return Barline.type.SINGLE;
+	};
+	
+	var BarlineSubFormatter = function () {
+	  function BarlineSubFormatter(_ref) {
+	    var formatter = _ref.formatter,
+	        score = _ref.score;
+	
+	    _classCallCheck(this, BarlineSubFormatter);
+	
+	    this.formatter = formatter;
+	    this.score = score;
+	  }
+	
+	  // formatBarline -> _formatVolta
+	
+	
+	  _createClass(BarlineSubFormatter, [{
+	    key: '_formatVolta',
+	    value: function _formatVolta(measures) {
+	      var onVolta = false;
+	
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+	
+	      try {
+	        for (var _iterator = measures[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var measure = _step.value;
+	
+	          var barline = measure.getBarline();
+	
+	          var type = void 0;
+	          var text = void 0;
+	          if (onVolta && barline.right && barline.right.ending) {
+	            var ending = barline.right.ending;
+	            if (ending.type === 'discontinue') {
+	              type = VF.Volta.type.MID;
+	            } else {
+	              // stop
+	              type = VF.Volta.type.END;
+	            }
+	
+	            onVolta = false;
+	          } else if (!onVolta && barline.left && barline.left.ending && barline.right && barline.right.ending) {
+	            var types = [barline.left.ending.type, barline.right.ending.type];
+	
+	            if ((0, _Util.hasSameContents)(types, ['start', 'discontinue'])) {
+	              type = VF.Volta.type.BEGIN;
+	            } else if ((0, _Util.hasSameContents)(types, ['start', 'stop'])) {
+	              type = VF.Volta.type.BEGIN_END;
+	            } else if ((0, _Util.hasSameContents)(types, ['discontinue', 'stop'])) {
+	              type = VF.Volta.type.END;
+	            } else {
+	              // ['discontinue', 'discontinue']
+	              type = VF.Volta.type.MID;
+	            }
+	
+	            text = barline.left.ending.text;
+	          } else if (!onVolta && barline.left && barline.left.ending) {
+	            var _ending = barline.left.ending;
+	            if (_ending.type === 'start') {
+	              type = VF.Volta.type.BEGIN;
+	            } else if (_ending.type === 'discontinue') {
+	              type = VF.Volta.type.MID;
+	            }
+	
+	            text = _ending.text;
+	            onVolta = true;
+	          } else if (onVolta) {
+	            type = VF.Volta.type.MID;
+	          }
+	
+	          var vfStave = measure.getStaves()[0];
+	          if (vfStave && type) {
+	            //vfStave.setVoltaType(type, text, 0);
+	            vfStave.modifiers.push(new VF.Volta(type, text, vfStave.x, 20));
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'formatBarline',
+	    value: function formatBarline() {
+	      var _this = this;
+	
+	      var parts = this.score.getParts();
+	      parts.forEach(function (part) {
+	        return part.getMeasures().forEach(function (measure) {
+	          var barline = measure.getBarline();
+	          var vfStaves = measure.getStaves();
+	
+	          if (barline.left) {
+	            (function () {
+	              var vfBarlineType = getVFBarlineType(barline.left);
+	              vfStaves.forEach(function (vfStave) {
+	                return vfStave.setBegBarType(vfBarlineType);
+	              });
+	            })();
+	          }
+	
+	          if (barline.right) {
+	            (function () {
+	              var vfBarlineType = getVFBarlineType(barline.right);
+	              vfStaves.forEach(function (vfStave) {
+	                return vfStave.setEndBarType(vfBarlineType);
+	              });
+	            })();
+	          }
+	        });
+	      });
+	
+	      parts.forEach(function (part) {
+	        var measures = part.getMeasures();
+	        _this._formatVolta(measures);
+	      });
+	    }
+	  }]);
+	
+	  return BarlineSubFormatter;
+	}();
+	
+	exports.default = BarlineSubFormatter;
+
+/***/ },
+/* 328 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.convertVFBarlineTypeToVFConnectorType = exports.getVFConnectorType = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _allegretto = __webpack_require__(299);
+	
+	var _allegretto2 = _interopRequireDefault(_allegretto);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var VF = _allegretto2.default.Flow;
+	
+	var getVFConnectorType = exports.getVFConnectorType = function getVFConnectorType(groupSymbol) {
+	  var connectorType = void 0;
+	  switch (groupSymbol) {
+	    case 'brace':
+	      connectorType = VF.StaveConnector.type.BRACE;
+	      break;
+	    case 'bracket':
+	      connectorType = VF.StaveConnector.type.BRACKET;
+	      break;
+	    case 'line':
+	    default:
+	      connectorType = VF.StaveConnector.type.DOUBLE;
+	  }
+	
+	  return connectorType;
+	};
+	
+	var convertVFBarlineTypeToVFConnectorType = exports.convertVFBarlineTypeToVFConnectorType = function convertVFBarlineTypeToVFConnectorType(vfBarlineType, isLeft) {
+	  var Barline = VF.Barline;
+	  var StaveConnector = VF.StaveConnector;
+	
+	  switch (vfBarlineType) {
+	    case Barline.type.DOUBLE:
+	      return StaveConnector.type.THIN_DOUBLE;
+	    case Barline.type.END:
+	    case Barline.type.REPEAT_END:
+	      return StaveConnector.type.BOLD_DOUBLE_RIGHT;
+	    case Barline.type.REPEAT_BEGIN:
+	      return StaveConnector.type.BOLD_DOUBLE_LEFT;
+	  }
+	
+	  return isLeft ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.SINGLE_RIGHT;
+	};
+	
+	var PartListSubFormatter = function () {
+	  function PartListSubFormatter(_ref) {
+	    var formatter = _ref.formatter,
+	        score = _ref.score;
+	
+	    _classCallCheck(this, PartListSubFormatter);
+	
+	    this.formatter = formatter;
+	    this.score = score;
+	  }
+	
+	  _createClass(PartListSubFormatter, [{
+	    key: 'formatPartList',
+	    value: function formatPartList() {
+	      var parts = this.score.getParts();
+	      var partList = this.score.getPartList();
+	      var measurePacks = this.score.getMeasurePacks();
+	
+	      var partGroups = partList.getPartGroups();
+	      var scoreParts = partList.getScoreParts();
+	      var numMeasures = measurePacks.length;
+	
+	      var findTopStave = function findTopStave(pi, mi, max) {
+	        for (; pi < max; pi++) {
+	          var staves = parts[pi].getMeasures()[mi].getStaves();
+	          if (staves && staves.length > 0) return staves[0];
+	        }
+	      };
+	
+	      var findBottomStave = function findBottomStave(pi, mi, min) {
+	        for (; pi > min; pi--) {
+	          var staves = parts[pi].getMeasures()[mi].getStaves();
+	          if (staves && staves.length > 0) return staves[staves.length - 1];
+	        }
+	      };
+	
+	      var setText = function setText(_ref2) {
+	        var stave = _ref2.stave,
+	            staveConnector = _ref2.staveConnector,
+	            text = _ref2.text;
+	
+	        var contents = text.split(/\n/);
+	        var topY = (1 - contents.length) * 10;
+	        contents.forEach(function (content, i) {
+	          var textOptions = { shift_y: topY + i * 20 };
+	          if (stave) {
+	            var position = VF.Modifier.Position.LEFT;
+	            textOptions.shift_x = 8;
+	            stave.setText(content, position, textOptions);
+	          } else staveConnector.setText(content, textOptions);
+	        });
+	      };
+	
+	      var page = 1;
+	
+	      var _loop = function _loop(mi) {
+	        var connectors = [];
+	        measurePacks[mi].setConnectors(connectors);
+	
+	        var firstPartMeasure = parts[0].getMeasures()[mi];
+	        var isNewLineStarting = mi === 0 || firstPartMeasure.isNewLineStarting();
+	        if (mi > 0 && firstPartMeasure.hasNewPage()) page++;
+	
+	        if (isNewLineStarting) {
+	          var topStave = findTopStave(0, mi, parts.length - 1);
+	          var bottomStave = findBottomStave(parts.length - 1, mi, 0);
+	          if (topStave && bottomStave) {
+	            var staveConnector = new VF.StaveConnector(topStave, bottomStave);
+	            staveConnector.setType(VF.StaveConnector.type.SINGLE_LEFT);
+	            connectors.push({ page: page, staveConnector: staveConnector });
+	          }
+	        }
+	
+	        partGroups.forEach(function (partGroup) {
+	          var startPartIndex = partGroup.startPartIndex,
+	              stopPartIndex = partGroup.stopPartIndex;
+	
+	          var topStave = findTopStave(startPartIndex, mi, stopPartIndex);
+	          var bottomStave = findBottomStave(stopPartIndex, mi, startPartIndex);
+	          if (!topStave || !bottomStave) {
+	            if (!isNewLineStarting) return;
+	
+	            topStave = findTopStave(startPartIndex, mi, stopPartIndex + 1);
+	            bottomStave = findBottomStave(stopPartIndex, mi, startPartIndex - 1);
+	            if (!topStave || !bottomStave) return;
+	
+	            var _staveConnector = new VF.StaveConnector(topStave, bottomStave);
+	            var connectorType = partGroup.groupSymbol === 'bracket' ? VF.StaveConnector.type.BRACKET : VF.StaveConnector.type.SINGLE_LEFT;
+	            _staveConnector.setType(connectorType);
+	
+	            /* TODO: Current vexflow StaveConnector only provides a single text
+	            if (mi === 0 && partGroup.groupName)
+	              setText({ staveConnector, text: partGroup.partName });
+	            */
+	            if (mi > 0 && partGroup.groupAbbreviation) setText({ staveConnector: _staveConnector, text: partGroup.groupAbbreviation });
+	
+	            connectors.push({ page: page, staveConnector: _staveConnector });
+	            return;
+	          }
+	
+	          if (partGroup.groupBarline) {
+	            topStave.format();
+	
+	            var _staveConnector2 = new VF.StaveConnector(topStave, bottomStave);
+	            var shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
+	            _staveConnector2.setXShift(shiftX);
+	            _staveConnector2.setType(VF.StaveConnector.type.SINGLE_RIGHT);
+	            connectors.push({ page: page, staveConnector: _staveConnector2 });
+	          }
+	
+	          if (!isNewLineStarting) return;
+	
+	          var staveConnector = new VF.StaveConnector(topStave, bottomStave);
+	          var hasGroupSymbol = false;
+	          if (partGroup.groupSymbol) {
+	            hasGroupSymbol = true;
+	            var _connectorType = getVFConnectorType(partGroup.groupSymbol);
+	            staveConnector.setType(_connectorType);
+	            staveConnector.setXShift(0);
+	          }
+	
+	          if (mi === 0 && partGroup.groupName) setText({ staveConnector: staveConnector, text: partGroup.groupName });else if (mi > 0 && partGroup.groupAbbreviation) setText({ staveConnector: staveConnector, text: partGroup.groupAbbreviation });
+	
+	          if (!hasGroupSymbol) staveConnector.setType(VF.StaveConnector.type.NONE);
+	
+	          connectors.push({ page: page, staveConnector: staveConnector });
+	        });
+	
+	        // single part && multiple-staff
+	        parts.forEach(function (part, pi) {
+	          var scorePart = scoreParts[pi];
+	          var staves = part.getMeasures()[mi].getStaves();
+	
+	          if (staves.length === 1) {
+	            var stave = staves[0];
+	            if (mi === 0 && scorePart.partName) setText({ stave: stave, text: scorePart.partName });else if (mi > 0 && isNewLineStarting && scorePart.partAbbreviation) setText({ stave: stave, text: scorePart.partAbbreviation });
+	
+	            return;
+	          } else if (!staves) return;
+	
+	          var _ref3 = [staves[0], staves[staves.length - 1]],
+	              topStave = _ref3[0],
+	              bottomStave = _ref3[1];
+	
+	          if (!topStave || !bottomStave) return;
+	
+	          topStave.format();
+	
+	          if (isNewLineStarting) {
+	            var _staveConnector3 = new VF.StaveConnector(topStave, bottomStave);
+	            _staveConnector3.setType(VF.StaveConnector.type.BRACE);
+	            connectors.push({ page: page, staveConnector: _staveConnector3 });
+	
+	            if (mi === 0 && scorePart.partName) setText({ staveConnector: _staveConnector3, text: scorePart.partName });else if (mi > 0 && isNewLineStarting && scorePart.partAbbreviation) setText({ staveConnector: _staveConnector3, text: scorePart.partAbbreviation });
+	
+	            _staveConnector3 = new VF.StaveConnector(topStave, bottomStave);
+	            _staveConnector3.setType(VF.StaveConnector.type.SINGLE_LEFT);
+	            connectors.push({ page: page, staveConnector: _staveConnector3 });
+	
+	            var _vfBarlineType = topStave.modifiers[0].getType();
+	            var _connectorType2 = convertVFBarlineTypeToVFConnectorType(_vfBarlineType, true);
+	            if (_connectorType2 !== VF.StaveConnector.type.SINGLE_LEFT) {
+	              _staveConnector3 = new VF.StaveConnector(topStave, bottomStave);
+	              var _vfBarlineType2 = topStave.modifiers[0].getType();
+	              var _connectorType3 = convertVFBarlineTypeToVFConnectorType(_vfBarlineType2, true);
+	              var _shiftX = topStave.modifiers[0].getX() - topStave.getX();
+	              _staveConnector3.setType(_connectorType3);
+	              _staveConnector3.setXShift(_shiftX);
+	              connectors.push({ page: page, staveConnector: _staveConnector3 });
+	            }
+	          }
+	
+	          var staveConnector = new VF.StaveConnector(topStave, bottomStave);
+	          var vfBarlineType = topStave.modifiers[1].getType();
+	          var connectorType = convertVFBarlineTypeToVFConnectorType(vfBarlineType, false);
+	          var shiftX = topStave.modifiers[1].getX() - (topStave.getX() + topStave.getWidth());
+	          staveConnector.setXShift(shiftX);
+	          staveConnector.setType(connectorType);
+	          connectors.push({ page: page, staveConnector: staveConnector });
+	        });
+	      };
+	
+	      for (var mi = 0; mi < numMeasures; mi++) {
+	        _loop(mi);
+	      }
+	    }
+	  }]);
+	
+	  return PartListSubFormatter;
+	}();
+	
+	exports.default = PartListSubFormatter;
+
+/***/ },
+/* 329 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var getTextAnchor = exports.getTextAnchor = function getTextAnchor(value) {
+	  switch (value) {
+	    case 'left':
+	      return 'start';
+	    case 'right':
+	      return 'end';
+	    case 'center':
+	      return 'middle';
+	  }
+	};
+	
+	var getDominantBaseline = exports.getDominantBaseline = function getDominantBaseline(value) {
+	  switch (value) {
+	    case 'top':
+	      return 'hanging';
+	    case 'middle':
+	      return 'middle';
+	    case 'bottom':
+	    case 'baseline':
+	      return 'alphabetical';
+	  }
+	};
+	
+	var CreditsSubFormatter = function () {
+	  function CreditsSubFormatter(_ref) {
+	    var formatter = _ref.formatter,
+	        score = _ref.score;
+	
+	    _classCallCheck(this, CreditsSubFormatter);
+	
+	    this.formatter = formatter;
+	    this.score = score;
+	  }
+	
+	  _createClass(CreditsSubFormatter, [{
+	    key: 'formatCredits',
+	    value: function formatCredits() {
+	      var credits = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.score.getCredits();
+	
+	      var DEFAULT_FONT_SIZE = 16;
+	
+	      var context = this.formatter.getContext();
+	      var pageSize = this.score.getDefaults().getPageSize();
+	      // words.fontSize = Number(/(\d+)\w*/.exec(node.getAttribute('font-size')[1]));
+	      credits.forEach(function (credit) {
+	        var texts = [];
+	        var x = void 0;
+	        var y = void 0;
+	        var fontSize = void 0;
+	        var textAnchor = 'hanging'; // TODO: full justify & halign support
+	        var baseline = 'start';
+	
+	        credit.getWordsList().forEach(function (words) {
+	          if (!/\w+/.test(words.content)) return; // ignore empty line-break
+	
+	          var text = {
+	            content: words.content,
+	            attributes: new Map()
+	          };
+	
+	          if (words.defaultX !== undefined) x = words.defaultX;
+	          if (words.defaultY !== undefined) y = pageSize.height - words.defaultY;
+	          if (words.justify !== undefined) textAnchor = getTextAnchor(words.justify);
+	          if (words.halign !== undefined) textAnchor = getTextAnchor(words.halign);
+	          if (words.valign !== undefined) baseline = getDominantBaseline(words.valign);
+	
+	          if (textAnchor) text.attributes.set('text-anchor', textAnchor);
+	          if (baseline) text.attributes.set('dominant-baseline', baseline);
+	
+	          context.save();
+	          if (words.fontSize !== undefined) {
+	            fontSize = words.fontSize;
+	            if (/\d+$/.test(fontSize)) {
+	              fontSize = Number(fontSize) * 2.2; // TODO
+	              //fontSize += 'px'; svgcontext uses pt
+	            }
+	
+	            text.attributes.set('font-size', fontSize);
+	            context.attributes['font-size'] = fontSize; // svgcontext only
+	          } else {
+	            text.attributes.set('font-size', DEFAULT_FONT_SIZE);
+	            context.attributes['font-size'] = DEFAULT_FONT_SIZE;
+	          }
+	
+	          // default font: "times", no custom font support
+	          text.attributes.set('font-family', 'times');
+	          context.attributes['font-family'] = 'times';
+	
+	          var bbox = context.measureText(text.content);
+	          context.restore();
+	
+	          text.x = x;
+	          text.y = y;
+	          texts.push(text);
+	          y += bbox.height;
+	        });
+	
+	        credit.setTexts(texts);
+	      });
+	    }
+	  }]);
+	
+	  return CreditsSubFormatter;
+	}();
+	
+	exports.default = CreditsSubFormatter;
+
+/***/ },
+/* 330 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
 	var _allegretto = __webpack_require__(299);
 	
 	var _allegretto2 = _interopRequireDefault(_allegretto);
 	
-	var _AdvancedFormatter2 = __webpack_require__(327);
+	var _AdvancedFormatter2 = __webpack_require__(331);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -39957,18 +40752,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _inherits(VerticalFormatter, _AdvancedFormatter);
 	
 	  function VerticalFormatter(score, _ref) {
-	    var _ref$infinite = _ref.infinite;
-	    var infinite = _ref$infinite === undefined ? true : _ref$infinite;
-	    var _ref$zoomLevel = _ref.zoomLevel;
-	    var zoomLevel = _ref$zoomLevel === undefined ? 100 : _ref$zoomLevel;
-	    var _ref$innerWidth = _ref.innerWidth;
-	    var innerWidth = _ref$innerWidth === undefined ? window.innerWidth : _ref$innerWidth;
-	    var _ref$innerHeight = _ref.innerHeight;
-	    var innerHeight = _ref$innerHeight === undefined ? window.innerHeight : _ref$innerHeight;
+	    var _ref$infinite = _ref.infinite,
+	        infinite = _ref$infinite === undefined ? true : _ref$infinite,
+	        _ref$zoomLevel = _ref.zoomLevel,
+	        zoomLevel = _ref$zoomLevel === undefined ? 100 : _ref$zoomLevel,
+	        _ref$innerWidth = _ref.innerWidth,
+	        innerWidth = _ref$innerWidth === undefined ? window.innerWidth : _ref$innerWidth,
+	        _ref$innerHeight = _ref.innerHeight,
+	        innerHeight = _ref$innerHeight === undefined ? window.innerHeight : _ref$innerHeight;
 	
 	    _classCallCheck(this, VerticalFormatter);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(VerticalFormatter).call(this, score));
+	    var _this = _possibleConstructorReturn(this, (VerticalFormatter.__proto__ || Object.getPrototypeOf(VerticalFormatter)).call(this, score));
 	
 	    _this.infinite = infinite;
 	    _this.innerWidth = innerWidth;
@@ -39991,7 +40786,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'removeTopSystemDistances',
 	    value: function removeTopSystemDistances() {
-	      var startIndex = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+	      var startIndex = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	
 	      this.score.getParts()[0].getMeasures().forEach(function (measure, mi) {
 	        if (startIndex <= mi && measure.hasTopSystemDistance()) {
@@ -40128,7 +40923,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function getBeginAttributesWidth(measurePack, mi) {
 	      var _this3 = this;
 	
-	      var useCache = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+	      var useCache = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 	
 	      var maxWidth = 0;
 	      measurePack.measures.forEach(function (measure, pi) {
@@ -40171,14 +40966,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'updateMeasureLine',
 	    value: function updateMeasureLine(_ref2) {
-	      var measurePacks = _ref2.measurePacks;
-	      var packIndices = _ref2.packIndices;
-	      var packWidths = _ref2.packWidths;
+	      var measurePacks = _ref2.measurePacks,
+	          packIndices = _ref2.packIndices,
+	          packWidths = _ref2.packWidths;
 	
 	      packIndices.forEach(function (mi, i) {
 	        var w = packWidths[i];
 	        measurePacks[mi].measures.forEach(function (measure) {
-	          return measure.width = w;
+	          return measure.setWidth(w);
 	        });
 	      });
 	
@@ -40379,9 +41174,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'formatCredits',
 	    value: function formatCredits() {
 	      var pageSize = this.score.getDefaults().getPageSize();
-	      var _originalPageSize = this._originalPageSize;
-	      var width = _originalPageSize.width;
-	      var height = _originalPageSize.height;
+	      var _originalPageSize = this._originalPageSize,
+	          width = _originalPageSize.width,
+	          height = _originalPageSize.height;
 	
 	      var midStartX = width / 2 - 100;
 	      var midEndX = width / 2 + 100;
@@ -40407,7 +41202,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.defaults.pageLayout.pageWidth = width;
 	      this.defaults.pageLayout.pageHeight = height;
 	
-	      _get(Object.getPrototypeOf(VerticalFormatter.prototype), 'formatCredits', this).call(this);
+	      _get(VerticalFormatter.prototype.__proto__ || Object.getPrototypeOf(VerticalFormatter.prototype), 'formatCredits', this).call(this, this.credits);
 	
 	      this.defaults.pageLayout.pageWidth = pageSize.width;
 	      this.defaults.pageLayout.pageHeight = pageSize.height;
@@ -40481,7 +41276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = VerticalFormatter;
 
 /***/ },
-/* 327 */
+/* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40514,7 +41309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function AdvancedFormatter() {
 	    _classCallCheck(this, AdvancedFormatter);
 	
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(AdvancedFormatter).apply(this, arguments));
+	    return _possibleConstructorReturn(this, (AdvancedFormatter.__proto__ || Object.getPrototypeOf(AdvancedFormatter)).apply(this, arguments));
 	  }
 	
 	  _createClass(AdvancedFormatter, [{
@@ -40582,7 +41377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        measures.forEach(function (measure) {
-	          measure.width = maxWidth;
+	          measure.setWidth(maxWidth);
 	        });
 	      };
 	
@@ -40672,10 +41467,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        try {
 	          for (var _iterator3 = staffDistanceMap.entries()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	            var _step3$value = _slicedToArray(_step3.value, 2);
-	
-	            var staff = _step3$value[0];
-	            var staffDistance = _step3$value[1];
+	            var _step3$value = _slicedToArray(_step3.value, 2),
+	                staff = _step3$value[0],
+	                staffDistance = _step3$value[1];
 	
 	            var staffLayout = print.staffLayoutMap.get(staff);
 	
@@ -40737,7 +41531,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = AdvancedFormatter;
 
 /***/ },
-/* 328 */
+/* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40750,7 +41544,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _AdvancedFormatter2 = __webpack_require__(327);
+	var _AdvancedFormatter2 = __webpack_require__(331);
 	
 	var _AdvancedFormatter3 = _interopRequireDefault(_AdvancedFormatter2);
 	
@@ -40772,7 +41566,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function HorizontalFormatter() {
 	    _classCallCheck(this, HorizontalFormatter);
 	
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(HorizontalFormatter).apply(this, arguments));
+	    return _possibleConstructorReturn(this, (HorizontalFormatter.__proto__ || Object.getPrototypeOf(HorizontalFormatter)).apply(this, arguments));
 	  }
 	
 	  _createClass(HorizontalFormatter, [{
@@ -40834,7 +41628,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.applyMaxVerticalDistances();
 	      this.updateMeasureNumbering();
 	
-	      _get(Object.getPrototypeOf(HorizontalFormatter.prototype), 'format', this).call(this);
+	      _get(HorizontalFormatter.prototype.__proto__ || Object.getPrototypeOf(HorizontalFormatter.prototype), 'format', this).call(this);
 	
 	      this.removeCredits();
 	      this.updatePageSize();
@@ -40847,7 +41641,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HorizontalFormatter;
 
 /***/ },
-/* 329 */
+/* 333 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40907,9 +41701,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'setupRenderers',
 	    value: function setupRenderers() {
-	      var _pageSize = this.pageSize;
-	      var width = _pageSize.width;
-	      var height = _pageSize.height;
+	      var _pageSize = this.pageSize,
+	          width = _pageSize.width,
+	          height = _pageSize.height;
 	
 	
 	      this.contexts = [];
@@ -41157,12 +41951,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.score.getCredits().forEach(function (credit) {
 	        var context = _this9.contexts[credit.getPage() - 1];
+	        if (!context) return;
 	
 	        credit.getTexts().forEach(function (_ref2) {
-	          var content = _ref2.content;
-	          var x = _ref2.x;
-	          var y = _ref2.y;
-	          var attributes = _ref2.attributes;
+	          var content = _ref2.content,
+	              x = _ref2.x,
+	              y = _ref2.y,
+	              attributes = _ref2.attributes;
 	
 	          context.save();
 	          attributes.forEach(function (value, key) {
