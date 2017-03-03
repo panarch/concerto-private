@@ -33882,7 +33882,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.measures = measures;
 	    this.numStaffs = null;
 	
-	    this.vfTiesMap = new Map(); // {begin measure index}/{voice} -> vfTies
+	    // this.vfTiesMap = new Map(); // {begin measure index}/{voice} -> vfTies
+	    this.vfTiesMap = new Map(); // {begin mi}/{staff} -> vfTies
 	    this.vfSlursMap = new Map(); // {begin measure index}/{voice} -> vfSlurs
 	  }
 	
@@ -34469,7 +34470,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Stack = exports.splitVFDuration = exports.getVFJustification = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
+	exports.PriorityQueue = exports.Stack = exports.splitVFDuration = exports.getVFJustification = exports.getVFKeySignature = exports.getVFDuration = exports.getVFClef = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -34480,6 +34481,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getMaxDuration = getMaxDuration;
 	exports.getLineGenerator = getLineGenerator;
 	exports.hasSameContents = hasSameContents;
+	exports.convertToStaffNotesMap = convertToStaffNotesMap;
 	
 	var _allegretto = __webpack_require__(299);
 	
@@ -34624,6 +34626,62 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return Stack;
 	}();
 	
+	var PriorityQueue = exports.PriorityQueue = function () {
+	  function PriorityQueue() {
+	    var items = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+	    var sortFunction = arguments[1];
+	
+	    _classCallCheck(this, PriorityQueue);
+	
+	    this.items = items;
+	    this.sortFunction = sortFunction;
+	    this.sorted = false;
+	  }
+	
+	  _createClass(PriorityQueue, [{
+	    key: 'sort',
+	    value: function sort() {
+	      if (!this.sorted) {
+	        this.items.sort(this.sortFunction);
+	        this.sorted = true;
+	      }
+	    }
+	  }, {
+	    key: 'pop',
+	    value: function pop() {
+	      this.sort();
+	      return this.items.splice(0, 1)[0];
+	    }
+	  }, {
+	    key: 'popAll',
+	    value: function popAll() {
+	      this.sort();
+	      var items = this.items;
+	      this.clear();
+	
+	      return items;
+	    }
+	  }, {
+	    key: 'push',
+	    value: function push(item) {
+	      this.sorted = false;
+	      this.items.push(item);
+	    }
+	  }, {
+	    key: 'clear',
+	    value: function clear() {
+	      this.items = [];
+	    }
+	  }, {
+	    key: 'empty',
+	    value: function empty() {
+	      return this.items.length === 0;
+	    }
+	  }]);
+	
+	  return PriorityQueue;
+	}();
+	
 	// notes -> integer
 	
 	
@@ -34708,6 +34766,67 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return arr1.length === arr2.length && arr1.every(function (item1, i) {
 	    return item1 === arr2[i];
 	  });
+	}
+	
+	// It ignores grace notes
+	// This function actually does not need PriorityQueue...
+	function convertToStaffNotesMap(notesMap) {
+	  var pQueueMap = new Map();
+	  var sortFunction = function sortFunction(a, b) {
+	    return a.beginDuration > b.beginDuration ? 1 : -1;
+	  };
+	
+	  notesMap.forEach(function (notes) {
+	    var beginDuration = 0;
+	
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+	
+	    try {
+	      for (var _iterator = notes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var note = _step.value;
+	
+	        if (note.getGrace() || note.getTag() !== 'note') continue;
+	
+	        var staff = note.getStaff();
+	        if (!pQueueMap.has(staff)) {
+	          pQueueMap.set(staff, new PriorityQueue([], sortFunction));
+	        }
+	
+	        var pQueue = pQueueMap.get(staff);
+	        pQueue.push({
+	          note: note,
+	          beginDuration: beginDuration
+	        });
+	
+	        beginDuration += note.getDuration();
+	      }
+	    } catch (err) {
+	      _didIteratorError = true;
+	      _iteratorError = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion && _iterator.return) {
+	          _iterator.return();
+	        }
+	      } finally {
+	        if (_didIteratorError) {
+	          throw _iteratorError;
+	        }
+	      }
+	    }
+	  });
+	
+	  var staffNotesMap = new Map(); // {staff} -> Note[]
+	  pQueueMap.forEach(function (pQueue, staff) {
+	    var notes = pQueue.popAll().map(function (item) {
+	      return item.note;
+	    });
+	    staffNotesMap.set(staff, notes);
+	  });
+	
+	  return staffNotesMap;
 	}
 
 /***/ },
@@ -38362,6 +38481,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _Note2 = _interopRequireDefault(_Note);
 	
+	var _Util = __webpack_require__(312);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -38534,95 +38655,115 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: '_setTiePlacement',
+	    value: function _setTiePlacement(vfTie, placement) {
+	      if (placement === _Note2.default.Placement.ABOVE) {
+	        vfTie.setDirection(-1);
+	      } else if (placement !== _Note2.default.Placement.SINGLE) {
+	        vfTie.setDirection(1);
+	      }
+	    }
+	  }, {
 	    key: '_formatTie',
 	    value: function _formatTie(part) {
-	      var vfTiesMap = new Map();
-	      // key: voice
-	      var tieNotesMap = new Map();
-	      var tieStartIndicesMap = new Map();
-	      var tieStopIndicesMap = new Map();
+	      var _this3 = this;
 	
-	      function setPlacement(vfTie, placement) {
-	        if (placement === _Note2.default.Placement.ABOVE) {
-	          vfTie.setDirection(-1);
-	        } else if (placement !== _Note2.default.Placement.SINGLE) {
-	          vfTie.setDirection(1);
-	        }
-	      }
+	      var vfTiesMap = new Map(); // {start mi}/{stop mi}/{staff} -> VF.Tie[]
+	      var tieParamMap = new Map(); // {staff}/{pitch/alter/octave} -> param { mi, headIndex, note }
 	
 	      part.getMeasures().forEach(function (measure, mi) {
-	        var notesMap = measure.getNotesMap();
+	        if (measure.isNewLineStarting()) {
+	          tieParamMap.forEach(function (tieParam, tieParamKey) {
+	            if (!tieParam.note) {
+	              tieParamMap.delete(tieParamKey);
+	              return;
+	            }
 	
-	        measure.getVoices().forEach(function (voice) {
-	          if (measure.getStaves().length === 0) return;
-	
-	          if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
-	
-	          if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
-	            var firstNote = tieNotesMap.get(voice)[0];
+	            var note = tieParam.note;
 	            var vfTie = new VF.StaveTie({
-	              first_note: firstNote.getVFNote(),
-	              first_indices: tieStartIndicesMap.get(voice),
-	              last_indices: tieStartIndicesMap.get(voice)
+	              first_note: note.getVFNote(),
+	              first_indices: [tieParam.headIndex]
 	            });
 	
-	            setPlacement(vfTie, firstNote.getPlacement());
-	            vfTiesMap.get(mi - 1 + '/' + voice).push(vfTie);
-	            tieNotesMap.get(voice)[0] = undefined;
-	          }
+	            _this3._setTiePlacement(vfTie, tieParam.note.getPlacement());
+	            var key = tieParam.mi + '/' + tieParam.note.getStaff();
+	            vfTiesMap.has(key) ? vfTiesMap.get(key).push(vfTie) : vfTiesMap.set(key, [vfTie]);
 	
-	          var vfTies = [];
-	          notesMap.get(voice).forEach(function (note) {
-	            if (note.getTag() !== 'note') return;
-	            if (note.getGrace()) return; // TODO
+	            delete tieParam.note;
+	            delete tieParam.headIndex;
+	          });
+	        }
 	
-	            // 1. stop tie
-	            if (note.heads && note.heads.filter(function (head) {
-	              return (/^stop/.test(head.tied)
-	              );
-	            }).length > 0) {
-	              var tieNotes = tieNotesMap.get(voice);
-	              tieNotes.push(note);
+	        var staffNotesMap = (0, _Util.convertToStaffNotesMap)(measure.getNotesMap());
+	        staffNotesMap.forEach(function (notes, staff) {
+	          if (!measure.getStave(staff)) return;
 	
-	              note.heads.forEach(function (head, index) {
+	          var _iteratorNormalCompletion = true;
+	          var _didIteratorError = false;
+	          var _iteratorError = undefined;
+	
+	          try {
+	            var _loop = function _loop() {
+	              var note = _step.value;
+	
+	              var heads = note.getHeads();
+	
+	              if (!heads) return 'continue';
+	
+	              // 1. stop tie
+	              heads.forEach(function (head, index) {
 	                if (!/^stop/.test(head.tied)) return;
 	
-	                if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
-	                tieStopIndicesMap.get(voice).push(index);
+	                var alter = head.alter !== undefined ? head.alter : 0;
+	                var tieParamKey = staff + '/' + head.step + '/' + alter + '/' + head.octave;
+	                var tieParam = tieParamMap.get(tieParamKey);
+	
+	                var vfTie = new VF.StaveTie({
+	                  first_note: tieParam.note ? tieParam.note.getVFNote() : undefined,
+	                  first_indices: tieParam.note ? [tieParam.headIndex] : undefined,
+	                  last_note: note.getVFNote(),
+	                  last_indices: [index]
+	                });
+	
+	                var key = (tieParam.note ? tieParam.mi : mi) + '/' + staff; // temp
+	                vfTiesMap.has(key) ? vfTiesMap.get(key).push(vfTie) : vfTiesMap.set(key, [vfTie]);
+	
+	                var placement = tieParam.note ? tieParam.note.getPlacement() : note.getPlacement();
+	
+	                _this3._setTiePlacement(vfTie, placement);
+	                tieParamMap.delete(tieParamKey);
 	              });
 	
-	              var _vfTie = new VF.StaveTie({
-	                first_note: tieNotes[0] ? tieNotes[0].getVFNote() : undefined,
-	                last_note: tieNotes[1].getVFNote(),
-	                first_indices: tieStartIndicesMap.get(voice),
-	                last_indices: tieStopIndicesMap.get(voice)
-	              });
-	
-	              var placement = tieNotes[0] ? tieNotes[0].getPlacement() : tieNotes[1].getPlacement();
-	
-	              setPlacement(_vfTie, placement);
-	              vfTies.push(_vfTie);
-	              tieNotesMap.set(voice, []);
-	              tieStartIndicesMap.set(voice, []);
-	              tieStopIndicesMap.set(voice, []);
-	            }
-	
-	            // 2. start tie
-	            if (note.heads && note.heads.filter(function (head) {
-	              return (/start$/.test(head.tied)
-	              );
-	            }).length > 0) {
-	              tieNotesMap.set(voice, [note]);
-	              note.heads.forEach(function (head, index) {
+	              // 2. start tie
+	              heads.forEach(function (head, index) {
 	                if (!/start$/.test(head.tied)) return;
 	
-	                if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
-	                tieStartIndicesMap.get(voice).push(index);
+	                var tieParam = { headIndex: index, note: note, mi: mi };
+	                var alter = head.alter !== undefined ? head.alter : 0;
+	                var tieParamKey = staff + '/' + head.step + '/' + alter + '/' + head.octave;
+	                tieParamMap.set(tieParamKey, tieParam);
 	              });
-	            }
-	          });
+	            };
 	
-	          vfTiesMap.set(mi + '/' + voice, vfTies);
+	            for (var _iterator = notes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	              var _ret = _loop();
+	
+	              if (_ret === 'continue') continue;
+	            }
+	          } catch (err) {
+	            _didIteratorError = true;
+	            _iteratorError = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion && _iterator.return) {
+	                _iterator.return();
+	              }
+	            } finally {
+	              if (_didIteratorError) {
+	                throw _iteratorError;
+	              }
+	            }
+	          }
 	        });
 	
 	        part.setVFTiesMap(vfTiesMap);
@@ -38631,10 +38772,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'formatTie',
 	    value: function formatTie() {
-	      var _this3 = this;
+	      var _this4 = this;
 	
 	      this.score.getParts().forEach(function (part) {
-	        return _this3._formatTie(part);
+	        return _this4._formatTie(part);
 	      });
 	    }
 	  }]);
@@ -41894,8 +42035,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this6.saveAndApplyColor(context, Renderer.COLOR_TIE);
 	          }
 	
-	          measure.getVoices().forEach(function (voice) {
-	            part.getVFTies(mi + '/' + voice).forEach(function (tie) {
+	          measure.getStaffs().forEach(function (staff) {
+	            part.getVFTies(mi + '/' + staff).forEach(function (tie) {
 	              return tie.setContext(context).draw();
 	            });
 	          });
