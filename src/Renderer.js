@@ -156,8 +156,8 @@ export default class Renderer {
           this.saveAndApplyColor(context, Renderer.COLOR_TIE);
         }
 
-        measure.getVoices().forEach(voice => {
-          part.getVFTies(`${mi}/${voice}`).forEach(tie => tie.setContext(context).draw());
+        measure.getStaffs().forEach(staff => {
+          part.getVFTies(`${mi}/${staff}`).forEach(tie => tie.setContext(context).draw());
         });
       });
 

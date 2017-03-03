@@ -99,6 +99,40 @@ export class Stack {
   empty() { return this.items.length === 0; }
 }
 
+export class PriorityQueue {
+  constructor(items = [], sortFunction) {
+    this.items = items;
+    this.sortFunction = sortFunction;
+    this.sorted = false;
+  }
+
+  sort() {
+    if (!this.sorted) {
+      this.items.sort(this.sortFunction);
+      this.sorted = true;
+    }
+  }
+
+  pop() {
+    this.sort();
+    return this.items.splice(0, 1)[0];
+  }
+
+  popAll() {
+    this.sort();
+    const items = this.items;
+    this.clear();
+
+    return items;
+  }
+  push(item) {
+    this.sorted = false;
+    this.items.push(item);
+  }
+  clear() { this.items = []; }
+  empty() { return this.items.length === 0; }
+}
+
 // notes -> integer
 export function sumNotesDuration(notes) {
   return notes.reduce(
@@ -144,4 +178,40 @@ export function getLineGenerator(part) {
 export function hasSameContents(arr1, arr2) {
   return arr1.length === arr2.length &&
     arr1.every((item1, i) => item1 === arr2[i]);
+}
+
+// It ignores grace notes
+// This function actually does not need PriorityQueue...
+export function convertToStaffNotesMap(notesMap) {
+  const pQueueMap = new Map();
+  const sortFunction = (a, b) => a.beginDuration > b.beginDuration ? 1 : -1;
+
+  notesMap.forEach(notes => {
+    let beginDuration = 0;
+
+    for (const note of notes) {
+      if (note.getGrace() || note.getTag() !== 'note') continue;
+
+      const staff = note.getStaff();
+      if (!pQueueMap.has(staff)) {
+        pQueueMap.set(staff, new PriorityQueue([], sortFunction));
+      }
+
+      const pQueue = pQueueMap.get(staff);
+      pQueue.push({
+        note,
+        beginDuration,
+      });
+
+      beginDuration += note.getDuration();
+    }
+  });
+
+  const staffNotesMap = new Map(); // {staff} -> Note[]
+  pQueueMap.forEach((pQueue, staff) => {
+    const notes = pQueue.popAll().map(item => item.note);
+    staffNotesMap.set(staff, notes);
+  });
+
+  return staffNotesMap;
 }

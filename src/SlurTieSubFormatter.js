@@ -2,6 +2,7 @@ import Vex from '@panarch/allegretto';
 const VF = Vex.Flow;
 
 import Note from './Note';
+import { convertToStaffNotesMap } from './Util';
 
 export default class SlurTieSubFormatter {
   constructor({ formatter, score }) {
@@ -156,92 +157,90 @@ export default class SlurTieSubFormatter {
     this.score.getParts().forEach(part => this._formatSlur(part));
   }
 
-  _formatTie(part) {
-    const vfTiesMap = new Map();
-    // key: voice
-    const tieNotesMap = new Map();
-    const tieStartIndicesMap = new Map();
-    const tieStopIndicesMap = new Map();
-
-    function setPlacement(vfTie, placement) {
-      if (placement === Note.Placement.ABOVE) {
-        vfTie.setDirection(-1);
-      } else if (placement !== Note.Placement.SINGLE){
-        vfTie.setDirection(1);
-      }
+  _setTiePlacement(vfTie, placement) {
+    if (placement === Note.Placement.ABOVE) {
+      vfTie.setDirection(-1);
+    } else if (placement !== Note.Placement.SINGLE){
+      vfTie.setDirection(1);
     }
+  }
+
+  _formatTie(part) {
+    const vfTiesMap = new Map(); // {start mi}/{stop mi}/{staff} -> VF.Tie[]
+    const tieParamMap = new Map(); // {staff}/{pitch/alter/octave} -> param { mi, headIndex, note }
 
     part.getMeasures().forEach((measure, mi) => {
-      const notesMap = measure.getNotesMap();
+      if (measure.isNewLineStarting()) {
+        tieParamMap.forEach((tieParam, tieParamKey) => {
+          if (!tieParam.note) {
+            tieParamMap.delete(tieParamKey);
+            return;
+          }
 
-      measure.getVoices().forEach(voice => {
-        if (measure.getStaves().length === 0) return;
-
-        if (!tieNotesMap.has(voice)) tieNotesMap.set(voice, []);
-
-        if (measure.isNewLineStarting() && tieNotesMap.get(voice).length > 0) {
-          const firstNote = tieNotesMap.get(voice)[0];
+          const note = tieParam.note;
           const vfTie = new VF.StaveTie({
-            first_note: firstNote.getVFNote(),
-            first_indices: tieStartIndicesMap.get(voice),
-            last_indices: tieStartIndicesMap.get(voice),
+            first_note: note.getVFNote(),
+            first_indices: [tieParam.headIndex],
           });
 
-          setPlacement(vfTie, firstNote.getPlacement());
-          vfTiesMap.get(`${mi - 1}/${voice}`).push(vfTie);
-          tieNotesMap.get(voice)[0] = undefined;
-        }
+          this._setTiePlacement(vfTie, tieParam.note.getPlacement());
+          const key = `${tieParam.mi}/${tieParam.note.getStaff()}`;
+          vfTiesMap.has(key) ?
+            vfTiesMap.get(key).push(vfTie) :
+            vfTiesMap.set(key, [vfTie]);
 
-        const vfTies = [];
-        notesMap.get(voice).forEach(note => {
-          if (note.getTag() !== 'note') return;
-          if (note.getGrace()) return; // TODO
+          delete tieParam.note;
+          delete tieParam.headIndex;
+        });
+      }
+
+      const staffNotesMap = convertToStaffNotesMap(measure.getNotesMap());
+      staffNotesMap.forEach((notes, staff) => {
+        if (!measure.getStave(staff)) return;
+
+        for (const note of notes) {
+          const heads = note.getHeads();
+
+          if (!heads) continue;
 
           // 1. stop tie
-          if (note.heads &&
-              note.heads.filter(head => /^stop/.test(head.tied)).length > 0) {
-            let tieNotes = tieNotesMap.get(voice);
-            tieNotes.push(note);
+          heads.forEach((head, index) => {
+            if (!/^stop/.test(head.tied)) return;
 
-            note.heads.forEach((head, index) => {
-              if (!/^stop/.test(head.tied)) return;
-
-              if (!tieStopIndicesMap.has(voice)) tieStopIndicesMap.set(voice, []);
-              tieStopIndicesMap.get(voice).push(index);
-            });
+            const alter = head.alter !== undefined ? head.alter : 0;
+            const tieParamKey = `${staff}/${head.step}/${alter}/${head.octave}`;
+            const tieParam = tieParamMap.get(tieParamKey);
 
             const vfTie = new VF.StaveTie({
-              first_note: tieNotes[0] ? tieNotes[0].getVFNote() : undefined,
-              last_note: tieNotes[1].getVFNote(),
-              first_indices: tieStartIndicesMap.get(voice),
-              last_indices: tieStopIndicesMap.get(voice),
+              first_note: tieParam.note ? tieParam.note.getVFNote() : undefined,
+              first_indices: tieParam.note ? [tieParam.headIndex] : undefined,
+              last_note: note.getVFNote(),
+              last_indices: [index],
             });
 
-            const placement = tieNotes[0] ?
-              tieNotes[0].getPlacement() :
-              tieNotes[1].getPlacement();
+            const key = `${tieParam.note ? tieParam.mi : mi}/${staff}`; // temp
+            vfTiesMap.has(key) ?
+              vfTiesMap.get(key).push(vfTie) :
+              vfTiesMap.set(key, [vfTie]);
 
-            setPlacement(vfTie, placement);
-            vfTies.push(vfTie);
-            tieNotesMap.set(voice, []);
-            tieStartIndicesMap.set(voice, []);
-            tieStopIndicesMap.set(voice, []);
-          }
+            const placement = tieParam.note ?
+              tieParam.note.getPlacement() :
+              note.getPlacement();
+            
+            this._setTiePlacement(vfTie, placement);
+            tieParamMap.delete(tieParamKey);
+          });
 
           // 2. start tie
-          if (note.heads &&
-              note.heads.filter(head => /start$/.test(head.tied)).length > 0) {
-            tieNotesMap.set(voice, [note]);
-            note.heads.forEach((head, index) => {
-              if (!/start$/.test(head.tied)) return;
+          heads.forEach((head, index) => {
+            if (!/start$/.test(head.tied)) return;
 
-              if (!tieStartIndicesMap.has(voice)) tieStartIndicesMap.set(voice, []);
-              tieStartIndicesMap.get(voice).push(index);
-            });
-          }
-        });
-
-        vfTiesMap.set(`${mi}/${voice}`, vfTies);
+            const tieParam = { headIndex: index, note, mi };
+            const alter = head.alter !== undefined ? head.alter : 0;
+            const tieParamKey = `${staff}/${head.step}/${alter}/${head.octave}`;
+            tieParamMap.set(tieParamKey, tieParam);
+          });
+        }
       });
 
       part.setVFTiesMap(vfTiesMap);

@@ -7,7 +7,8 @@ export default class Part {
     this.measures = measures;
     this.numStaffs = null;
 
-    this.vfTiesMap = new Map(); // {begin measure index}/{voice} -> vfTies
+    // this.vfTiesMap = new Map(); // {begin measure index}/{voice} -> vfTies
+    this.vfTiesMap = new Map(); // {begin mi}/{staff} -> vfTies
     this.vfSlursMap = new Map(); // {begin measure index}/{voice} -> vfSlurs
   }
 
