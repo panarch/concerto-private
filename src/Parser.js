@@ -3,7 +3,7 @@
 
 import { parsePart } from './PartParser';
 import { parseSystemLayout, parseStaffLayout, parsePageLayout } from './LayoutParser';
-import { rectify } from './rectifier';
+import { rectify } from './Rectifier';
 import Score from './Score';
 import Movement from './Movement';
 import Identification from './Identification';
